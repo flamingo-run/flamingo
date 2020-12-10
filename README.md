@@ -24,5 +24,7 @@
    - `Storage Admin`
    - `Cloud Datastore Admin`
 - Deploy Flamingo as the service account create previously
-- [Enable Firestore](https://console.cloud.google.com/firestore/data) using Datastore mode in Flamingo's project
- 
+- [Enable Firestore](https://console.cloud.google.com/firestore/data) using Datastore mode
+- [Enable Resource Manager](https://console.developers.google.com/apis/library/cloudresourcemanager.googleapis.com)
+- [Enable Cloud SQL](https://console.developers.google.com/apis/api/sqladmin.googleapis.com/overview)
+- [Enable IAM](https://console.developers.google.com/apis/api/iam.googleapis.com/overview)
