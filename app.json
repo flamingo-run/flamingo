@@ -1,0 +1,35 @@
+{
+  "name": "flamingo",
+  "env": {
+    "DEFAULT_PROJECT": {
+      "description": "name of the project to be used as default for app deployment",
+      "required": true
+    },
+    "DEFAULT_REGION": {
+      "description": "region name to be used as default",
+      "required": true
+    },
+    "DEFAULT_PROJECT_NETWORK": {
+      "description": "name of the project to be used as network configuration.",
+      "value": "",
+      "required": false
+    },
+    "DEFAULT_ROLE": {
+      "description": "role name to automatically assign to the app's service account",
+      "required": true
+    },
+    "API_HOST": {
+      "description": "domain of this service, as required by OpenAPI",
+      "required": true
+    },
+    "SECRET": {
+      "generator": "secret"
+    }
+  },
+  "options": {
+    "allow-unauthenticated": true,
+    "memory": "128Mi",
+    "cpu": "1",
+    "port": "80"
+  }
+}
