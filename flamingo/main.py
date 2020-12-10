@@ -1,4 +1,5 @@
-import os
+import os, sys
+sys.path.append(os.path.dirname(__file__))
 
 from sanic import Sanic
 from sanic_openapi import swagger_blueprint

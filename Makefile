@@ -28,7 +28,7 @@ run-server:
 	@poetry run flamingo/main.py
 
 prd-run-server:
-	cd flamingo && poetry run python -m sanic main.app --host=0.0.0.0 --port=$PORT
+	cd flamingo && poetry run python -m sanic main.app --host=0.0.0.0 --port=${PORT}
 
 
 .PHONY: setup dependencies update test check lint unit static migrate run-server
