@@ -21,5 +21,4 @@ RUN poetry install --no-dev --no-root
 COPY . .
 
 # Prepare image entrypoint
-WORKDIR $APP_HOME/flamingo
-ENTRYPOINT python -m sanic main.app --host=0.0.0.0 --port=$PORT
+CMD exec make prd-run-server
