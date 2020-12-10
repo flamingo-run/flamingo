@@ -4,9 +4,9 @@ from typing import List, Dict, Any
 
 from google.api_core.exceptions import AlreadyExists
 from google.cloud.devtools import cloudbuild_v1
+from google.cloud.devtools.cloudbuild_v1 import Build
 
 from pilot.base import GoogleCloudPilotAPI
-
 
 TriggerType = cloudbuild_v1.BuildTrigger
 
@@ -14,7 +14,14 @@ TriggerType = cloudbuild_v1.BuildTrigger
 class GoogleCloudBuild(GoogleCloudPilotAPI):
     _client_class = cloudbuild_v1.CloudBuildClient
 
-    def make_build_step(self, name: str, id: str = None, args: list = None, env=None, entrypoint: str = None) -> cloudbuild_v1.BuildStep:
+    def make_build_step(
+            self,
+            name: str,
+            id: str = None,
+            args: list = None,
+            env=None,
+            entrypoint: str = None,
+    ) -> cloudbuild_v1.BuildStep:
         return cloudbuild_v1.BuildStep(
             id=id,
             name=name,
@@ -23,7 +30,18 @@ class GoogleCloudBuild(GoogleCloudPilotAPI):
             entrypoint=entrypoint,
         )
 
-    def _make_trigger(self, name: str, description: str, repo_name: str, steps: List[cloudbuild_v1.BuildStep], branch_name: str, tags: List[str], project_id: str, images: List[str] = None, substitutions: Dict[str, str] = None) -> cloudbuild_v1.BuildTrigger:
+    def _make_trigger(
+            self,
+            name: str,
+            description: str,
+            repo_name: str,
+            steps: List[cloudbuild_v1.BuildStep],
+            branch_name: str,
+            tags: List[str],
+            project_id: str,
+            images: List[str] = None,
+            substitutions: Dict[str, str] = None,
+    ) -> cloudbuild_v1.BuildTrigger:
         return cloudbuild_v1.BuildTrigger(
             name=name,
             description=description,
@@ -54,7 +72,18 @@ class GoogleCloudBuild(GoogleCloudPilotAPI):
         )
         return response
 
-    async def create_trigger(self, name: str, description: str, repo_name: str, steps: List[cloudbuild_v1.BuildStep], branch_name: str = 'master', tags: List[str] = None, project_id: str = None, images: List[str] = None, substitutions: Dict[str, str] = None) -> TriggerType:
+    async def create_trigger(
+            self,
+            name: str,
+            description: str,
+            repo_name: str,
+            steps: List[cloudbuild_v1.BuildStep],
+            branch_name: str = 'master',
+            tags: List[str] = None,
+            project_id: str = None,
+            images: List[str] = None,
+            substitutions: Dict[str, str] = None,
+    ) -> TriggerType:
         trigger = self._make_trigger(
             name=name,
             description=description,
@@ -73,7 +102,18 @@ class GoogleCloudBuild(GoogleCloudPilotAPI):
         )
         return response
 
-    async def update_trigger(self, name: str, description: str, repo_name: str, steps: List[cloudbuild_v1.BuildStep], branch_name: str = 'master', tags: List[str] = None, project_id: str = None, images: List[str] = None, substitutions: Dict[str, str] = None) -> TriggerType:
+    async def update_trigger(
+            self,
+            name: str,
+            description: str,
+            repo_name: str,
+            steps: List[cloudbuild_v1.BuildStep],
+            branch_name: str = 'master',
+            tags: List[str] = None,
+            project_id: str = None,
+            images: List[str] = None,
+            substitutions: Dict[str, str] = None,
+    ) -> TriggerType:
         trigger = self._make_trigger(
             name=name,
             description=description,
@@ -93,7 +133,18 @@ class GoogleCloudBuild(GoogleCloudPilotAPI):
         )
         return response
 
-    async def create_or_update_trigger(self, name: str, description: str, repo_name: str, steps: List[cloudbuild_v1.BuildStep], branch_name: str = 'master', tags: List[str] = None, project_id: str = None, images: List[str] = None, substitutions: Dict[str, str] = None) -> TriggerType:
+    async def create_or_update_trigger(
+            self,
+            name: str,
+            description: str,
+            repo_name: str,
+            steps: List[cloudbuild_v1.BuildStep],
+            branch_name: str = 'master',
+            tags: List[str] = None,
+            project_id: str = None,
+            images: List[str] = None,
+            substitutions: Dict[str, str] = None,
+    ) -> TriggerType:
         create_args = dict(
             name=name,
             description=description,
@@ -111,7 +162,7 @@ class GoogleCloudBuild(GoogleCloudPilotAPI):
         except AlreadyExists:
             return await self.update_trigger(**create_args)
 
-    def get_builds(self, trigger_id=None, project_id=None):
+    def get_builds(self, trigger_id: str = None, project_id: str = None) -> Build:
         # https://cloud.google.com/cloud-build/docs/view-build-results#filtering_build_results_using_queries
         filters = []
         if trigger_id:
@@ -161,6 +212,6 @@ class SubstitutionHelper:
             for variable in self._variables.values()
         }
 
-    def __getattr__(self, item):
+    def __getattr__(self, item: str):
         # Useful tool to ease the variable access (eg. substitution.MY_VAR_NAME)
         return self._variables[item.upper()]

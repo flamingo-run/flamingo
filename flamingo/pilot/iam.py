@@ -5,7 +5,6 @@ from googleapiclient.errors import HttpError
 
 from pilot.base import GoogleCloudPilotAPI
 
-
 PolicyType = Dict[str, Any]
 AccountType = Dict[str, Any]
 
@@ -24,7 +23,13 @@ class GoogleIAM(GoogleCloudPilotAPI):
             name=full_name,
         ).execute()
 
-    async def create_service_account(self, name: str, display_name: str, project_id: str = None, exists_ok: bool = True) -> AccountType:
+    async def create_service_account(
+            self,
+            name: str,
+            display_name: str,
+            project_id: str = None,
+            exists_ok: bool = True,
+    ) -> AccountType:
         try:
             service_account = self.client.projects().serviceAccounts().create(
                 name='projects/' + project_id or self.project_id,
@@ -48,7 +53,7 @@ class GoogleIAM(GoogleCloudPilotAPI):
 
         return service_accounts
 
-    def _get_policy(self, email:str, project_id: str = None) -> PolicyType:
+    def _get_policy(self, email: str, project_id: str = None) -> PolicyType:
         project_id = project_id or self.project_id
         resource = f'projects/{project_id}/serviceAccounts/{email}'
         return self.client.projects().serviceAccounts().getIamPolicy(
@@ -81,7 +86,8 @@ class GoogleIAM(GoogleCloudPilotAPI):
         ).execute()
         return policy
 
-    async def remove_member(self, target_email: str, member_email: str, role: str, project_id: str = None) -> PolicyType:
+    async def remove_member(self, target_email: str, member_email: str, role: str,
+                            project_id: str = None) -> PolicyType:
         policy = self._get_policy(email=target_email, project_id=project_id)
         role_id = f'roles/{role}'
         member = self.as_member(email=member_email)

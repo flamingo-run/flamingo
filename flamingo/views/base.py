@@ -1,19 +1,17 @@
 import abc
 from pathlib import Path
-from typing import Tuple, Union, Dict, Any, Callable, List
+from typing import Tuple, Dict, Any
 
 import aiofiles
 from sanic.request import Request, RequestParameters, File
-from sanic.views import HTTPMethodView
 from sanic.response import json, HTTPResponse
+from sanic.views import HTTPMethodView
 
 import settings
 from models.base import Document, DoesNotExist
 
-
 PayloadType = Dict[str, Any]
 ResponseType = Tuple[PayloadType, int]
-
 
 NotFoundResponse = json({"error": "Not found"}, 404)
 NotAllowedResponse = json({'error': "Not allowed"}, 405)
@@ -39,7 +37,7 @@ class ListView(ViewBase):
 
     async def post(self, request: Request) -> HTTPResponse:
         data, status = await self.perform_create(data=request.json)
-        return json(data, 201)
+        return json(data, status)
 
     async def perform_create(self, data: PayloadType) -> ResponseType:
         obj = self.model.create(**data)

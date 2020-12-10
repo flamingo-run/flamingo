@@ -1,21 +1,20 @@
+# pylint: disable=too-many-lines
 from __future__ import annotations
 
 import asyncio
-import json
 from dataclasses import dataclass, field
 from typing import List, Dict
 
 import settings
+from models import BuildPack
+from models.base import Document, EmbeddedDocument, KeyValueEmbeddedDocument, random_password, Project
 from models.environment import Environment
+from pilot import GoogleIAM
 from pilot import GoogleResourceManager
 from pilot.build import GoogleCloudBuild, SubstitutionHelper
-from pilot import GoogleIAM
 from pilot.source import GoogleCloudSourceRepo
 from pilot.sql import GoogleCloudSQL
 from pilot.storage import GoogleCloudStorage
-from models import BuildPack
-from models.base import Document, EmbeddedDocument, KeyValueEmbeddedDocument, random_password, Project
-
 
 REDACTED = '**********'
 
@@ -414,7 +413,7 @@ class App(Document):
             name='gcr.io/cloud-builders/docker',
             id="Image Cache",
             entrypoint='bash',
-            args=["-c",  f"docker pull {substitution.IMAGE_NAME} || exit 0"],
+            args=["-c", f"docker pull {substitution.IMAGE_NAME} || exit 0"],
         )
 
         substitution.add(DOCKERFILE_LOCATION=build_pack.remote_dockerfile)
