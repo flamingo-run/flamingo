@@ -21,4 +21,4 @@ RUN poetry install --no-dev --no-root
 COPY . .
 
 # Prepare image entrypoint
-CMD exec make prd-run-server
+CMD exec make run-server
