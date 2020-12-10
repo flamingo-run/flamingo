@@ -79,7 +79,7 @@ class Repository(EmbeddedDocument):
     name: str
     url: str = None
     mirrored: bool = False
-    project: Project = field(default_factory=Project.default)
+    project: Project = field(default_factory=Project.default_for_flamingo)
 
     def serialize(self) -> dict:
         data = super().serialize()
@@ -219,7 +219,7 @@ class BuildSetup(EmbeddedDocument):
     post_build_commands: List[str] = field(default_factory=list)
     os_dependencies: List[str] = field(default_factory=list)
     labels: List[Label] = field(default_factory=list)
-    project: Project = field(default_factory=Project.default)
+    project: Project = field(default_factory=Project.default_for_flamingo)
     memory: int = 256  # measured in Mi
     cpu: int = 1  # number of cores
     max_instances: int = 10

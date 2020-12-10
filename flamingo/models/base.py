@@ -234,6 +234,12 @@ class Project(EmbeddedDocument):
             id=settings.DEFAULT_PROJECT_NETWORK,
         )
 
+    @classmethod
+    def default_for_flamingo(cls) -> Project:
+        return cls(
+            id=settings.FLAMINGO_PROJECT,
+        )
+
     def __post_init__(self):
         if not self.number:
             project_info = GoogleResourceManager().get_project(project_id=self.id)
