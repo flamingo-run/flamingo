@@ -1,7 +1,10 @@
 import abc
+import os
 
 from google import auth
 from googleapiclient.discovery import build
+
+DEFAULT_PROJECT_ID = os.environ.get('PROJECT_ID')
 
 
 class GoogleCloudPilotAPI(abc.ABC):
@@ -10,8 +13,10 @@ class GoogleCloudPilotAPI(abc.ABC):
     _iam_roles = []
 
     def __init__(self, subject=None, **kwargs):
-        self.credentials = self._build_credentials(subject=subject)
-        self.project_id = kwargs.get('project') or self.credentials.project_id
+        self.credentials, project_id = self._build_credentials(subject=subject)
+        self.project_id = kwargs.get('project') \
+            or DEFAULT_PROJECT_ID \
+            or getattr(self.credentials, 'project_id', project_id)
 
         self.client = (self._client_class or build)(
             credentials=self.credentials,
@@ -20,12 +25,10 @@ class GoogleCloudPilotAPI(abc.ABC):
 
     @classmethod
     def _build_credentials(cls, subject=None):
-        credentials, _ = auth.default()
-
+        credentials, project_id = auth.default()
         if subject:
             credentials = credentials.with_subject(subject=subject)
-
-        return credentials
+        return credentials, project_id
 
     @property
     def oidc_token(self):
