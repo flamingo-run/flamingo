@@ -13,14 +13,14 @@ class GoogleCloudSourceRepo(GoogleCloudPilotAPI):
             version='v1',
         )
 
-    async def get_repo(self, name, project_id=None):
+    async def get_repo(self, name: str, project_id: str = None):
         parent = f'projects/{project_id or self.project_id}'
         name = f'{parent}/repos/{name}'
         return self.client.projects().repos().get(
             name=name,
         ).execute()
 
-    async def create_repo(self, name, project_id=None, exists_ok=True):
+    async def create_repo(self, name: str, project_id: str = None, exists_ok: bool = True):
         parent = f'projects/{project_id or self.project_id}'
         body = dict(
             name=f'{parent}/repos/{name}',

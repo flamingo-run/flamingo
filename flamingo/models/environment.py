@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+# Avoid cyclic import
+from typing import TYPE_CHECKING
 
 from models.base import Document, Project, EmbeddedDocument
 
-
-# Avoid cyclic import
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from models import App
+    pass
 
 
 @dataclass

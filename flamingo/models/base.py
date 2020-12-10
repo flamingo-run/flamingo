@@ -1,15 +1,15 @@
 from __future__ import annotations
 
+import random
 import string
 from abc import ABC
-from dataclasses import dataclass, asdict, fields
-import random
+from dataclasses import dataclass, fields
 from typing import Type, Generator, get_type_hints, get_args, Dict
 
 from google.cloud.firestore_v1 import CollectionReference
 
 import settings
-from pilot import GoogleIAM
+from pilot import GoogleIAM, GoogleResourceManager
 
 
 @dataclass
@@ -223,7 +223,6 @@ class Project(EmbeddedDocument):
 
     def __post_init__(self):
         if not self.number:
-            from pilot.base import GoogleResourceManager
             project_info = GoogleResourceManager().get_project(project_id=self.id)
             self.number = project_info['projectNumber']
 

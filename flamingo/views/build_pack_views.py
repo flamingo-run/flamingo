@@ -1,7 +1,5 @@
-from pathlib import Path
-
 from sanic import Blueprint
-from sanic.request import RequestParameters, File
+from sanic.request import File
 
 import models
 from views.base import DetailView, ListView, ResponseType, PayloadType

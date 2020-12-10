@@ -16,18 +16,28 @@ class GoogleCloudSQL(GoogleCloudPilotAPI):
             version='v1beta4',
         )
 
-    async def list_instances(self, project_id=None):
+    async def list_instances(self, project_id: str = None):
         return self.client.instances().list(
             project=project_id or self.project_id,
         ).execute()
 
-    async def get_instance(self, name, project_id=None):
+    async def get_instance(self, name: str, project_id: str = None):
         return self.client.instances().get(
             instance=name,
             project=project_id or self.project_id,
         ).execute()
 
-    async def create_instance(self, name, version, tier, region, ha=False, project_id=None, exists_ok=True, wait_ready=True):
+    async def create_instance(
+            self,
+            name: str,
+            version: str,
+            tier: str,
+            region: str,
+            ha: bool = False,
+            project_id: str = None,
+            exists_ok: bool = True,
+            wait_ready: bool = True,
+    ):
         body = dict(
             name=name,
             database_version=version,
@@ -67,7 +77,7 @@ class GoogleCloudSQL(GoogleCloudPilotAPI):
         print(f"Instance {name} is {current_state}!")
         return sql_instance
 
-    async def get_database(self, instance, database, project_id=None):
+    async def get_database(self, instance: str, database: str, project_id: str = None):
         project_id = project_id or self.project_id
         return self.client.databases().get(
             instance=instance,
@@ -75,7 +85,7 @@ class GoogleCloudSQL(GoogleCloudPilotAPI):
             project=project_id,
         ).execute()
 
-    async def create_database(self, name, instance, project_id=None, exists_ok=True):
+    async def create_database(self, name: str, instance: str, project_id: str = None, exists_ok: bool = True):
         body = dict(
             name=name,
         )
@@ -95,13 +105,13 @@ class GoogleCloudSQL(GoogleCloudPilotAPI):
                 return await self.get_database(instance=instance, database=name, project_id=project_id)
             raise
 
-    async def list_users(self, instance, project_id=None):
+    async def list_users(self, instance: str, project_id: str = None):
         return self.client.users().list(
             instance=instance,
             project=project_id or self.project_id,
         ).execute()
 
-    async def create_user(self, name, password, instance, project_id=None):
+    async def create_user(self, name: str, password: str, instance: str, project_id: str = None):
         body = dict(
             name=name,
             password=password,

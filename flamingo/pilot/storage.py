@@ -8,7 +8,7 @@ from pilot.base import GoogleCloudPilotAPI
 class GoogleCloudStorage(GoogleCloudPilotAPI):
     _client_class = storage.Client
 
-    async def create_bucket(self, name, region, project_id=None, exists_ok=True):
+    async def create_bucket(self, name: str, region: str, project_id: str = None, exists_ok: bool = True):
         bucket = self.client.bucket(name)
         try:
             return self.client.create_bucket(
@@ -24,7 +24,13 @@ class GoogleCloudStorage(GoogleCloudPilotAPI):
     async def check_bucket(self, name):
         return self.client.get_bucket(bucket_or_name=name)
 
-    async def upload(self, bucket_name, source_file_name, destination_blob_name, is_public=False):
+    async def upload(
+            self,
+            bucket_name: str,
+            source_file_name: str,
+            destination_blob_name: str,
+            is_public: bool = False,
+    ):
         bucket = self.client.bucket(bucket_name)
         blob = bucket.blob(destination_blob_name)
         blob.upload_from_filename(source_file_name)

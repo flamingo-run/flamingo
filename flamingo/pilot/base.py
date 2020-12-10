@@ -1,7 +1,7 @@
 import abc
 
-from googleapiclient.discovery import build
 from google import auth
+from googleapiclient.discovery import build
 
 
 class GoogleCloudPilotAPI(abc.ABC):
@@ -51,19 +51,19 @@ class GoogleResourceManager(GoogleCloudPilotAPI):
             version='v1',
         )
 
-    def as_member(self, email):
+    def as_member(self, email: str) -> str:
         is_service_account = email.endswith('.gserviceaccount.com')
         prefix = 'serviceAccount' if is_service_account else 'member'
         return f'{prefix}:{email}'
 
-    def _get_policy(self, project_id=None, version=1):
+    def _get_policy(self, project_id: str = None, version: int = 1):
         policy = self.client.projects().getIamPolicy(
             resource=project_id or self.project_id,
             body={"options": {"requestedPolicyVersion": version}},
         ).execute()
         return policy
 
-    async def add_member(self, email, role, project_id=None):
+    async def add_member(self, email: str, role: str, project_id: str = None):
         policy = self._get_policy(project_id=project_id)
         role_id = role if role.startswith('organizations/') or role.startswith('roles/') else f'roles/{role}'
         member = self.as_member(email=email)
@@ -83,7 +83,7 @@ class GoogleResourceManager(GoogleCloudPilotAPI):
         ).execute()
         return policy
 
-    async def remove_member(self, email, role, project_id=None):
+    async def remove_member(self, email: str, role: str, project_id: str = None):
         policy = self._get_policy(project_id=project_id)
         role_id = f'roles/{role}'
         member = self.as_member(email=email)
@@ -100,7 +100,7 @@ class GoogleResourceManager(GoogleCloudPilotAPI):
         ).execute()
         return policy
 
-    def get_project(self, project_id):
+    def get_project(self, project_id: str):
         return self.client.projects().get(
             projectId=project_id or self.project_id,
         ).execute()

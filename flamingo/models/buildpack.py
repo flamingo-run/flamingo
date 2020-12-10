@@ -2,17 +2,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, TYPE_CHECKING
 
 import settings
-from pilot import GoogleCloudStorage
 from models.base import Document
+from pilot import GoogleCloudStorage
 
-# Avoid cyclic import
-from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from models import App
-
+    from models import App  # pylint: disable=ungrouped-imports
 
 KeyValue = Dict[str, str]
 
