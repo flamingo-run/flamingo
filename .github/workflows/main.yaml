@@ -1,0 +1,34 @@
+name: Github CI
+
+on:
+  pull_request:
+    branches:
+      - '**'
+  push:
+    branches:
+      - master
+
+jobs:
+  linter:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.8
+
+    - name: Cache dependencies
+      uses: actions/cache@v1
+      with:
+        path: ~/.cache/pypoetry
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/poetry.lock') }}
+
+    - name: Install dependencies
+      run: |
+        make dependencies
+
+    - name: Lint with pylint
+      run: |
+        make lint
