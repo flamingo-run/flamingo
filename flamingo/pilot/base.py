@@ -68,7 +68,7 @@ class GoogleResourceManager(GoogleCloudPilotAPI):
 
     async def add_member(self, email: str, role: str, project_id: str = None):
         policy = self._get_policy(project_id=project_id)
-        role_id = role if role.startswith('organizations/') or role.startswith('roles/') else f'roles/{role}'
+        role_id = role if (role.startswith('organizations/') or role.startswith('roles/')) else f'roles/{role}'
         member = self.as_member(email=email)
 
         try:
@@ -77,7 +77,7 @@ class GoogleResourceManager(GoogleCloudPilotAPI):
                 return policy
             binding['members'].append(member)
         except StopIteration:
-            binding = {"role": role, "members": [member]}
+            binding = {"role": role_id, "members": [member]}
             policy['bindings'].append(binding)
 
         policy = self.client.projects().setIamPolicy(

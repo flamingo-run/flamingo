@@ -67,7 +67,7 @@ class GoogleIAM(GoogleCloudPilotAPI):
 
     async def bind_member(self, target_email, member_email, role, project_id=None) -> PolicyType:
         policy = self._get_policy(email=target_email, project_id=project_id)
-        role_id = role if role.startswith('organizations/') or role.startswith('roles/') else f'roles/{role}'
+        role_id = role if (role.startswith('organizations/') or role.startswith('roles/')) else f'roles/{role}'
         member = self.as_member(email=member_email)
 
         try:
@@ -76,7 +76,7 @@ class GoogleIAM(GoogleCloudPilotAPI):
                 return policy
             binding['members'].append(member)
         except StopIteration:
-            binding = {"role": role, "members": [member]}
+            binding = {"role": role_id, "members": [member]}
             policy['bindings'].append(binding)
 
         resource = f'projects/{project_id}/serviceAccounts/{target_email}'
