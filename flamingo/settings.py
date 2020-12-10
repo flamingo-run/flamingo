@@ -8,13 +8,13 @@ from google.cloud import datastore
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 PROJECT_DIR = BASE_DIR / 'flamingo'
 
-cred, _ = auth.default()
+cred, project_id = auth.default()
 db = datastore.Client()
 
-FLAMINGO_PROJECT = os.environ.get('FLAMINGO_PROJECT', cred.project_id)
+FLAMINGO_PROJECT = os.environ.get('FLAMINGO_PROJECT', project_id)
 FLAMINGO_GCS_BUCKET = os.environ.get('FLAMINGO_GCS_BUCKET', f'{FLAMINGO_PROJECT}-flamingo')
 
-DEFAULT_PROJECT = os.environ.get('DEFAULT_PROJECT', cred.project_id)
+DEFAULT_PROJECT = os.environ.get('DEFAULT_PROJECT', project_id)
 DEFAULT_PROJECT_NETWORK = os.environ.get('DEFAULT_PROJECT_NETWORK', DEFAULT_PROJECT)
 DEFAULT_REGION = os.environ.get('DEFAULT_REGION', 'us-east1')
 DEFAULT_DB_VERSION = os.environ.get('DEFAULT_DB_VERSION', 'POSTGRES_12')
