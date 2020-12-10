@@ -75,9 +75,9 @@ class GoogleIAM(GoogleCloudPilotAPI):
             if member in binding['members']:
                 return policy
             binding['members'].append(member)
-        except StopIteration:
+        except (StopIteration, KeyError):
             binding = {"role": role_id, "members": [member]}
-            policy['bindings'].append(binding)
+            policy['bindings'] = policy.get('bindings', []).append(binding)
 
         resource = f'projects/{project_id}/serviceAccounts/{target_email}'
         policy = self.client.projects().serviceAccounts().setIamPolicy(

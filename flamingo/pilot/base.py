@@ -76,9 +76,9 @@ class GoogleResourceManager(GoogleCloudPilotAPI):
             if member in binding['members']:
                 return policy
             binding['members'].append(member)
-        except StopIteration:
+        except (StopIteration, KeyError):
             binding = {"role": role_id, "members": [member]}
-            policy['bindings'].append(binding)
+            policy['bindings'] = policy.get('bindings', []).append(binding)
 
         policy = self.client.projects().setIamPolicy(
             resource=project_id or self.project_id,
