@@ -10,7 +10,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.8"
 sanic = "*"
-firebase-admin = "*"
+google-cloud-datastore = "*"
 gitpython = "*"
 sanic-openapi = "*"
 google-api-python-client = "*"

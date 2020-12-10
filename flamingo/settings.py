@@ -1,16 +1,15 @@
 import os
 from pathlib import Path
 
-import firebase_admin
-from firebase_admin import firestore, credentials
+from google import auth
+from google.cloud import datastore
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 PROJECT_DIR = BASE_DIR / 'flamingo'
 
-cred = credentials.ApplicationDefault()
-firebase_admin.initialize_app(cred)
-db = firestore.client()
+cred, _ = auth.default()
+db = datastore.Client()
 
 FLAMINGO_PROJECT = os.environ.get('FLAMINGO_PROJECT', cred.project_id)
 FLAMINGO_GCS_BUCKET = os.environ.get('FLAMINGO_GCS_BUCKET', f'{FLAMINGO_PROJECT}-flamingo')

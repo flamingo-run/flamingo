@@ -20,22 +20,6 @@ six = ">=1.12,<2.0"
 wrapt = ">=1.11,<2.0"
 
 [[package]]
-name = "cachecontrol"
-version = "0.12.6"
-description = "httplib2 caching for requests"
-category = "main"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-
-[package.dependencies]
-msgpack = ">=0.5.2"
-requests = "*"
-
-[package.extras]
-filecache = ["lockfile (>=0.9)"]
-redis = ["redis (>=2.10.5)"]
-
-[[package]]
 name = "cachetools"
 version = "4.1.1"
 description = "Extensible memoizing collections and decorators"
@@ -88,21 +72,6 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
 
 [package.extras]
 toml = ["toml"]
-
-[[package]]
-name = "firebase-admin"
-version = "4.5.0"
-description = "Firebase Admin Python SDK"
-category = "main"
-optional = false
-python-versions = ">=3.5"
-
-[package.dependencies]
-cachecontrol = ">=0.12.6"
-google-api-core = {version = ">=1.14.0,<2.0.0dev", extras = ["grpc"], markers = "platform_python_implementation != \"PyPy\""}
-google-api-python-client = ">=1.7.8"
-google-cloud-firestore = {version = ">=1.4.0", markers = "platform_python_implementation != \"PyPy\""}
-google-cloud-storage = ">=1.18.0"
 
 [[package]]
 name = "gitdb"
@@ -223,18 +192,18 @@ six = ">=1.12.0"
 grpc = ["grpcio (>=1.8.2,<2.0dev)"]
 
 [[package]]
-name = "google-cloud-firestore"
-version = "2.0.2"
-description = "Google Cloud Firestore API client library"
+name = "google-cloud-datastore"
+version = "2.1.0"
+description = "Google Cloud Datastore API client library"
 category = "main"
 optional = false
 python-versions = ">=3.6"
 
 [package.dependencies]
-google-api-core = {version = ">=1.22.1,<2.0.0dev", extras = ["grpc"]}
-google-cloud-core = ">=1.4.1,<2.0dev"
-proto-plus = ">=1.3.0"
-pytz = "*"
+google-api-core = {version = ">=1.22.2,<2.0.0dev", extras = ["grpc"]}
+google-cloud-core = ">=1.4.0,<2.0dev"
+libcst = ">=0.2.5"
+proto-plus = ">=1.4.0"
 
 [[package]]
 name = "google-cloud-storage"
@@ -417,14 +386,6 @@ dev = ["black (==20.8b1)", "codecov (>=2.1.4)", "coverage (>=4.5.4)", "fixit (==
 name = "mccabe"
 version = "0.6.1"
 description = "McCabe checker, plugin for flake8"
-category = "main"
-optional = false
-python-versions = "*"
-
-[[package]]
-name = "msgpack"
-version = "1.0.0"
-description = "MessagePack (de)serializer."
 category = "main"
 optional = false
 python-versions = "*"
@@ -721,7 +682,7 @@ dev-kit = ["pylint", "coverage"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "3e5bdbfc29e968d6071b3b8c36e7a829f691533381544ab569881b7ad8c1ed41"
+content-hash = "0b4dbe6d89097065c0873badb24519d92d3a96a033a9cc39a3e970c11550f89d"
 
 [metadata.files]
 aiofiles = [
@@ -731,10 +692,6 @@ aiofiles = [
 astroid = [
     {file = "astroid-2.4.2-py3-none-any.whl", hash = "sha256:bc58d83eb610252fd8de6363e39d4f1d0619c894b0ed24603b881c02e64c7386"},
     {file = "astroid-2.4.2.tar.gz", hash = "sha256:2f4078c2a41bf377eea06d71c9d2ba4eb8f6b1af2135bec27bbbb7d8f12bb703"},
-]
-cachecontrol = [
-    {file = "CacheControl-0.12.6-py2.py3-none-any.whl", hash = "sha256:10d056fa27f8563a271b345207402a6dcce8efab7e5b377e270329c62471b10d"},
-    {file = "CacheControl-0.12.6.tar.gz", hash = "sha256:be9aa45477a134aee56c8fac518627e1154df063e85f67d4f83ce0ccc23688e8"},
 ]
 cachetools = [
     {file = "cachetools-4.1.1-py3-none-any.whl", hash = "sha256:513d4ff98dd27f85743a8dc0e92f55ddb1b49e060c2d5961512855cda2c01a98"},
@@ -824,10 +781,6 @@ coverage = [
     {file = "coverage-5.3-cp39-cp39-win_amd64.whl", hash = "sha256:47a11bdbd8ada9b7ee628596f9d97fbd3851bd9999d398e9436bd67376dbece7"},
     {file = "coverage-5.3.tar.gz", hash = "sha256:280baa8ec489c4f542f8940f9c4c2181f0306a8ee1a54eceba071a449fb870a0"},
 ]
-firebase-admin = [
-    {file = "firebase_admin-4.5.0-py3-none-any.whl", hash = "sha256:8b2ba6fccfb2fa522bd0bcbf8d3f081e8a11eeda1ae02c31e843d507bde25896"},
-    {file = "firebase_admin-4.5.0.tar.gz", hash = "sha256:fa51f24dfebea17fd7eef2e068067a21d49da16ff3ee14aa95c8b347d5b5f2e8"},
-]
 gitdb = [
     {file = "gitdb-4.0.5-py3-none-any.whl", hash = "sha256:91f36bfb1ab7949b3b40e23736db18231bf7593edada2ba5c3a174a7b23657ac"},
     {file = "gitdb-4.0.5.tar.gz", hash = "sha256:c9e1f2d0db7ddb9a704c2a0217be31214e91a4fe1dea1efad19ae42ba0c285c9"},
@@ -860,9 +813,9 @@ google-cloud-core = [
     {file = "google-cloud-core-1.4.4.tar.gz", hash = "sha256:5bf32a3476412bbbf37660d73c46a7217a0db7913d4f4db6490b56d7a93f1d86"},
     {file = "google_cloud_core-1.4.4-py2.py3-none-any.whl", hash = "sha256:1445266e70e3ea068915259bfa9db2736076d01ac4c60b919c11ef75ba831adf"},
 ]
-google-cloud-firestore = [
-    {file = "google-cloud-firestore-2.0.2.tar.gz", hash = "sha256:493d2be721d1c43654b114c40566cfc77d659d14e0e79fa8ead2ae38ef13bae0"},
-    {file = "google_cloud_firestore-2.0.2-py2.py3-none-any.whl", hash = "sha256:edfc0b32cada10d58d3fb4654f9d806bb0506341fc544301130b45861b27d17a"},
+google-cloud-datastore = [
+    {file = "google-cloud-datastore-2.1.0.tar.gz", hash = "sha256:11e5eba37917d0e225d7ad298a0bf5ff7341fcef8e993327c14557197a4cd3fb"},
+    {file = "google_cloud_datastore-2.1.0-py2.py3-none-any.whl", hash = "sha256:0181fb775ef8f34970ef0d7718a0325e1a21df70e04453503a5c887414e8d4ef"},
 ]
 google-cloud-storage = [
     {file = "google-cloud-storage-1.33.0.tar.gz", hash = "sha256:900ba027bdee6b97f21cd22d1db3d1a6233ede5de2db4754db860438bdad72d2"},
@@ -1012,26 +965,6 @@ libcst = [
 mccabe = [
     {file = "mccabe-0.6.1-py2.py3-none-any.whl", hash = "sha256:ab8a6258860da4b6677da4bd2fe5dc2c659cff31b3ee4f7f5d64e79735b80d42"},
     {file = "mccabe-0.6.1.tar.gz", hash = "sha256:dd8d182285a0fe56bace7f45b5e7d1a6ebcbf524e8f3bd87eb0f125271b8831f"},
-]
-msgpack = [
-    {file = "msgpack-1.0.0-cp35-cp35m-manylinux1_i686.whl", hash = "sha256:cec8bf10981ed70998d98431cd814db0ecf3384e6b113366e7f36af71a0fca08"},
-    {file = "msgpack-1.0.0-cp35-cp35m-manylinux1_x86_64.whl", hash = "sha256:aa5c057eab4f40ec47ea6f5a9825846be2ff6bf34102c560bad5cad5a677c5be"},
-    {file = "msgpack-1.0.0-cp36-cp36m-macosx_10_13_x86_64.whl", hash = "sha256:4233b7f86c1208190c78a525cd3828ca1623359ef48f78a6fea4b91bb995775a"},
-    {file = "msgpack-1.0.0-cp36-cp36m-manylinux1_i686.whl", hash = "sha256:b3758dfd3423e358bbb18a7cccd1c74228dffa7a697e5be6cb9535de625c0dbf"},
-    {file = "msgpack-1.0.0-cp36-cp36m-manylinux1_x86_64.whl", hash = "sha256:25b3bc3190f3d9d965b818123b7752c5dfb953f0d774b454fd206c18fe384fb8"},
-    {file = "msgpack-1.0.0-cp36-cp36m-win32.whl", hash = "sha256:e7bbdd8e2b277b77782f3ce34734b0dfde6cbe94ddb74de8d733d603c7f9e2b1"},
-    {file = "msgpack-1.0.0-cp36-cp36m-win_amd64.whl", hash = "sha256:5dba6d074fac9b24f29aaf1d2d032306c27f04187651511257e7831733293ec2"},
-    {file = "msgpack-1.0.0-cp37-cp37m-macosx_10_13_x86_64.whl", hash = "sha256:908944e3f038bca67fcfedb7845c4a257c7749bf9818632586b53bcf06ba4b97"},
-    {file = "msgpack-1.0.0-cp37-cp37m-manylinux1_i686.whl", hash = "sha256:db685187a415f51d6b937257474ca72199f393dad89534ebbdd7d7a3b000080e"},
-    {file = "msgpack-1.0.0-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:ea41c9219c597f1d2bf6b374d951d310d58684b5de9dc4bd2976db9e1e22c140"},
-    {file = "msgpack-1.0.0-cp37-cp37m-win32.whl", hash = "sha256:e35b051077fc2f3ce12e7c6a34cf309680c63a842db3a0616ea6ed25ad20d272"},
-    {file = "msgpack-1.0.0-cp37-cp37m-win_amd64.whl", hash = "sha256:5bea44181fc8e18eed1d0cd76e355073f00ce232ff9653a0ae88cb7d9e643322"},
-    {file = "msgpack-1.0.0-cp38-cp38-macosx_10_13_x86_64.whl", hash = "sha256:c901e8058dd6653307906c5f157f26ed09eb94a850dddd989621098d347926ab"},
-    {file = "msgpack-1.0.0-cp38-cp38-manylinux1_i686.whl", hash = "sha256:271b489499a43af001a2e42f42d876bb98ccaa7e20512ff37ca78c8e12e68f84"},
-    {file = "msgpack-1.0.0-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:7a22c965588baeb07242cb561b63f309db27a07382825fc98aecaf0827c1538e"},
-    {file = "msgpack-1.0.0-cp38-cp38-win32.whl", hash = "sha256:002a0d813e1f7b60da599bdf969e632074f9eec1b96cbed8fb0973a63160a408"},
-    {file = "msgpack-1.0.0-cp38-cp38-win_amd64.whl", hash = "sha256:39c54fdebf5fa4dda733369012c59e7d085ebdfe35b6cf648f09d16708f1be5d"},
-    {file = "msgpack-1.0.0.tar.gz", hash = "sha256:9534d5cc480d4aff720233411a1f765be90885750b07df772380b34c10ecb5c0"},
 ]
 multidict = [
     {file = "multidict-5.0.0-cp36-cp36m-macosx_10_14_x86_64.whl", hash = "sha256:11dcf2366da487d5b9de1d4b2055308c7ed9bde1a52973d07a89b42252af9ebe"},

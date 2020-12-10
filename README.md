@@ -22,5 +22,7 @@
    - `Secret Manager Admin`
    - `Source Repository Administrator`
    - `Storage Admin`
+   - `Cloud Datastore Admin`
 - Deploy Flamingo as the service account create previously
+- [Enable Firestore](https://console.cloud.google.com/firestore/data) using Datastore mode in Flamingo's project
  

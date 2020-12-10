@@ -6,7 +6,7 @@ from abc import ABC
 from dataclasses import dataclass, fields
 from typing import Type, Generator, get_type_hints, get_args, Dict
 
-from google.cloud.firestore_v1 import CollectionReference
+from google.cloud.datastore import Key, Entity
 
 import settings
 from pilot import GoogleIAM, GoogleResourceManager
@@ -133,61 +133,74 @@ class Document(EmbeddedDocument):
     def pk(self) -> str:
         raise NotImplementedError()
 
-    def save(self) -> Document:
-        return self.create(**self._to_dict())
+    @classmethod
+    def _get_key(cls, pk: str = None) -> Key:
+        return settings.db.key(cls._kind(), pk)
+
+    @property
+    def _key(self):
+        return self._get_key(pk=self.pk)
 
     @classmethod
-    def _collection_ref(cls) -> CollectionReference:
-        return settings.db.collection(cls.collection_name())
-
-    @classmethod
-    def collection_name(cls) -> str:
-        return cls.__name__.lower()
+    def _kind(cls) -> str:
+        return cls.__name__
 
     @classmethod
     def list(cls, **kwargs) -> Generator[Document]:
-        ref = cls._collection_ref()
+        query = settings.db.query(kind=cls._kind())
 
         for key, value in kwargs.items():
             field, operator = query_operator(key=key)
-            # TODO Validate operator, not everything is allowed
-            ref = ref.where(field, operator, value)
+            query.add_filter(field, operator, value)
 
-        for item in ref.stream():
-            yield cls._from_dict(**item.to_dict())
+        for entity in query.fetch():
+            yield cls._from_dict(**cls.from_entity(entity=entity))
 
     @classmethod
     def get(cls, pk: str) -> Document:
-        ref = cls._collection_ref().document(pk).get()
-        if ref.exists:
-            return cls._from_dict(**ref.to_dict())
-        raise DoesNotExist(cls, pk)
+        entity = settings.db.get(key=cls._get_key(pk=pk))
+        if not entity:
+            raise DoesNotExist(cls, pk)
+        return cls._from_dict(**cls.from_entity(entity=entity))
+
+    def to_entity(self) -> Entity:
+        if not self.pk:
+            raise Exception()
+
+        entity = Entity(key=self._key)
+        entity.update(self._to_dict())
+        return entity
+
+    @classmethod
+    def from_entity(cls, entity: Entity) -> Dict:
+        return dict(entity.items())
 
     @classmethod
     def create(cls, **kwargs) -> Document:
         data = kwargs.copy()
         obj = cls.deserialize(**data)
+        return obj.save()
 
-        pk = obj.pk
-        if not pk:
-            raise Exception()
-        cls._collection_ref().document(pk).set(obj._to_dict())
-        return cls.get(pk=pk)
+    def save(self) -> Document:
+        settings.db.put(entity=self.to_entity())
+        return self.get(pk=self.pk)
 
     @classmethod
     def update(cls, pk: str, **kwargs) -> Document:
         if kwargs:
+            entity = settings.db.get(key=cls._get_key(pk=pk))
             # TODO: enable partial nested updates
             as_data = {
                 key: value._to_dict() if isinstance(value, EmbeddedDocument) else value
                 for key, value in kwargs.items()
             }
-            cls._collection_ref().document(pk).set(as_data, merge=True)
+            entity.update(as_data)
+            settings.db.put(entity=entity)
         return cls.get(pk=pk)
 
     @classmethod
     def delete(cls, pk: str) -> None:
-        cls._collection_ref().document(pk).delete()
+        settings.db.delete(key=cls._get_key(pk=pk))
 
 
 @dataclass
