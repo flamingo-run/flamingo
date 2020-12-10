@@ -1,7 +1,7 @@
 ![Build Status](https://github.com/flamingo-run/flamingo/workflows/Github%20CI/badge.svg)
 [![Maintainability](https://api.codeclimate.com/v1/badges/50d9f44092cbc7ee4308/maintainability)](https://codeclimate.com/github/flamingo-run/flamingo/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/50d9f44092cbc7ee4308/test_coverage)](https://codeclimate.com/github/flamingo-run/flamingo/test_coverage)
-[![python](https://img.shields.io/badge/python-3.9-blue.svg)](https://www.python.org/)
+[![python](https://img.shields.io/badge/python-3.8-blue.svg)](https://www.python.org/)
 
 # Flamingo
 

@@ -720,8 +720,8 @@ dev-kit = ["pylint", "coverage"]
 
 [metadata]
 lock-version = "1.1"
-python-versions = "^3.9"
-content-hash = "a4fd8a32c4f315dbb4c4b7a80ee9e831bd07ebd078f29102d9437e89d833c3f6"
+python-versions = "^3.8"
+content-hash = "3e5bdbfc29e968d6071b3b8c36e7a829f691533381544ab569881b7ad8c1ed41"
 
 [metadata.files]
 aiofiles = [

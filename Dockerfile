@@ -1,4 +1,4 @@
-ARG PYTHON_VERSION=3.9-slim
+ARG PYTHON_VERSION=3.8-slim
 FROM python:$PYTHON_VERSION
 
 # Install OS dependencies
