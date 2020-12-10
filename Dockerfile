@@ -1,24 +1,27 @@
 ARG PYTHON_VERSION=3.8-slim
 FROM python:$PYTHON_VERSION
 
-# Install OS dependencies
-RUN apt update
-RUN apt install -y git make
-
 # Point to app folder
 ARG APP_HOME=/app
 WORKDIR $APP_HOME
 
 # Install dependencies
 RUN pip install -U pip poetry
-RUN poetry config virtualenvs.create false
 COPY pyproject.toml .
 COPY poetry.lock .
-COPY Makefile .
-RUN poetry install --no-dev --no-root
+RUN poetry export -f requirements.txt --output requirements.txt
+RUN pip install -r requirements.txt
 
-# Copy local code to the container image.
+# Service must listen to $PORT environment variable.
+# This default value facilitates local development.
+ENV PORT 8080
+
+# Setting this ensures print statements and log messages
+# promptly appear in Cloud Logging.
+ENV PYTHONUNBUFFERED TRUE
+
+# Copy local code to the container image
 COPY . .
 
-# Prepare image entrypoint
-CMD exec make run-server
+# Image entrypoint
+CMD exec python ./flamingo/main.py
