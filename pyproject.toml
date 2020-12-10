@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "flammingo"
+name = "flamingo"
 version = "0.0.1"
 description = "Flamingo"
 authors = ["Joao Daher <joao@daher.dev>"]
