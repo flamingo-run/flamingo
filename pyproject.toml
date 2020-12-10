@@ -1,0 +1,39 @@
+[tool.poetry]
+name = "flammingo"
+version = "0.0.1"
+description = "Flamingo"
+authors = ["Joao Daher <joao@daher.dev>"]
+packages = [
+    { include = "flamingo" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+sanic = ""
+firebase-admin = "*"
+gitpython = "*"
+sanic-openapi = "*"
+google-api-python-client = "*"
+google-cloud-storage = "*"
+google-cloud-build = "*"
+
+newrelic = { version = "*", optional = true}
+httpretty = { version = "*", optional = true}
+pylint = { version = "*", optional = true}
+coverage = { version = "*", optional = true}
+
+
+[tool.poetry.extras]
+prd-kit = ["newrelic"]
+dev-kit = ["httpretty", "pylint", "coverage"]
+
+
+[tool.poetry.dev-dependencies]
+httpretty = "*"
+pylint = "*"
+coverage = "*"
+
+
+[build-system]
+requires = ["poetry^0.12"]
+build-backend = "poetry.masonry.api"
