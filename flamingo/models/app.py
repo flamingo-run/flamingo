@@ -377,12 +377,21 @@ class App(Document):
                 project_id=self.project.id,
             )
 
-            # When deploying from other projects (https://cloud.google.com/run/docs/deploying#other-projects),
-            # the CloudRun agent must have permission to pull container images from Flamingo's project
+            # When deploying from other projects (https://cloud.google.com/run/docs/deploying#other-projects)...
+            # the CloudRun agent must have permission to...
+            cloud_run_account = self.project.cloud_run_account
+
+            # ...pull container images from Flamingo's project
             await grm.add_member(
-                email=self.project.cloud_run_account,
+                email=cloud_run_account,
                 role='containerregistry.ServiceAgent',
                 project_id=settings.FLAMINGO_PROJECT,
+            )
+            # ... deploy as the app's service account
+            await grm.add_member(
+                email=self.project.cloud_run_account,
+                role='iam.serviceAccountTokenCreator',
+                project_id=self.project.id,
             )
 
         job = setup_iam()
