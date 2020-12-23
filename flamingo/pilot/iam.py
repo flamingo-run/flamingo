@@ -116,3 +116,7 @@ class GoogleIAM(GoogleCloudPilotAPI):
     def get_cloud_run_service_account(self, project_number=None) -> str:
         number = project_number or self._get_project_number(project_id=self.project_id)
         return f'service-{number}@serverless-robot-prod.iam.gserviceaccount.com'
+
+    def get_cloud_scheduler_service_account(self, project_number=None) -> str:
+        number = project_number or self._get_project_number(project_id=self.project_id)
+        return f'service-{number}@gcp-sa-cloudscheduler.iam.gserviceaccount.com'
