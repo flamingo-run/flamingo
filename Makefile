@@ -18,7 +18,7 @@ check:
 
 lint:
 	@echo "Checking code style ..."
-	@cd flamingo && poetry run pylint --rcfile=../.pylintrc models views main settings
+	@cd flamingo && poetry run pylint --rcfile=../.pylintrc flamingo
 
 unit:
 	@echo "Running unit tests ..."

@@ -1,4 +1,6 @@
-import os, sys
+# pylint: disable=wrong-import-position
+import os
+import sys
 sys.path.append(os.path.dirname(__file__))
 
 from sanic import Sanic
