@@ -78,7 +78,9 @@ class GoogleResourceManager(GoogleCloudPilotAPI):
             binding['members'].append(member)
         except (StopIteration, KeyError):
             binding = {"role": role_id, "members": [member]}
-            policy['bindings'] = policy.get('bindings', []).append(binding)
+            new_bindings = policy.get('bindings', [])
+            new_bindings.append(binding)
+            policy['bindings'] = new_bindings
 
         policy = self.client.projects().setIamPolicy(
             resource=project_id or self.project_id,
