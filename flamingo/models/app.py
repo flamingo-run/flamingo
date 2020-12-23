@@ -49,7 +49,7 @@ class ServiceAccount(EmbeddedDocument):
             name=app.name,
             display_name=app.name,
             description=f"{app.name} Service Account",
-            roles=[settings.DEFAULT_ROLE] if settings.DEFAULT_ROLE else None,
+            roles=([settings.DEFAULT_ROLE] if settings.DEFAULT_ROLE else []) + ['run.invoker'],
             project=app.project,
         )
 
