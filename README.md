@@ -28,3 +28,4 @@
 - [Enable Resource Manager](https://console.developers.google.com/apis/library/cloudresourcemanager.googleapis.com)
 - [Enable Cloud SQL](https://console.developers.google.com/apis/api/sqladmin.googleapis.com/overview)
 - [Enable IAM](https://console.developers.google.com/apis/api/iam.googleapis.com/overview)
+- [Enable App Engine Admin](https://console.developers.google.com/apis/api/appengine.googleapis.com/overview)
