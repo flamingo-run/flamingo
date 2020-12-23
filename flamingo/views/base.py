@@ -6,9 +6,9 @@ import aiofiles
 from sanic.request import Request, RequestParameters, File
 from sanic.response import json, HTTPResponse
 from sanic.views import HTTPMethodView
+from gcp_pilot.datastore import Document, DoesNotExist
 
 import settings
-from models.base import Document, DoesNotExist
 
 PayloadType = Dict[str, Any]
 ResponseType = Tuple[PayloadType, int]

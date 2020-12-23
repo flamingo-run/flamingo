@@ -2,14 +2,12 @@ import os
 from pathlib import Path
 
 from google import auth
-from google.cloud import datastore
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 PROJECT_DIR = BASE_DIR / 'flamingo'
 
 cred, project_id = auth.default()
-db = datastore.Client()
 
 FLAMINGO_PROJECT = os.environ.get('FLAMINGO_PROJECT', project_id)
 FLAMINGO_GCS_BUCKET = os.environ.get('FLAMINGO_GCS_BUCKET', f'{FLAMINGO_PROJECT}-flamingo')

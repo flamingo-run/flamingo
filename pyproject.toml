@@ -10,12 +10,8 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.8"
 sanic = "*"
-google-cloud-datastore = "*"
-gitpython = "*"
 sanic-openapi = "*"
-google-api-python-client = "*"
-google-cloud-storage = "*"
-google-cloud-build = "*"
+gcp-pilot = { version = "*", extras = ['datastore', 'build', 'storage']}
 pylint = { version = "*", optional = true}
 coverage = { version = "*", optional = true}
 

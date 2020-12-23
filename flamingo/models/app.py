@@ -5,16 +5,18 @@ import asyncio
 from dataclasses import dataclass, field
 from typing import List
 
+from gcp_pilot.build import GoogleCloudBuild, SubstitutionHelper
+from gcp_pilot.datastore import Document, EmbeddedDocument
+from gcp_pilot.iam import GoogleIAM
+from gcp_pilot.resource import GoogleResourceManager
+from gcp_pilot.source import GoogleCloudSourceRepo
+from gcp_pilot.sql import GoogleCloudSQL
+from gcp_pilot.storage import GoogleCloudStorage
+
 import settings
 from models import BuildPack
-from models.base import Document, EmbeddedDocument, KeyValueEmbeddedDocument, random_password, Project, EnvVar
+from models.base import KeyValueEmbeddedDocument, random_password, Project, EnvVar
 from models.environment import Environment
-from pilot import GoogleIAM
-from pilot import GoogleResourceManager
-from pilot.build import GoogleCloudBuild, SubstitutionHelper
-from pilot.source import GoogleCloudSourceRepo
-from pilot.sql import GoogleCloudSQL
-from pilot.storage import GoogleCloudStorage
 
 
 @dataclass
@@ -87,7 +89,7 @@ class Repository(EmbeddedDocument):
 
     async def init(self, app_pk: str):
         data = await GoogleCloudSourceRepo().create_repo(
-            name=self.name,
+            repo_name=self.name,
             project_id=self.project.id,
         )
         self.url = data['url']
@@ -407,7 +409,7 @@ class App(Document):
 
         cache_loader = build.make_build_step(
             name='gcr.io/cloud-builders/docker',
-            id="Image Cache",
+            identifier="Image Cache",
             entrypoint='bash',
             args=["-c", f"docker pull {substitution.IMAGE_NAME} || exit 0"],
         )
@@ -415,7 +417,7 @@ class App(Document):
         substitution.add(DOCKERFILE_LOCATION=build_pack.remote_dockerfile)
         build_pack_sync = build.make_build_step(
             name='gcr.io/google.com/cloudsdktool/cloud-sdk',
-            id="Build Pack Download",
+            identifier="Build Pack Download",
             args=['gsutil', 'cp', f'{substitution.DOCKERFILE_LOCATION}', 'Dockerfile'],
         )
 
@@ -426,7 +428,7 @@ class App(Document):
 
         image_builder = build.make_build_step(
             name='gcr.io/cloud-builders/docker',
-            id="Image Build",
+            identifier="Image Build",
             args=[
                 "build",
                 "-t",
@@ -440,7 +442,7 @@ class App(Document):
         # TODO: replace with image attribute?
         image_pusher = build.make_build_step(
             name="gcr.io/cloud-builders/docker",
-            id="Image Upload",
+            identifier="Image Upload",
             args=["push", f"{substitution.IMAGE_NAME}"],
         )
 
@@ -465,7 +467,7 @@ class App(Document):
             # More info: https://github.com/GoogleCloudPlatform/ruby-docker/tree/master/app-engine-exec-wrapper
             # Caveats: default ComputeEngine service account here, not app's service account as it should be
             return build.make_build_step(
-                id=title,
+                identifier=title,
                 name="gcr.io/google-appengine/exec-wrapper",
                 args=[
                     "-i", f"{substitution.IMAGE_NAME}",
@@ -498,7 +500,7 @@ class App(Document):
             SERVICE_NAME=self.identifier,
         )
         deployer = build.make_build_step(
-            id="Deploy",
+            identifier="Deploy",
             name="gcr.io/google.com/cloudsdktool/cloud-sdk",
             entrypoint='gcloud',
             args=[

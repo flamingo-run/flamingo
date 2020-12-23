@@ -4,7 +4,9 @@ from dataclasses import dataclass, field
 # Avoid cyclic import
 from typing import TYPE_CHECKING, List
 
-from models.base import Document, Project, EmbeddedDocument, EnvVar
+from gcp_pilot.datastore import Document, EmbeddedDocument
+
+from models.base import Project, EnvVar
 
 if TYPE_CHECKING:
     pass

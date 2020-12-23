@@ -4,9 +4,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, TYPE_CHECKING
 
+from gcp_pilot.datastore import Document
+from gcp_pilot.storage import GoogleCloudStorage
+
 import settings
-from models.base import Document
-from pilot import GoogleCloudStorage
 
 if TYPE_CHECKING:
     from models import App  # pylint: disable=ungrouped-imports
@@ -58,8 +59,8 @@ class BuildPack(Document):
         # TODO: invalidate GCS file cache?
         await gcs.upload(
             bucket_name=settings.FLAMINGO_GCS_BUCKET,
-            source_file_name=self.local_dockerfile,
-            destination_blob_name=self.remote_dockerfile.replace(f'gs://{settings.FLAMINGO_GCS_BUCKET}/', ''),
+            source_file=self.local_dockerfile,
+            target_file_name=self.remote_dockerfile.replace(f'gs://{settings.FLAMINGO_GCS_BUCKET}/', ''),
             is_public=True,
         )
         return self.remote_dockerfile
