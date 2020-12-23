@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 # Avoid cyclic import
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
-from models.base import Document, Project, EmbeddedDocument
+from models.base import Document, Project, EmbeddedDocument, EnvVar
 
 if TYPE_CHECKING:
     pass
@@ -32,6 +32,7 @@ class Environment(Document):
     network: Network = None
     project: Project = field(default_factory=Project.default)
     channel: NotificationChannel = None
+    vars: List[EnvVar] = field(default_factory=list)
 
     @property
     def pk(self) -> str:

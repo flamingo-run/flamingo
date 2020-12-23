@@ -256,3 +256,17 @@ class Project(EmbeddedDocument):
     @property
     def cloud_run_account(self) -> str:
         return GoogleIAM().get_cloud_run_service_account(project_number=self.number)
+
+
+REDACTED = '**********'
+
+
+@dataclass
+class EnvVar(KeyValueEmbeddedDocument):
+    is_secret: bool = False
+
+    def serialize(self) -> Dict:
+        data = super().serialize()
+        if self.is_secret:
+            data['value'] = REDACTED
+        return data

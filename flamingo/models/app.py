@@ -3,11 +3,11 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
-from typing import List, Dict
+from typing import List
 
 import settings
 from models import BuildPack
-from models.base import Document, EmbeddedDocument, KeyValueEmbeddedDocument, random_password, Project
+from models.base import Document, EmbeddedDocument, KeyValueEmbeddedDocument, random_password, Project, EnvVar
 from models.environment import Environment
 from pilot import GoogleIAM
 from pilot import GoogleResourceManager
@@ -15,19 +15,6 @@ from pilot.build import GoogleCloudBuild, SubstitutionHelper
 from pilot.source import GoogleCloudSourceRepo
 from pilot.sql import GoogleCloudSQL
 from pilot.storage import GoogleCloudStorage
-
-REDACTED = '**********'
-
-
-@dataclass
-class EnvVar(KeyValueEmbeddedDocument):
-    is_secret: bool = False
-
-    def serialize(self) -> Dict:
-        data = super().serialize()
-        if self.is_secret:
-            data['value'] = REDACTED
-        return data
 
 
 @dataclass
@@ -457,7 +444,8 @@ class App(Document):
             args=["push", f"{substitution.IMAGE_NAME}"],
         )
 
-        for var in self.vars:
+        all_vars = self.vars + self.environment.vars
+        for var in all_vars:
             substitution.add(**{f'ENV_{var.key}': var.value})
 
         substitution.add(**{self.database.env_var: self.database.location})
