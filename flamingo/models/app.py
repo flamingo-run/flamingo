@@ -214,7 +214,11 @@ class BuildSetup(EmbeddedDocument):
     project: Project = field(default_factory=Project.default_for_flamingo)
     memory: int = 256  # measured in Mi
     cpu: int = 1  # number of cores
+    min_instances: int = 0
     max_instances: int = 10
+    timeout: int = 3600
+    concurrency: int = 80
+    is_authenticated: bool = True
 
     _build_pack: BuildPack = None
 
@@ -493,11 +497,16 @@ class App(Document):
         for label in self.build_setup.get_labels():
             label_params.extend(['--update-labels', f'{label.key}={label.value}'])
 
+        auth_params = ['--allow-unauthenticated'] if not self.build_setup.is_authenticated else []
+
         substitution.add(
             REGION=self.region,
             CPU=self.build_setup.cpu,
             RAM=self.build_setup.memory,
+            MIN_INSTANCES=self.build_setup.min_instances,
             MAX_INSTANCES=self.build_setup.max_instances,
+            TIMEOUT=self.build_setup.timeout,
+            CONCURRENCY=self.build_setup.concurrency,
             SERVICE_ACCOUNT=self.service_account.email,
             PROJECT_ID=self.project.id,
             SERVICE_NAME=self.identifier,
@@ -517,7 +526,11 @@ class App(Document):
                 '--project', f"{substitution.PROJECT_ID}",
                 '--memory', f"{substitution.RAM}Mi",
                 '--cpu', f"{substitution.CPU}",
+                '--min-instances', f"{substitution.MIN_INSTANCES}",
                 '--max-instances', f"{substitution.MAX_INSTANCES}",
+                '--timeout', f"{substitution.TIMEOUT}",
+                '--concurrency', f"{substitution.CONCURRENCY}",
+                *auth_params,
                 *label_params,
                 '--quiet'
             ],
