@@ -59,7 +59,7 @@ class BuildPack(Document):
         # TODO: invalidate GCS file cache?
         await gcs.upload(
             bucket_name=settings.FLAMINGO_GCS_BUCKET,
-            source_file=self.local_dockerfile,
+            source_file=str(self.local_dockerfile),
             target_file_name=self.remote_dockerfile.replace(f'gs://{settings.FLAMINGO_GCS_BUCKET}/', ''),
             is_public=True,
         )
