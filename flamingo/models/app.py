@@ -34,11 +34,14 @@ class ServiceAccount(EmbeddedDocument):
 
     @classmethod
     def default(cls, app: App) -> ServiceAccount:
+        all_roles = ([settings.DEFAULT_ROLE] if settings.DEFAULT_ROLE else []) + [
+            'run.invoker',  # allow authenticated integrations such as PubSub, Cloud Scheduler
+        ]
         return cls(
             name=app.name,
             display_name=app.name,
             description=f"{app.name} Service Account",
-            roles=([settings.DEFAULT_ROLE] if settings.DEFAULT_ROLE else []) + ['run.invoker'],
+            roles=all_roles,
             project=app.project,
         )
 
