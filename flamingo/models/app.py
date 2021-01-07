@@ -5,7 +5,7 @@ import asyncio
 from dataclasses import dataclass, field
 from typing import List
 
-from gcp_pilot.build import GoogleCloudBuild, SubstitutionHelper
+from gcp_pilot.build import GoogleCloudBuild, SubstitutionHelper, AnyEventType
 from gcp_pilot.datastore import Document, EmbeddedDocument
 from gcp_pilot.iam import GoogleIAM
 from gcp_pilot.resource import GoogleResourceManager
@@ -92,12 +92,29 @@ class Repository(EmbeddedDocument):
         return self.url
 
     async def init(self, app_pk: str):
-        data = await GoogleCloudSourceRepo().create_repo(
-            repo_name=self.name,
-            project_id=self.project.id,
+        if not self.mirrored:
+            data = await GoogleCloudSourceRepo().create_repo(
+                repo_name=self.name,
+                project_id=self.project.id,
+            )
+            self.url = data['url']
+            App.update(pk=app_pk, repository=self)
+
+    def as_event(self, branch_name: str, tag_name: str) -> AnyEventType:
+        build = GoogleCloudBuild()
+        params = dict(
+            branch_name=branch_name,
+            tag_name=tag_name,
         )
-        self.url = data['url']
-        App.update(pk=app_pk, repository=self)
+        if self.mirrored:
+            return build.make_github_event(
+                url=self.url,
+                **params,
+            )
+        return build.make_source_repo_event(
+            repo_name=self.name,
+            **params
+        )
 
 
 @dataclass
@@ -209,6 +226,7 @@ class BuildSetup(EmbeddedDocument):
     name: str = None
     trigger_id: str = None
     deploy_branch: str = 'master'
+    deploy_tag: str = None
     post_build_commands: List[str] = field(default_factory=list)
     os_dependencies: List[str] = field(default_factory=list)
     labels: List[Label] = field(default_factory=list)
@@ -242,6 +260,7 @@ class BuildSetup(EmbeddedDocument):
         all_labels = self.labels.copy()
 
         # https://cloud.google.com/run/docs/continuous-deployment-with-cloud-build#attach_existing_trigger_to_service
+        # Does not seem to work when the trigger and the service deployed are not in the same project
         if self.trigger_id:
             all_labels.append(
                 Label(key='gcb-trigger-id', value=self.trigger_id)
@@ -564,11 +583,14 @@ class App(Document):
             # snitch,
         ]
 
+        event = self.repository.as_event(
+            branch_name=self.build_setup.deploy_branch,
+            tag_name=self.build_setup.deploy_tag,
+        )
         response = await build.create_or_update_trigger(
             name=self.identifier,
-            description="powered by Flamingo",
-            repo_name=self.repository.name,
-            branch_name=self.build_setup.deploy_branch,
+            description="powered by Flamingo 🦩",
+            event=event,
             project_id=settings.FLAMINGO_PROJECT,
             steps=steps,
             images=[image_name],
