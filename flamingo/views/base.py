@@ -25,7 +25,7 @@ class ViewBase(HTTPMethodView):
         filepath.parent.mkdir(parents=True, exist_ok=True)
         async with aiofiles.open(filepath, 'wb') as f:
             await f.write(file.body)
-        f.close()
+        await f.close()
 
 
 class ListView(ViewBase):
