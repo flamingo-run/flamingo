@@ -1,16 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-# Avoid cyclic import
-from typing import TYPE_CHECKING, List
+from typing import List
 
 from gcp_pilot.datastore import Document, EmbeddedDocument
 from slugify import slugify
 
 from models.base import Project, EnvVar
-
-if TYPE_CHECKING:
-    pass
 
 
 @dataclass
