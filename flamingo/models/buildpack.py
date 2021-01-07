@@ -73,6 +73,7 @@ class BuildPack(Document):
         all_build_args = {
             'RUNTIME_VERSION': self.runtime_version,
             'APP_PATH': app.path,
+            'ENVIRONMENT': app.environment_name,
         }
         all_build_args.update(**self.build_args)
         return all_build_args
