@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, List
 
 from gcp_pilot.datastore import Document, EmbeddedDocument
+from slugify import slugify
 
 from models.base import Project, EnvVar
 
@@ -35,6 +36,9 @@ class Environment(Document):
     project: Project = field(default_factory=Project.default)
     channel: NotificationChannel = None
     vars: List[EnvVar] = field(default_factory=list)
+
+    def __post_init__(self):
+        self.name = slugify(self.name)
 
     @property
     def pk(self) -> str:

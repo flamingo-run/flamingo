@@ -12,6 +12,7 @@ from gcp_pilot.resource import GoogleResourceManager
 from gcp_pilot.source import GoogleCloudSourceRepo
 from gcp_pilot.sql import GoogleCloudSQL
 from gcp_pilot.storage import GoogleCloudStorage
+from slugify import slugify
 
 import settings
 from models import BuildPack
@@ -271,6 +272,8 @@ class App(Document):
 
     def __post_init__(self):
         environment = self.environment  # check if environment name actually exists, and caches it
+
+        self.name = slugify(self.name)
 
         if not self.identifier:
             self.identifier = f'{self.name}-{environment.name}'
