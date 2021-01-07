@@ -6,6 +6,7 @@ from typing import Dict, List, TYPE_CHECKING
 
 from gcp_pilot.datastore import Document
 from gcp_pilot.storage import GoogleCloudStorage
+from slugify import slugify
 
 import settings
 
@@ -23,6 +24,9 @@ class BuildPack(Document):
     build_args: KeyValue = field(default_factory=dict)
     post_build_commands: List[str] = field(default_factory=list)
     dockerfile_url: str = None
+
+    def __post_init__(self):
+        self.name = slugify(self.name)
 
     @property
     def pk(self) -> str:
