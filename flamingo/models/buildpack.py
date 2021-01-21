@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Dict, List, TYPE_CHECKING
 
 from gcp_pilot.datastore import Document
-from gcp_pilot.storage import GoogleCloudStorage
+from gcp_pilot.storage import CloudStorage
 from slugify import slugify
 
 import settings
@@ -50,7 +50,7 @@ class BuildPack(Document):
         return f'gs://{settings.FLAMINGO_GCS_BUCKET}/buildpack/{self.name}/Dockerfile'
 
     async def init(self):
-        gcs = GoogleCloudStorage()
+        gcs = CloudStorage()
         await gcs.create_bucket(
             name=settings.FLAMINGO_GCS_BUCKET,
             region=settings.DEFAULT_REGION,
@@ -58,7 +58,7 @@ class BuildPack(Document):
         )
 
     async def upload_dockerfile(self):
-        gcs = GoogleCloudStorage()
+        gcs = CloudStorage()
 
         # TODO: invalidate GCS file cache?
         await gcs.upload(

@@ -5,13 +5,13 @@ import asyncio
 from dataclasses import dataclass, field
 from typing import List
 
-from gcp_pilot.build import GoogleCloudBuild, SubstitutionHelper, AnyEventType
+from gcp_pilot.build import CloudBuild, SubstitutionHelper, AnyEventType
 from gcp_pilot.datastore import Document, EmbeddedDocument
-from gcp_pilot.iam import GoogleIAM
-from gcp_pilot.resource import GoogleResourceManager
-from gcp_pilot.source import GoogleCloudSourceRepo
-from gcp_pilot.sql import GoogleCloudSQL
-from gcp_pilot.storage import GoogleCloudStorage
+from gcp_pilot.iam import IAM
+from gcp_pilot.resource import ResourceManager
+from gcp_pilot.source import SourceRepository
+from gcp_pilot.sql import CloudSQL
+from gcp_pilot.storage import CloudStorage
 from slugify import slugify
 
 import settings
@@ -51,8 +51,8 @@ class ServiceAccount(EmbeddedDocument):
         return f'{self.name}@{self.project.id}.iam.gserviceaccount.com'
 
     async def init(self):
-        iam = GoogleIAM()
-        grm = GoogleResourceManager()
+        iam = IAM()
+        grm = ResourceManager()
 
         await iam.create_service_account(
             name=self.name,
@@ -93,7 +93,7 @@ class Repository(EmbeddedDocument):
 
     async def init(self, app_pk: str):
         if not self.mirrored:
-            data = await GoogleCloudSourceRepo().create_repo(
+            data = await SourceRepository().create_repo(
                 repo_name=self.name,
                 project_id=self.project.id,
             )
@@ -101,7 +101,7 @@ class Repository(EmbeddedDocument):
             App.update(pk=app_pk, repository=self)
 
     def as_event(self, branch_name: str, tag_name: str) -> AnyEventType:
-        build = GoogleCloudBuild()
+        build = CloudBuild()
         params = dict(
             branch_name=branch_name,
             tag_name=tag_name,
@@ -164,7 +164,7 @@ class Database(EmbeddedDocument):
         return EnvVar(key=self.env_var, value=self.url, is_secret=True)
 
     async def init(self):
-        sql = GoogleCloudSQL()
+        sql = CloudSQL()
 
         await sql.create_instance(
             name=self.instance,
@@ -212,7 +212,7 @@ class Bucket(EmbeddedDocument):
         return EnvVar(key=self.env_var, value=self.name, is_secret=False)
 
     async def init(self):
-        gcs = GoogleCloudStorage()
+        gcs = CloudStorage()
         return await gcs.create_bucket(
             name=self.name,
             project_id=self.project.id,
@@ -367,8 +367,8 @@ class App(Document):
         # TODO: replace with deployment manager, so we can rollback everything
 
         async def setup_iam():
-            iam = GoogleIAM()
-            grm = GoogleResourceManager()
+            iam = IAM()
+            grm = ResourceManager()
 
             await self.service_account.init()
 
@@ -428,7 +428,7 @@ class App(Document):
         asyncio.create_task(job)
 
     async def apply(self):
-        build = GoogleCloudBuild()
+        build = CloudBuild()
         substitution = SubstitutionHelper()
 
         image_name = self.build_setup.image_name

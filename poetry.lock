@@ -75,7 +75,7 @@ toml = ["toml"]
 
 [[package]]
 name = "gcp-pilot"
-version = "0.10.0"
+version = "0.10.2"
 description = "Google Cloud Platform Friendly Pilot"
 category = "main"
 optional = false
@@ -815,8 +815,8 @@ coverage = [
     {file = "coverage-5.3.1.tar.gz", hash = "sha256:38f16b1317b8dd82df67ed5daa5f5e7c959e46579840d77a67a4ceb9cef0a50b"},
 ]
 gcp-pilot = [
-    {file = "gcp-pilot-0.10.0.tar.gz", hash = "sha256:85605a34a58196365b41e424465571a6f28d4b299b7f88b8763e0bc32639d16f"},
-    {file = "gcp_pilot-0.10.0-py3-none-any.whl", hash = "sha256:1c5012ee9be3a891258868012698a53305e890e5043c9249cbb0f133971df96a"},
+    {file = "gcp-pilot-0.10.2.tar.gz", hash = "sha256:008b3d1e4c9bbc7ce754783277de02bc5bc0bd0f4c2d0b6b91eacea03e93ebe3"},
+    {file = "gcp_pilot-0.10.2-py3-none-any.whl", hash = "sha256:588593b314e1c1acf39f246b47bb72d987adf4ad65e260cf85e92e63d4b4375f"},
 ]
 google-api-core = [
     {file = "google-api-core-1.25.0.tar.gz", hash = "sha256:d967beae8d8acdb88fb2f6f769e2ee0ee813042576a08891bded3b8e234150ae"},

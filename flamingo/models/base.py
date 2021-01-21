@@ -7,8 +7,8 @@ from dataclasses import dataclass
 from typing import Type, Dict
 
 from gcp_pilot.datastore import EmbeddedDocument
-from gcp_pilot.iam import GoogleIAM
-from gcp_pilot.resource import GoogleResourceManager
+from gcp_pilot.iam import IAM
+from gcp_pilot.resource import ResourceManager
 
 import settings
 
@@ -63,20 +63,20 @@ class Project(EmbeddedDocument):
 
     def __post_init__(self):
         if not self.number:
-            project_info = GoogleResourceManager().get_project(project_id=self.id)
+            project_info = ResourceManager().get_project(project_id=self.id)
             self.number = project_info['projectNumber']
 
     @property
     def compute_account(self) -> str:
-        return GoogleIAM().get_compute_service_account(project_number=self.number)
+        return IAM().get_compute_service_account(project_number=self.number)
 
     @property
     def cloud_build_account(self) -> str:
-        return GoogleIAM().get_cloud_build_service_account(project_number=self.number)
+        return IAM().get_cloud_build_service_account(project_number=self.number)
 
     @property
     def cloud_run_account(self) -> str:
-        return GoogleIAM().get_cloud_run_service_account(project_number=self.number)
+        return IAM().get_cloud_run_service_account(project_number=self.number)
 
 
 REDACTED = '**********'
