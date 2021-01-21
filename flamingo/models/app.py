@@ -347,7 +347,9 @@ class App(Document):
 
         self.assure_var(name='SECRET', default_value=random_password(20), is_secret=True)
         self.assure_var(name='APP_NAME', default_value=self.identifier, is_secret=False)
-        self.assure_var(name='PROJECT_ID', default_value=self.project.id, is_secret=False)
+        self.assure_var(name='GCP_PROJECT', default_value=self.project.id, is_secret=False)
+        self.assure_var(name='GCP_SERVICE_ACCOUNT', default_value=self.service_account.email, is_secret=False)
+        self.assure_var(name='GCP_LOCATION', default_value=self.region, is_secret=False)
 
     @property
     def pk(self) -> str:
