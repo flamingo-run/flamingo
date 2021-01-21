@@ -14,6 +14,7 @@ from gcp_pilot.sql import CloudSQL
 from gcp_pilot.storage import CloudStorage
 from slugify import slugify
 
+import exceptions
 import settings
 from models import BuildPack
 from models.base import KeyValueEmbeddedDocument, random_password, Project, EnvVar
@@ -240,6 +241,10 @@ class BuildSetup(EmbeddedDocument):
     is_authenticated: bool = True
 
     _build_pack: BuildPack = None
+
+    def __post_init__(self):
+        if not self.deploy_tag and not self.deploy_branch:
+            raise exceptions.ValidationError(message="Either deploy_tag or deploy_branch must be provided")
 
     def serialize(self) -> dict:
         data = super().serialize()
