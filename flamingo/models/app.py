@@ -604,8 +604,8 @@ class App(Document):
 
         return response
 
-    async def notify_deploy(self, build: Dict):
+    async def notify_deploy(self, build_data: Dict):
         return await self.environment.channel.notify(
-            build=build,
+            build_data=build_data,
             app=self,
         )
