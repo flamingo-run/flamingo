@@ -4,8 +4,9 @@ from typing import List, Dict
 from sanic import Blueprint
 from sanic.request import Request
 
+import exceptions
 import models
-from views.base import ActionView, DetailView, ListView, ResponseType, NotAllowedResponse
+from views.base import ActionView, DetailView, ListView, ResponseType
 
 apps = Blueprint('apps', url_prefix='/apps')
 
@@ -22,7 +23,7 @@ class AppBoostrapView(ActionView):
     model = models.App
 
     async def perform_get(self, request: Request, obj: models.App) -> ResponseType:
-        return NotAllowedResponse
+        raise exceptions.NotAllowedError()
 
     async def perform_post(self, request: Request, obj: models.App) -> ResponseType:
         obj.add_default()
@@ -30,14 +31,14 @@ class AppBoostrapView(ActionView):
         return new_obj.serialize(), 201
 
     async def perform_delete(self, request: Request, obj: models.App) -> ResponseType:
-        return NotAllowedResponse
+        raise exceptions.NotAllowedError()
 
 
 class AppInitializeView(ActionView):
     model = models.App
 
     async def perform_get(self, request: Request, obj: models.App) -> ResponseType:
-        return NotAllowedResponse
+        raise exceptions.NotAllowedError()
 
     async def perform_post(self, request: Request, obj: models.App) -> ResponseType:
         job = obj.init()
@@ -46,7 +47,7 @@ class AppInitializeView(ActionView):
         return {}, 202
 
     async def perform_delete(self, request: Request, obj: models.App) -> ResponseType:
-        return NotAllowedResponse
+        raise exceptions.NotAllowedError()
 
 
 class AppEnvVarsView(ActionView):
@@ -90,14 +91,14 @@ class AppApplyView(ActionView):
     model = models.App
 
     async def perform_get(self, request: Request, obj: models.App) -> ResponseType:
-        return NotAllowedResponse
+        raise exceptions.NotAllowedError()
 
     async def perform_post(self, request: Request, obj: models.App) -> ResponseType:
         await obj.apply()
         return {}, 201
 
     async def perform_delete(self, request: Request, obj: models.App) -> ResponseType:
-        return NotAllowedResponse
+        raise exceptions.NotAllowedError()
 
 
 apps.add_route(AppListView.as_view(), '/')
