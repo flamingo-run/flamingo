@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Dict
 
 from gcp_pilot.build import CloudBuild, SubstitutionHelper, AnyEventType
 from gcp_pilot.datastore import Document, EmbeddedDocument
@@ -565,21 +565,6 @@ class App(Document):
             ],
         )
 
-        # TODO: Replace with https://cloud.google.com/cloud-build/docs/subscribe-build-notifications
-        # url = self.environment.channel.webhook_url
-        # payload = await self.environment.channel.make_deploy_payload(app_name=substitution.SERVICE_NAME)
-        # snitch = build.make_build_step(
-        #     id="Notify",
-        #     name="pstauffer/curl",  # https://github.com/pstauffer/docker-curl
-        #     args=[
-        #         'curl',
-        #         '--header', "'Content-Type: application/json'",
-        #         '--request', "POST",
-        #         '--data', f"'{json.dumps(payload)}'",
-        #         url,
-        #     ],
-        # )
-
         steps = [
             cache_loader,
             build_pack_sync,
@@ -618,3 +603,9 @@ class App(Document):
             return await self.apply()
 
         return response
+
+    async def notify_deploy(self, build: Dict):
+        return await self.environment.channel.notify(
+            build=build,
+            app=self,
+        )
