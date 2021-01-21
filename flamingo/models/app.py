@@ -225,7 +225,7 @@ class BuildSetup(EmbeddedDocument):
     build_pack_name: str
     name: str = None
     trigger_id: str = None
-    deploy_branch: str = 'master'
+    deploy_branch: str = None
     deploy_tag: str = None
     post_build_commands: List[str] = field(default_factory=list)
     os_dependencies: List[str] = field(default_factory=list)
