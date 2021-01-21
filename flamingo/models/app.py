@@ -235,7 +235,7 @@ class BuildSetup(EmbeddedDocument):
     cpu: int = 1  # number of cores
     min_instances: int = 0
     max_instances: int = 10
-    timeout: int = 3600
+    timeout: int = 60 * 15  # TODO: timeout above 15m is still beta
     concurrency: int = 80
     is_authenticated: bool = True
 
@@ -548,7 +548,7 @@ class App(Document):
                 '--project', f"{substitution.PROJECT_ID}",
                 '--memory', f"{substitution.RAM}Mi",
                 '--cpu', f"{substitution.CPU}",
-                '--min-instances', f"{substitution.MIN_INSTANCES}",
+                # '--min-instances', f"{substitution.MIN_INSTANCES}",  # TODO: gcloud beta, not supported yet
                 '--max-instances', f"{substitution.MAX_INSTANCES}",
                 '--timeout', f"{substitution.TIMEOUT}",
                 '--concurrency', f"{substitution.CONCURRENCY}",
