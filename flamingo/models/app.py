@@ -422,11 +422,13 @@ class App(Document):
         job = setup_iam()
         asyncio.create_task(job)
 
-        job = self.bucket.init()
-        asyncio.create_task(job)
+        if self.bucket:
+            job = self.bucket.init()
+            asyncio.create_task(job)
 
-        job = self.database.init()
-        asyncio.create_task(job)
+        if self.database:
+            job = self.database.init()
+            asyncio.create_task(job)
 
         job = self.repository.init(app_pk=self.pk)
         asyncio.create_task(job)
