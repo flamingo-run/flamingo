@@ -29,3 +29,5 @@ API_BASEPATH = "/"
 API_TITLE = os.environ.get('API_TITLE', "Flamingo")
 API_DESCRIPTION = "Microservices goes serverless"
 API_CONTACT_EMAIL = "joao@daher.dev"
+
+GIT_ACCESS_TOKEN = os.environ.get('GIT_ACCESS_TOKEN')

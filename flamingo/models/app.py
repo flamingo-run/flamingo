@@ -74,11 +74,19 @@ class Repository(EmbeddedDocument):
     url: str = None
     mirrored: bool = False
     project: Project = field(default_factory=Project.default_for_flamingo)
+    access_token: str = None
 
     def serialize(self) -> dict:
         data = super().serialize()
         data['clone_url'] = self.clone_url
         return data
+
+    def __post_init__(self):
+        if self.mirrored:
+            if not self.access_token:
+                self.access_token = settings.GIT_ACCESS_TOKEN
+            if '/' not in self.name:
+                raise exceptions.ValidationError("Repository name must have the user/org")
 
     @classmethod
     def default(cls, app: App) -> Repository:
