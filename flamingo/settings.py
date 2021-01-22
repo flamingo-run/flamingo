@@ -11,6 +11,7 @@ cred, project_id = auth.default()
 
 FLAMINGO_PROJECT = os.environ.get('FLAMINGO_PROJECT', project_id)
 FLAMINGO_GCS_BUCKET = os.environ.get('FLAMINGO_GCS_BUCKET', f'{FLAMINGO_PROJECT}-flamingo')
+FLAMINGO_URL = os.environ['FLAMINGO_URL']  # TODO: Get URL from running container?
 
 DEFAULT_PROJECT = os.environ.get('DEFAULT_PROJECT', project_id)
 DEFAULT_PROJECT_NETWORK = os.environ.get('DEFAULT_PROJECT_NETWORK', DEFAULT_PROJECT)

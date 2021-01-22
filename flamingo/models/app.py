@@ -251,6 +251,17 @@ class BuildSetup(EmbeddedDocument):
         data['build_pack'] = self.build_pack.serialize()
         return data
 
+    async def init(self):
+        build = CloudBuild()
+
+        url = f'{settings.FLAMINGO_URL}/hooks/build'
+        await build.subscribe(
+            subscription_id='flamingo',
+            project_id=self.project.id,
+            push_to_url=url,
+            use_oidc_auth=True,
+        )
+
     @property
     def build_pack(self):
         if not self._build_pack:
@@ -431,6 +442,9 @@ class App(Document):
             asyncio.create_task(job)
 
         job = self.repository.init(app_pk=self.pk)
+        asyncio.create_task(job)
+
+        job = self.build_setup.init()
         asyncio.create_task(job)
 
         job = self.apply()
