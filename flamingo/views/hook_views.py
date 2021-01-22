@@ -14,7 +14,7 @@ hooks = Blueprint('hooks', url_prefix='/hooks')
 
 class CloudBuildHookView(HTTPMethodView):
     async def post(self, request: Request) -> HTTPResponse:
-        message = Message.load(body=request.body)
+        message = Message.load(body=request.body.decode())
         payload = message.data
         app = self._get_app(payload=payload)
         await app.notify_deploy(build_data=payload)
