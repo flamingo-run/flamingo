@@ -23,6 +23,7 @@
    - `Source Repository Administrator`
    - `Storage Admin`
    - `Cloud Datastore Admin`
+   - `Pub/Sub Admin`
 - [Enable Firestore](https://console.cloud.google.com/firestore/data) using Datastore mode: needed to store Flamingo's data
 - [Enable Resource Manager](https://console.developers.google.com/apis/library/cloudresourcemanager.googleapis.com): needed to manage app's permissions
 - [Enable IAM](https://console.developers.google.com/apis/api/iam.googleapis.com/overview): needed to manage app's service account
