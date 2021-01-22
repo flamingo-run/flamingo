@@ -99,6 +99,7 @@ python-versions = ">=3.8,<4.0"
 google-api-python-client = ">=1,<2"
 google-cloud-build = {version = ">=3,<4", optional = true, markers = "extra == \"build\""}
 google-cloud-datastore = {version = ">=2,<3", optional = true, markers = "extra == \"datastore\""}
+google-cloud-pubsub = {version = ">=2,<3", optional = true, markers = "extra == \"pubsub\""}
 google-cloud-storage = {version = ">=1,<2", optional = true, markers = "extra == \"storage\""}
 
 [package.extras]
@@ -222,6 +223,20 @@ libcst = ">=0.2.5"
 proto-plus = ">=1.4.0"
 
 [[package]]
+name = "google-cloud-pubsub"
+version = "2.2.0"
+description = "Google Cloud Pub/Sub API client library"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+google-api-core = {version = ">=1.22.2,<2.0.0dev", extras = ["grpc"]}
+grpc-google-iam-v1 = ">=0.12.3,<0.13dev"
+libcst = ">=0.3.10"
+proto-plus = ">=1.7.1"
+
+[[package]]
 name = "google-cloud-storage"
 version = "1.35.0"
 description = "Google Cloud Storage API client library"
@@ -274,10 +289,23 @@ optional = false
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*"
 
 [package.dependencies]
+grpcio = {version = ">=1.0.0", optional = true, markers = "extra == \"grpc\""}
 protobuf = ">=3.6.0"
 
 [package.extras]
 grpc = ["grpcio (>=1.0.0)"]
+
+[[package]]
+name = "grpc-google-iam-v1"
+version = "0.12.3"
+description = "GRPC library for the google-iam-v1 service"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+googleapis-common-protos = {version = ">=1.5.2,<2.0.0dev", extras = ["grpc"]}
+grpcio = ">=1.0.0,<2.0.0dev"
 
 [[package]]
 name = "grpcio"
@@ -741,7 +769,7 @@ dev-kit = ["pylint", "coverage"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "b040da64fe4662aad70228a27e6a3eb73010c7a198173ca8b5cd964d9842f70d"
+content-hash = "7a7791410c4b9b07dd039d2dd5fb3ec9bba0c2ce6dc55a5acc29c52b9171914d"
 
 [metadata.files]
 aiofiles = [
@@ -893,6 +921,10 @@ google-cloud-datastore = [
     {file = "google-cloud-datastore-2.1.0.tar.gz", hash = "sha256:11e5eba37917d0e225d7ad298a0bf5ff7341fcef8e993327c14557197a4cd3fb"},
     {file = "google_cloud_datastore-2.1.0-py2.py3-none-any.whl", hash = "sha256:0181fb775ef8f34970ef0d7718a0325e1a21df70e04453503a5c887414e8d4ef"},
 ]
+google-cloud-pubsub = [
+    {file = "google-cloud-pubsub-2.2.0.tar.gz", hash = "sha256:bc50a60803f5c409a295ec0e31cdd4acc271611ce3f4963a072036bbfa5ccde5"},
+    {file = "google_cloud_pubsub-2.2.0-py2.py3-none-any.whl", hash = "sha256:44ea43f3603a641afee89b5789414a3db55a41a4e0f50c113dd0c8fddbc06e45"},
+]
 google-cloud-storage = [
     {file = "google-cloud-storage-1.35.0.tar.gz", hash = "sha256:555c0db2f88f3419f123bf9c621d7fd92f7c9e4f8b11f08eda57facacba16a9e"},
     {file = "google_cloud_storage-1.35.0-py2.py3-none-any.whl", hash = "sha256:7b48b74683dafec5da315c7b0861ab168c208e04c763aa5db7ea8d7ecd8b6c5d"},
@@ -935,6 +967,9 @@ google-resumable-media = [
 googleapis-common-protos = [
     {file = "googleapis-common-protos-1.52.0.tar.gz", hash = "sha256:560716c807117394da12cecb0a54da5a451b5cf9866f1d37e9a5e2329a665351"},
     {file = "googleapis_common_protos-1.52.0-py2.py3-none-any.whl", hash = "sha256:c8961760f5aad9a711d37b675be103e0cc4e9a39327e0d6d857872f698403e24"},
+]
+grpc-google-iam-v1 = [
+    {file = "grpc-google-iam-v1-0.12.3.tar.gz", hash = "sha256:0bfb5b56f648f457021a91c0df0db4934b6e0c300bd0f2de2333383fe958aa72"},
 ]
 grpcio = [
     {file = "grpcio-1.35.0-cp27-cp27m-macosx_10_10_x86_64.whl", hash = "sha256:95cc4d2067deced18dc807442cf8062a93389a86abf8d40741120054389d3f29"},

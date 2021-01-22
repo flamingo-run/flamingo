@@ -11,7 +11,7 @@ packages = [
 python = "^3.8"
 sanic = "*"
 sanic-openapi = "*"
-gcp-pilot = { version = "*", extras = ['datastore', 'build', 'storage']}
+gcp-pilot = { version = "*", extras = ['datastore', 'build', 'storage', 'pubsub']}
 python-slugify = "*"
 PyGithub = "*"
 pylint = { version = "*", optional = true}
