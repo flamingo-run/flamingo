@@ -127,7 +127,7 @@ class DetailView(ViewBase):
 
 class ActionView(ViewBase):
     def get_model(self, pk: str) -> Document:
-        return self.model.documents.get(pk=pk)
+        return self.model.documents.get(id=pk)
 
     async def get(self, request: Request, pk: str) -> HTTPResponse:
         try:
