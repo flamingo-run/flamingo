@@ -34,6 +34,21 @@ class AppBoostrapView(ActionView):
         raise exceptions.NotAllowedError()
 
 
+class AppCheckView(ActionView):
+    model = models.App
+
+    async def perform_get(self, request: Request, obj: models.App) -> ResponseType:
+        raise exceptions.NotAllowedError()
+
+    async def perform_post(self, request: Request, obj: models.App) -> ResponseType:
+        obj.check_env_vars()
+        new_obj = obj.save()
+        return new_obj.serialize(), 200
+
+    async def perform_delete(self, request: Request, obj: models.App) -> ResponseType:
+        raise exceptions.NotAllowedError()
+
+
 class AppInitializeView(ActionView):
     model = models.App
 
@@ -104,6 +119,7 @@ class AppApplyView(ActionView):
 apps.add_route(AppListView.as_view(), '/')
 apps.add_route(AppDetailView.as_view(), '/<pk>')
 apps.add_route(AppBoostrapView.as_view(), '/<pk>/bootstrap')
+apps.add_route(AppCheckView.as_view(), '/<pk>/check')
 apps.add_route(AppInitializeView.as_view(), '/<pk>/init')
 apps.add_route(AppEnvVarsView.as_view(), '/<pk>/vars')
 apps.add_route(AppApplyView.as_view(), '/<pk>/apply')

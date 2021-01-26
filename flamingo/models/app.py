@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass, field
 from typing import List
+from urllib.parse import urlparse
 
 from gcp_pilot.build import CloudBuild, SubstitutionHelper, AnyEventType
 from gcp_pilot.datastore import Document, EmbeddedDocument
@@ -186,8 +187,24 @@ class Database(EmbeddedDocument):
         return f"{self.project.id}:{self.region}:{self.instance}"
 
     @property
-    def as_env(self) -> EnvVar:
-        return EnvVar(key=self.env_var, value=self.url, is_secret=True)
+    def as_env(self) -> List[EnvVar]:
+        if '*' in self.env_var:
+            prefix = self.env_var.replace('*', '')
+            parts = urlparse(self.url)
+            if parts.path.startswith('//'):  # CloudSQL socket
+                instance, name = parts.path.split('/')[-2:]
+            else:
+                instance, name = parts.hostname, parts.path.replace('/', '')
+            db_envs = [
+                EnvVar(key=f'{prefix}ENGINE', value=parts.scheme, is_secret=False),
+                EnvVar(key=f'{prefix}HOST', value=instance, is_secret=False),
+                EnvVar(key=f'{prefix}NAME', value=name, is_secret=False),
+                EnvVar(key=f'{prefix}USER', value=parts.username, is_secret=False),
+                EnvVar(key=f'{prefix}PASSWORD', value=parts.password, is_secret=True),
+            ]
+        else:
+            db_envs = [EnvVar(key=self.env_var, value=self.url, is_secret=True)]
+        return db_envs
 
     async def init(self):
         sql = CloudSQL()
@@ -370,11 +387,9 @@ class App(Document):
     def add_default(self):
         if not self.database:
             self.database = Database.default(app=self)
-            self.vars.append(self.database.as_env)
 
         if not self.bucket:
             self.bucket = Bucket.default(app=self)
-            self.vars.append(self.bucket.as_env)
 
         if not self.service_account:
             default_account = ServiceAccount.default(app=self)
@@ -389,21 +404,34 @@ class App(Document):
                 f'{self.name}.{self.environment.name}.{self.environment.network.zone}',
             ]
 
-        self.assure_var(name='SECRET', default_value=random_password(20), is_secret=True)
-        self.assure_var(name='APP_NAME', default_value=self.identifier, is_secret=False)
-        self.assure_var(name='GCP_PROJECT', default_value=self.project.id, is_secret=False)
-        self.assure_var(name='GCP_SERVICE_ACCOUNT', default_value=self.service_account.email, is_secret=False)
-        self.assure_var(name='GCP_LOCATION', default_value=self.region, is_secret=False)
+        self.check_env_vars()
+
+    def check_env_vars(self):
+        if self.database:
+            for db_var in self.database.as_env:
+                self.assure_var(env=db_var)
+
+        if self.bucket:
+            self.assure_var(env=self.bucket.as_env)
+
+        self.assure_var(env=EnvVar(key='SECRET', value=random_password(20), is_secret=True))
+        self.assure_var(env=EnvVar(key='APP_NAME', value=self.identifier, is_secret=False))
+        self.assure_var(env=EnvVar(key='GCP_PROJECT', value=self.project.id, is_secret=False))
+        self.assure_var(env=EnvVar(key='GCP_SERVICE_ACCOUNT', value=self.service_account.email, is_secret=False))
+        self.assure_var(env=EnvVar(key='GCP_LOCATION', value=self.region, is_secret=False))
 
     @property
     def path(self) -> str:
         return self.name.replace('-', '_')
 
-    def assure_var(self, name, default_value, is_secret=False):
+    def assure_var(self, env: EnvVar, overwrite: bool = False):
         for var in self.vars:
-            if var.key == name:
+            if var.key == env.key:
+                if overwrite:
+                    var.value = env.value
+                    var.is_secret = env.is_secret
                 return
-        self.vars.append(EnvVar(key=name, value=default_value, is_secret=is_secret))
+        self.vars.append(env)
 
     async def init(self):
         # TODO: replace with deployment manager, so we can rollback everything
@@ -473,6 +501,8 @@ class App(Document):
 
         job = self.apply()
         asyncio.create_task(job)
+
+        # return job_names  # TODO: return scheduled jobs to use as response
 
     async def apply(self):
         build = CloudBuild()
