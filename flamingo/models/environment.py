@@ -23,7 +23,7 @@ class Network(EmbeddedDocument):
 @dataclass
 class NotificationChannel(EmbeddedDocument):
     webhook_url: str
-    detect_commit_diff: bool = False
+    show_commit_for: List[str] = field(default_factory=['SUCCESS'])
 
     async def notify(self, deployment: Deployment, app: App) -> Dict:
         chat = ChatsHook(hook_url=self.webhook_url)
@@ -58,23 +58,23 @@ class NotificationChannel(EmbeddedDocument):
                 content=str(duration),
             )
 
-            if previous_event:
-                commits = app.repository.get_commit_diff(
-                    current_revision=current_event.source.revision,
-                    previous_revision=previous_event.source.revision,
-                )
-                if commits:
-                    diff_messages = []
-                    for sha, author, msg in commits:
-                        diff_messages.append(f'{sha} @{author}\n\t{msg}')
-                    diff_message = '\n'.join(diff_messages)
-                else:
-                    diff_message = f"No changes detected between <i>{current_event.source.revision}</i> " \
-                                   f"and <i>{previous_event.source.revision}</i>"
-                section.add_text(
-                    title="Changes",
-                    content=f"{diff_message}",
-                )
+        if previous_event and status in self.show_commit_for:
+            commits = app.repository.get_commit_diff(
+                current_revision=current_event.source.revision,
+                previous_revision=previous_event.source.revision,
+            )
+            if commits:
+                diff_messages = []
+                for sha, author, msg in commits:
+                    diff_messages.append(f'{sha} @{author}\n\t{msg}')
+                diff_message = '\n'.join(diff_messages)
+            else:
+                diff_message = f"No changes detected between <i>{current_event.source.revision}</i> " \
+                               f"and <i>{previous_event.source.revision}</i>"
+            section.add_text(
+                title="Changes",
+                content=f"{diff_message}",
+            )
 
         card.add_section(section=section)
         return card
