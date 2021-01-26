@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List
+from typing import List, TYPE_CHECKING
 
 from gcp_pilot.datastore import Document, EmbeddedDocument
 
-from models import App
+if TYPE_CHECKING:
+    from models import App  # pylint: disable=ungrouped-imports
 
 
 @dataclass
@@ -39,5 +40,6 @@ class Deployment(Document):
             )
 
     @property
-    def app(self):
+    def app(self) -> App:
+        from models import App  # pylint: disable=import-outside-toplevel
         return App.documents.get(id=self.app_id)

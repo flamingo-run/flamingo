@@ -1,7 +1,8 @@
-from models.app import EnvVar, ServiceAccount, Database, Bucket, App, Project, Repository
 from models.buildpack import BuildPack
 from models.deployment import Deployment, Event, Source
 from models.environment import Environment
+from models.app import EnvVar, ServiceAccount, Database, Bucket, App, Project, Repository  # import this last
+
 
 __all__ = (
     'App',
