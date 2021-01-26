@@ -4,13 +4,12 @@ from pathlib import Path
 from typing import Tuple, Dict, Any, List
 
 import aiofiles
+from gcp_pilot.datastore import Document, DoesNotExist
 from sanic.request import Request, RequestParameters, File
 from sanic.response import json, HTTPResponse
 from sanic.views import HTTPMethodView
-from gcp_pilot.datastore import Document, DoesNotExist
 
 import exceptions
-
 import settings
 
 PayloadType = Dict[str, Any]

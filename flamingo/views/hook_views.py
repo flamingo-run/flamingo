@@ -8,7 +8,6 @@ from sanic.request import Request
 from sanic.response import HTTPResponse, json
 from sanic.views import HTTPMethodView
 
-
 import models
 
 hooks = Blueprint('hooks', url_prefix='/hooks')

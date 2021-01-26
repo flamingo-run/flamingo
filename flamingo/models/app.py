@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
-from typing import List, Dict
+from typing import List
 
 from gcp_pilot.build import CloudBuild, SubstitutionHelper, AnyEventType
 from gcp_pilot.datastore import Document, EmbeddedDocument
