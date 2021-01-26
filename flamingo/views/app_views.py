@@ -28,7 +28,7 @@ class AppBoostrapView(ActionView):
     async def perform_post(self, request: Request, obj: models.App) -> ResponseType:
         obj.add_default()
         new_obj = obj.save()
-        return new_obj.serialize(), 201
+        return new_obj.serialize(), 200
 
     async def perform_delete(self, request: Request, obj: models.App) -> ResponseType:
         raise exceptions.NotAllowedError()
