@@ -12,6 +12,7 @@ from gcp_pilot.resource import ResourceManager
 from gcp_pilot.source import SourceRepository
 from gcp_pilot.sql import CloudSQL
 from gcp_pilot.storage import CloudStorage
+from github import Github
 from slugify import slugify
 
 import exceptions
@@ -124,6 +125,22 @@ class Repository(EmbeddedDocument):
             repo_name=self.name,
             **params
         )
+
+    def get_commit_diff(self, previous_revision: str, current_revision: str):
+        if not self.mirrored:  # GitHub Only
+            return []
+
+        g = Github(self.access_token)
+        git_repo = g.get_repo(self.name)
+        comparison = git_repo.compare(base=previous_revision, head=current_revision)
+        return [
+            (
+                commit.sha[:6],
+                commit.author.login,
+                commit.commit.message,
+            )
+            for commit in comparison.commits[:-1]  # exclude previous commit
+        ]
 
 
 @dataclass
@@ -626,9 +643,3 @@ class App(Document):
             return await self.apply()
 
         return response
-
-    async def notify_deploy(self, build_data: Dict):
-        return await self.environment.channel.notify(
-            build_data=build_data,
-            app=self,
-        )
