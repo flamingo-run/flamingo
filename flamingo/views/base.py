@@ -27,11 +27,27 @@ class ViewBase(HTTPMethodView):
             await f.write(file.body)
         await f.close()
 
+    def _parse_query(self, query_args: List[Tuple[str, str]]) -> Dict[str, str]:
+        query = {}
+        for key, value in query_args:
+            if key not in query:
+                query[key] = value
+            elif isinstance(query[key], list):
+                query[key].append(value)
+            else:
+                query[key] = [query[key], value]
+
+        return query
+
 
 class ListView(ViewBase):
     async def get(self, request: Request) -> HTTPResponse:
         response = {
-            'results': [obj.serialize() for obj in self.model.list()]
+            'results': [
+                obj.serialize()
+                for obj in
+                await self.perform_get(query_filters=self._parse_query(request.query_args))
+            ]
         }
         return json(response, 200)
 
