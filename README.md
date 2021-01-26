@@ -30,3 +30,9 @@
 - [Enable Cloud SQL](https://console.developers.google.com/apis/api/sqladmin.googleapis.com/overview): needed to manage app's SQL database
 - [Enable App Engine Admin](https://console.developers.google.com/apis/api/appengine.googleapis.com/overview): needed to fetch project's default location
 - Deploy Flamingo as the service account create previously
+
+
+# Environment Variables
+
+- FLAMINGO_URL: the public URL of the service to receive build hooks
+- GIT_ACCESS_TOKEN: add the personal access token to allow build notification with code diff
