@@ -24,13 +24,11 @@ class BuildPack(Document):
     build_args: KeyValue = field(default_factory=dict)
     post_build_commands: List[str] = field(default_factory=list)
     dockerfile_url: str = None
+    id: str = None
 
     def __post_init__(self):
         self.name = slugify(self.name)
-
-    @property
-    def pk(self) -> str:
-        return self.name
+        self.id = self.name
 
     @property
     def tags(self):

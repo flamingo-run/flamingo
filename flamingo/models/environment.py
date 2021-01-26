@@ -150,10 +150,8 @@ class Environment(Document):
     project: Project = field(default_factory=Project.default)
     channel: NotificationChannel = None
     vars: List[EnvVar] = field(default_factory=list)
+    id: str = None
 
     def __post_init__(self):
         self.name = slugify(self.name)
-
-    @property
-    def pk(self) -> str:
-        return self.name
+        self.id = self.name

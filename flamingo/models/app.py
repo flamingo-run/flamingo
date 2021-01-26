@@ -107,7 +107,7 @@ class Repository(EmbeddedDocument):
                 project_id=self.project.id,
             )
             self.url = data['url']
-            App.update(pk=app_pk, repository=self)
+            App.documents.update(pk=app_pk, repository=self)
 
     def as_event(self, branch_name: str, tag_name: str) -> AnyEventType:
         build = CloudBuild()
@@ -273,7 +273,7 @@ class BuildSetup(EmbeddedDocument):
     @property
     def build_pack(self):
         if not self._build_pack:
-            self._build_pack = BuildPack.get(pk=self.build_pack_name)
+            self._build_pack = BuildPack.documents.get(id=self.build_pack_name)
         return self._build_pack
 
     @property
@@ -310,6 +310,7 @@ class App(Document):
     bucket: Bucket = None
     region: str = settings.DEFAULT_REGION
     service_account: ServiceAccount = None
+    id: str = None
 
     _environment: Environment = None
 
@@ -323,6 +324,8 @@ class App(Document):
 
         self.build_setup.name = self.identifier
 
+        self.id = self.identifier
+
     def serialize(self) -> dict:
         data = super().serialize()
         data['environment'] = self.environment.serialize()
@@ -331,7 +334,7 @@ class App(Document):
     @property
     def environment(self) -> Environment:
         if not self._environment:
-            self._environment = Environment.get(pk=self.environment_name)
+            self._environment = Environment.documents.get(id=self.environment_name)
         return self._environment
 
     @property
@@ -374,10 +377,6 @@ class App(Document):
         self.assure_var(name='GCP_PROJECT', default_value=self.project.id, is_secret=False)
         self.assure_var(name='GCP_SERVICE_ACCOUNT', default_value=self.service_account.email, is_secret=False)
         self.assure_var(name='GCP_LOCATION', default_value=self.region, is_secret=False)
-
-    @property
-    def pk(self) -> str:
-        return self.identifier
 
     @property
     def path(self) -> str:
@@ -618,7 +617,7 @@ class App(Document):
 
         build_setup = self.build_setup
         build_setup.trigger_id = response.id
-        App.update(pk=self.pk, build_setup=build_setup)
+        App.documents.update(pk=self.pk, build_setup=build_setup)
 
         # Since we need the Trigger ID inside the trigger yaml to be used as a CloudRun service label
         # The first time we create the trigger the yaml goes without the label, so we recreate it

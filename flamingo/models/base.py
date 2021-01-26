@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import random
 import string
-from abc import ABC
 from dataclasses import dataclass
 from typing import Type, Dict
 
@@ -25,7 +24,7 @@ def random_password(length: int) -> str:
 
 
 @dataclass
-class KeyValueEmbeddedDocument(EmbeddedDocument, ABC):
+class KeyValueEmbeddedDocument(EmbeddedDocument):
     key: str
     value: str
 
