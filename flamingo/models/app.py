@@ -83,7 +83,7 @@ class Repository(EmbeddedDocument):
         return data
 
     def __post_init__(self):
-        if self.mirrored:
+        if not self.mirrored:
             if not self.access_token:
                 self.access_token = settings.GIT_ACCESS_TOKEN
             if '/' not in self.name:
