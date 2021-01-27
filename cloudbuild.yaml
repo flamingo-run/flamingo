@@ -39,7 +39,7 @@ steps:
       - update-traffic
       - $_SERVICE_NAME
       - '--to-latest'
-    id: Deploy
+    id: Redirect Traffic
     entrypoint: gcloud
 images:
   - '$_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA'
