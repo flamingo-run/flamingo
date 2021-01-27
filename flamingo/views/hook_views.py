@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timezone
 from typing import Dict
 
@@ -13,6 +14,9 @@ import models
 hooks = Blueprint('hooks', url_prefix='/hooks')
 
 
+logger = logging.getLogger()
+
+
 class CloudBuildHookView(HTTPMethodView):
     async def post(self, request: Request) -> HTTPResponse:
         message = Message.load(body=request.body.decode())
@@ -26,7 +30,13 @@ class CloudBuildHookView(HTTPMethodView):
                 revision=payload['source']['gitSource']['revision'],
             )
         )
-        app = self._get_app(trigger_id=payload['buildTriggerId'])
+        trigger_id = payload['buildTriggerId']
+        try:
+            app = self._get_app(trigger_id=trigger_id)
+        except DoesNotExist:
+            logger.warning(f"Ignoring build event from trigger {trigger_id}")
+            return json({'status': 'done'}, 204)
+
         await self._register_event(
             app_id=app.id,
             build_id=payload['id'],
