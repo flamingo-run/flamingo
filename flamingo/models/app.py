@@ -659,9 +659,14 @@ class App(Document):
             branch_name=self.build_setup.deploy_branch,
             tag_name=self.build_setup.deploy_tag,
         )
+        if self.build_setup.deploy_branch:
+            _event_str = f'pushed to {self.build_setup.deploy_branch}'
+        else:
+            _event_str = f'tagged {self.build_setup.deploy_tag}'
+        description = f'🦩 Deploy to {self.build_setup.build_pack.target} when {_event_str}'
         response = await build.create_or_update_trigger(
             name=self.identifier,
-            description="powered by Flamingo 🦩",
+            description=description,
             event=event,
             project_id=settings.FLAMINGO_PROJECT,
             steps=steps,
