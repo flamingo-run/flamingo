@@ -23,7 +23,7 @@ class Network(EmbeddedDocument):
 @dataclass
 class NotificationChannel(EmbeddedDocument):
     webhook_url: str
-    show_commit_for: List[str] = field(default_factory=['SUCCESS'])
+    show_commit_for: List[str] = field(default_factory=lambda: ['SUCCESS'])
 
     async def notify(self, deployment: Deployment, app: App) -> Dict:
         chat = ChatsHook(hook_url=self.webhook_url)
