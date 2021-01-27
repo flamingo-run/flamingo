@@ -610,7 +610,7 @@ class App(Document):
             PROJECT_ID=self.project.id,
             SERVICE_NAME=self.identifier,
         )
-        deployer = build.make_build_step(
+        deployer = build.make_build_step(  # TODO: Assure it is served immediately. Test with a rollbacked service
             identifier="Deploy",
             name="gcr.io/google.com/cloudsdktool/cloud-sdk",
             entrypoint='gcloud',
