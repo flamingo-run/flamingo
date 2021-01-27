@@ -610,7 +610,7 @@ class App(Document):
             PROJECT_ID=self.project.id,
             SERVICE_NAME=self.identifier,
         )
-        deployer = build.make_build_step(  # TODO: Assure it is served immediately. Test with a rollbacked service
+        deployer = build.make_build_step(
             identifier="Deploy",
             name="gcr.io/google.com/cloudsdktool/cloud-sdk",
             entrypoint='gcloud',
@@ -635,6 +635,16 @@ class App(Document):
             ],
         )
 
+        # If rollbacked, just a deploy is not enough to redirect traffic to a new revision
+        traffic = build.make_build_step(
+            identifier="Redirect Traffic",
+            name="gcr.io/google.com/cloudsdktool/cloud-sdk",
+            entrypoint='gcloud',
+            args=[
+                "run", "services", "update-traffic", f"{substitution.SERVICE_NAME}", '--to-latest',
+            ],
+        )
+
         steps = [
             cache_loader,
             build_pack_sync,
@@ -642,7 +652,7 @@ class App(Document):
             image_pusher,
             *custom,
             deployer,
-            # snitch,
+            traffic,
         ]
 
         event = self.repository.as_event(
