@@ -641,7 +641,10 @@ class App(Document):
             name="gcr.io/google.com/cloudsdktool/cloud-sdk",
             entrypoint='gcloud',
             args=[
-                "run", "services", "update-traffic", f"{substitution.SERVICE_NAME}", '--to-latest',
+                "run", "services", "update-traffic", f"{substitution.SERVICE_NAME}",
+                '--platform', 'managed',
+                '--region', f"{substitution.REGION}",
+                '--to-latest',
             ],
         )
 

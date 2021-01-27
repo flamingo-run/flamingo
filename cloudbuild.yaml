@@ -38,6 +38,8 @@ steps:
       - services
       - update-traffic
       - $_SERVICE_NAME
+      - '--platform=managed'
+      - '--region=$_DEPLOY_REGION'
       - '--to-latest'
     id: Redirect Traffic
     entrypoint: gcloud
