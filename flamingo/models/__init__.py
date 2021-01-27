@@ -1,3 +1,4 @@
+# pylint: disable=import-self
 from models.buildpack import BuildPack
 from models.deployment import Deployment, Event, Source
 from models.environment import Environment
