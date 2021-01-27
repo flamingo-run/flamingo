@@ -5,7 +5,19 @@
 
 # Flamingo
 
+
+## Deployment
+
+It's recommended to use Google Cloud Build to deploy the Flamingo Server application to Cloud Run
+
+For this, you'll need to add 2 Variables to the build configuration: `_GIT_ACCESS_TOKEN` and `URL` (see **Environment Variables** section for more info)
+
+### Option A: Use Run on Google Cloud button
 [![Run on Google Cloud](https://deploy.cloud.run/button.svg)](https://deploy.cloud.run)
+
+### Option B: Create your own deployment
+
+Create a new Cloud Build trigger selecting the option ``Cloud Build configuration file (yaml or json)``
 
 
 # Setup
