@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import List
 from urllib.parse import urlparse
 
@@ -70,25 +71,26 @@ class ServiceAccount(EmbeddedDocument):
             )
 
 
+class RepoEngine(Enum):
+    GITHUB = 'GITHUB'
+    SOURCE_REPO = 'SOURCE_REPOSITORIES'
+
+
 @dataclass
 class Repository(EmbeddedDocument):
     name: str
+    engine: str = RepoEngine.GITHUB.value
     url: str = None
-    mirrored: bool = False
     project: Project = field(default_factory=Project.default_for_flamingo)
     access_token: str = None
 
-    def serialize(self) -> dict:
-        data = super().serialize()
-        data['clone_url'] = self.clone_url
-        return data
-
     def __post_init__(self):
-        if not self.mirrored:
+        if self.engine == RepoEngine.GITHUB.value:
             if not self.access_token:
                 self.access_token = settings.GIT_ACCESS_TOKEN
             if '/' not in self.name:
                 raise exceptions.ValidationError("Repository name must have the user/org")
+            self.url = f'https://github.com/{self.name}'
 
     @classmethod
     def default(cls, app: App) -> Repository:
@@ -96,14 +98,8 @@ class Repository(EmbeddedDocument):
             name=app.identifier,
         )
 
-    @property
-    def clone_url(self) -> str:
-        if not self.mirrored:
-            return f'ssh://source.developers.google.com:2022/p/{self.project.id}/r/{self.name}'
-        return self.url
-
     async def init(self, app_pk: str):
-        if not self.mirrored:
+        if self.engine == RepoEngine.SOURCE_REPO.value:
             data = await SourceRepository().create_repo(
                 repo_name=self.name,
                 project_id=self.project.id,
@@ -117,7 +113,7 @@ class Repository(EmbeddedDocument):
             branch_name=branch_name,
             tag_name=tag_name,
         )
-        if self.mirrored:
+        if self.engine == RepoEngine.GITHUB.value:
             return build.make_github_event(
                 url=self.url,
                 **params,
@@ -128,7 +124,7 @@ class Repository(EmbeddedDocument):
         )
 
     def get_commit_diff(self, previous_revision: str, current_revision: str):
-        if not self.mirrored:  # GitHub Only
+        if self.engine != RepoEngine.GITHUB.value:  # GitHub Only
             return []
 
         g = Github(self.access_token)
