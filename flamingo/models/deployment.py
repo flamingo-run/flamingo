@@ -51,3 +51,11 @@ class Deployment(Document):
     def app(self) -> App:
         from models import App  # pylint: disable=import-outside-toplevel
         return App.documents.get(id=self.app_id)
+
+    @classmethod
+    def merge(cls, app_id: str, build_id: str) -> Deployment:
+        new_deployment = cls(app_id=app_id, build_id=build_id)
+        for deployment in cls.documents.filter(build_id=build_id):
+            for event in deployment.events:
+                new_deployment.add_event(event=event, notify=False)
+        return new_deployment

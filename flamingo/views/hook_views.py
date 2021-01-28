@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Dict
 
-from gcp_pilot.datastore import DoesNotExist
+from gcp_pilot.datastore import DoesNotExist, MultipleObjectsFound
 from gcp_pilot.pubsub import Message
 from sanic import Blueprint
 from sanic.request import Request
@@ -68,7 +68,9 @@ class CloudBuildHookView(HTTPMethodView):
             if event.is_first:
                 raise exceptions.ValidationError(message=f"Event {event.status} received before deployment register")
             deployment = models.Deployment(**kwargs).save()
-
+        except MultipleObjectsFound:
+            logger.warning(f"Merging duplicated deployments with build_id={build_id}")
+            deployment = models.Deployment.merge(**kwargs)
         await deployment.add_event(event=event, notify=True)
 
 
