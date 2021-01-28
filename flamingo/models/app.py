@@ -642,6 +642,7 @@ class App(Document):
                 "run", "services", "update-traffic", f"{substitution.SERVICE_NAME}",
                 '--platform', 'managed',
                 '--region', f"{substitution.REGION}",
+                '--project', f"{substitution.PROJECT_ID}",
                 '--to-latest',
             ],
         )
