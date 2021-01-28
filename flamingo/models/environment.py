@@ -49,6 +49,12 @@ class NotificationChannel(EmbeddedDocument):
         # TODO: Fix image too big
         # section.add_image(image_url=self._get_icon(status=status))
 
+        if current_event.is_first:
+            section.add_button(
+                url=deployment.url,
+                text='DETAILS',
+            )
+
         if current_event.is_last:
             first_event = deployment.events[0]
             duration = current_event.created_at - first_event.created_at
@@ -90,7 +96,7 @@ class NotificationChannel(EmbeddedDocument):
             'TIMEOUT': 'took too long to deploy to',
             'CANCELLED': 'has been cancelled to deploy to',
             'EXPIRED': 'took too long to start deployment to',
-        }.get(status)
+        }.get(status).upper()
 
     def _get_icon(self, status: str) -> str:
         # https://cloud.google.com/cloud-build/docs/api/reference/rest/v1/projects.builds#status

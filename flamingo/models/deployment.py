@@ -48,6 +48,10 @@ class Deployment(Document):
             )
 
     @property
+    def url(self):
+        return f'https://console.cloud.google.com/cloud-build/builds;region=global/{self.build_id}'
+
+    @property
     def app(self) -> App:
         from models import App  # pylint: disable=import-outside-toplevel
         return App.documents.get(id=self.app_id)
