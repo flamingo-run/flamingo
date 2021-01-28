@@ -28,7 +28,7 @@ class NotificationChannel(EmbeddedDocument):
     async def notify(self, deployment: Deployment, app: App) -> Dict:
         chat = ChatsHook(hook_url=self.webhook_url)
         card = self._build_message_card(deployment=deployment, app=app)
-        return chat.send_card(card=card)
+        return chat.send_card(card=card, thread_key=f'flamingo_{deployment.build_id}')
 
     def _build_message_card(self, deployment: Deployment, app: App) -> Card:
         current_event = deployment.events[-1]
