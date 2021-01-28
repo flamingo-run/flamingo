@@ -22,6 +22,14 @@ class Event(EmbeddedDocument):
     source: Source
     created_at: datetime
 
+    @property
+    def is_first(self):
+        return self.status == 'QUEUED'
+
+    @property
+    def is_last(self):
+        return self.status in ['SUCCESS', 'FAILURE', 'INTERNAL_ERROR', 'TIMEOUT', 'CANCELLED', 'EXPIRED']
+
 
 @dataclass
 class Deployment(Document):

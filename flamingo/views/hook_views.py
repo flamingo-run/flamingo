@@ -9,6 +9,7 @@ from sanic.request import Request
 from sanic.response import HTTPResponse, json
 from sanic.views import HTTPMethodView
 
+import exceptions
 import models
 
 hooks = Blueprint('hooks', url_prefix='/hooks')
@@ -64,6 +65,8 @@ class CloudBuildHookView(HTTPMethodView):
         try:
             deployment = models.Deployment.documents.get(**kwargs)
         except DoesNotExist:
+            if event.is_first:
+                raise exceptions.ValidationError(message=f"Event {event.status} received before deployment register")
             deployment = models.Deployment(**kwargs).save()
 
         await deployment.add_event(event=event, notify=True)

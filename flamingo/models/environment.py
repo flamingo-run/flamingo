@@ -38,7 +38,6 @@ class NotificationChannel(EmbeddedDocument):
             previous_event = None
 
         status = current_event.status
-        has_finished = status in ['SUCCESS', 'FAILURE', 'INTERNAL_ERROR', 'TIMEOUT', 'CANCELLED', 'EXPIRED']
 
         card = Card()
         card.add_header(
@@ -50,7 +49,7 @@ class NotificationChannel(EmbeddedDocument):
         # TODO: Fix image too big
         # section.add_image(image_url=self._get_icon(status=status))
 
-        if has_finished:
+        if current_event.is_last:
             first_event = deployment.events[0]
             duration = current_event.created_at - first_event.created_at
             section.add_text(
