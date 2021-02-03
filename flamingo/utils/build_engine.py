@@ -53,8 +53,10 @@ class BuildTriggerFactory:
         )
 
     def _get_db_as_param(self, command: str) -> List[str]:
+        key = 'DATABASE_URL'
+        self.substitution.add(**{key: self.app.database.url})
         if self.app.database:
-            return [command, str(getattr(self.substitution, self.app.database.env_var))]
+            return [command, str(getattr(self.substitution, key))]
         return []
 
     def _get_env_var_as_param(self, command: str) -> List[str]:
@@ -90,7 +92,7 @@ class BuildTriggerFactory:
     def _add_build_step(self):
         build_pack = self.build_setup.build_pack
         build_args = []
-        for key, value in build_pack.get_build_args(app=self).items():
+        for key, value in build_pack.get_build_args(app=self.app).items():
             self.substitution.add(**{key: value})
             build_args.extend(["--build-arg", getattr(self.substitution, key).as_kv])
 
@@ -195,6 +197,8 @@ class BuildTriggerFactory:
         self.steps.append(traffic)
 
     async def build(self) -> str:
+        self._populate_substitutions()
+
         self._add_cache_step()
         self._add_dockerfile_step()
         self._add_build_step()
