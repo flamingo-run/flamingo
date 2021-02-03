@@ -43,10 +43,6 @@ class BuildPack(Document):
     def local_dockerfile(self) -> Path:
         return settings.PROJECT_DIR / 'engine' / self.name / 'Dockerfile'
 
-    @property
-    def remote_dockerfile(self):
-        return f'gs://{settings.FLAMINGO_GCS_BUCKET}/buildpack/{self.name}/Dockerfile'
-
     async def init(self):
         gcs = CloudStorage()
         await gcs.create_bucket(
@@ -59,13 +55,14 @@ class BuildPack(Document):
         gcs = CloudStorage()
 
         # TODO: invalidate GCS file cache?
-        await gcs.upload(
+        target_file_name = f'buildpack/{self.name}/Dockerfile'
+        blob = await gcs.upload(
             bucket_name=settings.FLAMINGO_GCS_BUCKET,
             source_file=str(self.local_dockerfile),
-            target_file_name=self.remote_dockerfile.replace(f'gs://{settings.FLAMINGO_GCS_BUCKET}/', ''),
+            target_file_name=target_file_name,
             is_public=True,
         )
-        return self.remote_dockerfile
+        return gcs.get_uri(blob)
 
     def get_build_args(self, app: App) -> KeyValue:
         all_build_args = {

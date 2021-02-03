@@ -25,7 +25,10 @@ class BuildPackDetailView(DetailView):
     async def store_file(self, obj: models.BuildPack, field_name: str, file: File) -> str:
         # TODO: Optimize to upload from memory
         await self.write_file(file=file, filepath=obj.local_dockerfile)
-        return await obj.upload_dockerfile()
+        gcs_url = await obj.upload_dockerfile()
+        obj.dockerfile_url = gcs_url
+        obj.save()
+        return gcs_url
 
 
 build_packs.add_route(BuildPackListView.as_view(), '/')
