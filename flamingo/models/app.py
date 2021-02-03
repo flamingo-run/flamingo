@@ -277,6 +277,7 @@ class BuildSetup(EmbeddedDocument):
     timeout: int = 60 * 15  # TODO: timeout above 15m is still beta
     concurrency: int = 80
     is_authenticated: bool = True
+    build_timeout: int = 60 * 30  # <https://cloud.google.com/cloud-build/docs/build-config#timeout_2>
 
     _build_pack: BuildPack = None
 

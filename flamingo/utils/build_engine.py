@@ -222,6 +222,7 @@ class BuildTriggerFactory:
             images=[self.build_setup.image_name],
             tags=self.build_setup.get_tags(),
             substitutions=self.substitution.as_dict,
+            timeout=self.build_setup.build_timeout,
         )
 
         return response.id
