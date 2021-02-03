@@ -7,7 +7,7 @@ from enum import Enum
 from typing import List
 from urllib.parse import urlparse
 
-from gcp_pilot.build import CloudBuild, SubstitutionHelper, AnyEventType
+from gcp_pilot.build import CloudBuild, AnyEventType
 from gcp_pilot.datastore import Document, EmbeddedDocument
 from gcp_pilot.iam import IAM
 from gcp_pilot.resource import ResourceManager
@@ -503,184 +503,14 @@ class App(Document):
         # return job_names  # TODO: return scheduled jobs to use as response
 
     async def apply(self):
-        build = CloudBuild()
-        substitution = SubstitutionHelper()
-
-        image_name = self.build_setup.image_name
-        substitution.add(IMAGE_NAME=image_name)
-
-        build_pack = self.build_setup.build_pack
-
-        cache_loader = build.make_build_step(
-            name='gcr.io/cloud-builders/docker',
-            identifier="Image Cache",
-            entrypoint='bash',
-            args=["-c", f"docker pull {substitution.IMAGE_NAME} || exit 0"],
-        )
-
-        substitution.add(DOCKERFILE_LOCATION=build_pack.remote_dockerfile)
-        build_pack_sync = build.make_build_step(
-            name='gcr.io/google.com/cloudsdktool/cloud-sdk',
-            identifier="Build Pack Download",
-            args=['gsutil', 'cp', f'{substitution.DOCKERFILE_LOCATION}', 'Dockerfile'],
-        )
-
-        build_args = []
-        for key, value in build_pack.get_build_args(app=self).items():
-            substitution.add(**{key: value})
-            build_args.extend(["--build-arg", getattr(substitution, key).as_kv])
-
-        image_builder = build.make_build_step(
-            name='gcr.io/cloud-builders/docker',
-            identifier="Image Build",
-            args=[
-                "build",
-                "-t",
-                f"{substitution.IMAGE_NAME}",
-                *build_args,
-                "--cache-from", f"{substitution.IMAGE_NAME}",
-                "."
-            ],
-        )
-
-        # TODO: replace with image attribute?
-        image_pusher = build.make_build_step(
-            name="gcr.io/cloud-builders/docker",
-            identifier="Image Upload",
-            args=["push", f"{substitution.IMAGE_NAME}"],
-        )
-
-        all_vars = self.vars + self.environment.vars
-        for var in all_vars:
-            substitution.add(**{f'ENV_{var.key}': var.value})
-
-        substitution.add(**{self.database.env_var: self.database.location})
-
-        def _get_db_as_param(command: str) -> List[str]:
-            return [command, str(getattr(substitution, self.database.env_var))]
-
-        def _get_env_var_as_param(command: str) -> List[str]:
-            params = []
-            for env_var in self.vars:
-                k = env_var.key
-                v = str(getattr(substitution, f'ENV_{env_var.key}'))
-                params.extend([command, f'{k}={v}'])
-            return params
-
-        def _make_command_step(title: str, command: str):
-            # More info: https://github.com/GoogleCloudPlatform/ruby-docker/tree/master/app-engine-exec-wrapper
-            # Caveats: default ComputeEngine service account here, not app's service account as it should be
-            return build.make_build_step(
-                identifier=title,
-                name="gcr.io/google-appengine/exec-wrapper",
-                args=[
-                    "-i", f"{substitution.IMAGE_NAME}",
-                    *_get_db_as_param('-s'),
-                    *_get_env_var_as_param('-e'),
-                    "--",
-                    *command.split(),  # TODO Handle quoted command
-                ],
-            )
-
-        custom = [
-            _make_command_step(title=f"Custom {idx + 1} | {command}", command=command)
-            for idx, command in enumerate(build_pack.get_extra_build_steps(app=self))
-        ]
-
-        db_params = _get_db_as_param('--add-cloudsql-instances')
-        env_params = _get_env_var_as_param('--set-env-vars')
-
-        label_params = ['--clear-labels']
-        for label in self.build_setup.get_labels():
-            label_params.extend(['--update-labels', f'{label.key}={label.value}'])
-
-        auth_params = ['--allow-unauthenticated'] if not self.build_setup.is_authenticated else []
-
-        substitution.add(
-            REGION=self.region,
-            CPU=self.build_setup.cpu,
-            RAM=self.build_setup.memory,
-            MIN_INSTANCES=self.build_setup.min_instances,
-            MAX_INSTANCES=self.build_setup.max_instances,
-            TIMEOUT=self.build_setup.timeout,
-            CONCURRENCY=self.build_setup.concurrency,
-            SERVICE_ACCOUNT=self.service_account.email,
-            PROJECT_ID=self.project.id,
-            SERVICE_NAME=self.identifier,
-        )
-        deployer = build.make_build_step(
-            identifier="Deploy",
-            name="gcr.io/google.com/cloudsdktool/cloud-sdk",
-            entrypoint='gcloud',
-            args=[
-                "run", "services", "update", f"{substitution.SERVICE_NAME}",
-                '--platform', 'managed',
-                '--image', f"{substitution.IMAGE_NAME}",
-                '--region', f"{substitution.REGION}",
-                *db_params,
-                *env_params,
-                '--service-account', f"{substitution.SERVICE_ACCOUNT}",
-                '--project', f"{substitution.PROJECT_ID}",
-                '--memory', f"{substitution.RAM}Mi",
-                '--cpu', f"{substitution.CPU}",
-                # '--min-instances', f"{substitution.MIN_INSTANCES}",  # TODO: gcloud beta, not supported yet
-                '--max-instances', f"{substitution.MAX_INSTANCES}",
-                '--timeout', f"{substitution.TIMEOUT}",
-                '--concurrency', f"{substitution.CONCURRENCY}",
-                *auth_params,
-                *label_params,
-                '--quiet'
-            ],
-        )
-
-        # If rollbacked, just a deploy is not enough to redirect traffic to a new revision
-        traffic = build.make_build_step(
-            identifier="Redirect Traffic",
-            name="gcr.io/google.com/cloudsdktool/cloud-sdk",
-            entrypoint='gcloud',
-            args=[
-                "run", "services", "update-traffic", f"{substitution.SERVICE_NAME}",
-                '--platform', 'managed',
-                '--region', f"{substitution.REGION}",
-                '--project', f"{substitution.PROJECT_ID}",
-                '--to-latest',
-            ],
-        )
-
-        steps = [
-            cache_loader,
-            build_pack_sync,
-            image_builder,
-            image_pusher,
-            *custom,
-            deployer,
-            traffic,
-        ]
-
-        event = self.repository.as_event(
-            branch_name=self.build_setup.deploy_branch,
-            tag_name=self.build_setup.deploy_tag,
-        )
-        if self.build_setup.deploy_branch:
-            _event_str = f'pushed to {self.build_setup.deploy_branch}'
-        else:
-            _event_str = f'tagged {self.build_setup.deploy_tag}'
-        description = f'🦩 Deploy to {self.build_setup.build_pack.target} when {_event_str}'
-        response = await build.create_or_update_trigger(
-            name=self.identifier,
-            description=description,
-            event=event,
-            project_id=settings.FLAMINGO_PROJECT,
-            steps=steps,
-            images=[image_name],
-            tags=self.build_setup.get_tags(),
-            substitutions=substitution.as_dict,
-        )
+        from utils.build_engine import BuildTriggerFactory  # pylint: disable=import-outside-toplevel
+        factory = BuildTriggerFactory(app=self)
+        trigger_id = await factory.build()
 
         trigger_not_bound = self.build_setup.trigger_id is None
 
         build_setup = self.build_setup
-        build_setup.trigger_id = response.id
+        build_setup.trigger_id = trigger_id
         App.documents.update(pk=self.pk, build_setup=build_setup)
 
         # Since we need the Trigger ID inside the trigger yaml to be used as a CloudRun service label
@@ -688,5 +518,3 @@ class App(Document):
         # adding the ID we just received
         if trigger_not_bound:
             return await self.apply()
-
-        return response
