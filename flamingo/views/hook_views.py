@@ -64,9 +64,11 @@ class CloudBuildHookView(HTTPMethodView):
         )
         try:
             deployment = models.Deployment.documents.get(**kwargs)
-        except DoesNotExist:
+        except DoesNotExist as e:
             if event.is_first:
-                raise exceptions.ValidationError(message=f"Event {event.status} received before deployment register")
+                raise exceptions.ValidationError(
+                    message=f"Event {event.status} received before deployment register"
+                ) from e
             deployment = models.Deployment(**kwargs).save()
         except MultipleObjectsFound:
             logger.warning(f"Merging duplicated deployments with build_id={build_id}")
