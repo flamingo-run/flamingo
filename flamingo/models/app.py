@@ -20,7 +20,7 @@ from slugify import slugify
 import exceptions
 import settings
 from models import BuildPack
-from models.base import KeyValueEmbeddedDocument, random_password, Project, EnvVar
+from models.base import KeyValueEmbeddedDocument, random_password, Project, EnvVar, EnvVarVarSource
 from models.environment import Environment
 
 
@@ -427,13 +427,25 @@ class App(Document):
         all_vars.extend(self.environment.vars)
         # all_vars.extend(self.build_setup.build_pack.vars)  # TODO: Add vars to buildpack
 
-        # TODO: Deduplicate and warn
-        deduplicated = {var.key: var for var in all_vars}
-        return list(deduplicated.values())
+        return all_vars
 
     def check_env_vars(self):
         self.assure_var(env=EnvVar(key='SECRET', value=random_password(20), is_secret=True))
-        # TODO Remove DB and Bucket explicit variables
+
+        all_vars = self.get_all_env_vars()
+        implicit_vars = {var.key for var in all_vars if var.is_implicit}
+        deduplicated_vars = {}
+        for var in all_vars:
+            if var.is_implicit:
+                continue
+
+            if var.key in implicit_vars or var.key in deduplicated_vars:
+                # skip, because it's duplicated
+                continue
+
+            deduplicated_vars[var.key] = var
+
+        self.vars = list(deduplicated_vars.values())
 
     @property
     def path(self) -> str:
