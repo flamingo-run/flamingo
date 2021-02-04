@@ -184,6 +184,7 @@ class Database(EmbeddedDocument):
 
     @property
     def as_env(self) -> List[EnvVar]:
+        by_flamingo = EnvVarVarSource.FLAMINGO.value
         if '*' in self.env_var:
             prefix = self.env_var.replace('*', '')
             parts = urlparse(self.url)
@@ -193,14 +194,14 @@ class Database(EmbeddedDocument):
             else:
                 instance, name = parts.hostname, parts.path.replace('/', '')
             db_envs = [
-                EnvVar(key=f'{prefix}ENGINE', value=parts.scheme, is_secret=False),
-                EnvVar(key=f'{prefix}HOST', value=instance, is_secret=False),
-                EnvVar(key=f'{prefix}NAME', value=name, is_secret=False),
-                EnvVar(key=f'{prefix}USER', value=parts.username, is_secret=False),
-                EnvVar(key=f'{prefix}PASSWORD', value=parts.password, is_secret=True),
+                EnvVar(key=f'{prefix}ENGINE', value=parts.scheme, is_secret=False, source=by_flamingo),
+                EnvVar(key=f'{prefix}HOST', value=instance, is_secret=False, source=by_flamingo),
+                EnvVar(key=f'{prefix}NAME', value=name, is_secret=False, source=by_flamingo),
+                EnvVar(key=f'{prefix}USER', value=parts.username, is_secret=False, source=by_flamingo),
+                EnvVar(key=f'{prefix}PASSWORD', value=parts.password, is_secret=True, source=by_flamingo),
             ]
         else:
-            db_envs = [EnvVar(key=self.env_var, value=self.url, is_secret=True)]
+            db_envs = [EnvVar(key=self.env_var, value=self.url, is_secret=True, source=by_flamingo)]
         return db_envs
 
     async def init(self):
@@ -249,7 +250,7 @@ class Bucket(EmbeddedDocument):
 
     @property
     def as_env(self) -> List[EnvVar]:
-        return [EnvVar(key=self.env_var, value=self.name, is_secret=False)]
+        return [EnvVar(key=self.env_var, value=self.name, is_secret=False, source=EnvVarVarSource.FLAMINGO.value)]
 
     async def init(self):
         gcs = CloudStorage()
@@ -406,7 +407,7 @@ class App(Document):
 
         self.check_env_vars()
 
-    def get_all_env_vars(self):
+    def get_all_env_vars(self) -> List[EnvVar]:
         all_vars = self.vars.copy()
 
         if self.database:
@@ -415,11 +416,12 @@ class App(Document):
         if self.bucket:
             all_vars.extend(self.bucket.as_env)
 
+        by_flamingo = EnvVarVarSource.FLAMINGO.value
         all_vars.extend([
-            EnvVar(key='APP_NAME', value=self.identifier, is_secret=False),
-            EnvVar(key='GCP_PROJECT', value=self.project.id, is_secret=False),
-            EnvVar(key='GCP_SERVICE_ACCOUNT', value=self.service_account.email, is_secret=False),
-            EnvVar(key='GCP_LOCATION', value=self.region, is_secret=False),
+            EnvVar(key='APP_NAME', value=self.identifier, is_secret=False, source=by_flamingo),
+            EnvVar(key='GCP_PROJECT', value=self.project.id, is_secret=False, source=by_flamingo),
+            EnvVar(key='GCP_SERVICE_ACCOUNT', value=self.service_account.email, is_secret=False, source=by_flamingo),
+            EnvVar(key='GCP_LOCATION', value=self.region, is_secret=False, source=by_flamingo),
         ])
 
         all_vars.extend(self.environment.vars)

@@ -81,12 +81,23 @@ class Project(EmbeddedDocument):
 REDACTED = '**********'
 
 
+class EnvVarVarSource(Enum):
+    USER = 'user'
+    FLAMINGO = 'flamingo'
+    INHERITED = 'inherited'
+
+
 @dataclass
 class EnvVar(KeyValueEmbeddedDocument):
     is_secret: bool = False
+    source: EnvVarVarSource = EnvVarVarSource.USER
 
     def serialize(self) -> Dict:
         data = super().serialize()
         if self.is_secret:
             data['value'] = REDACTED
         return data
+
+    @property
+    def is_implicit(self):
+        return self.source != EnvVarVarSource.USER
