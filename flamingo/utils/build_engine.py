@@ -5,8 +5,8 @@ from typing import List
 from gcp_pilot.build import CloudBuild, SubstitutionHelper
 
 import settings
-from models import App
-
+from models import App, EnvVar
+from models.app import BuildSetup
 
 logger = logging.getLogger()
 
@@ -21,16 +21,12 @@ class BuildTriggerFactory:
         self._service = CloudBuild()
 
     @property
-    def build_setup(self):
+    def build_setup(self) -> BuildSetup:
         return self.app.build_setup
 
     @property
-    def vars(self):
-        all_vars = self.app.vars + self.app.environment.vars
-        if self.app.database:
-            db_vars = self.app.database.as_env
-            all_vars.extend(db_vars)
-        return all_vars
+    def vars(self) -> List[EnvVar]:
+        return self.app.get_all_env_vars()
 
     def _populate_substitutions(self):
         image_name = self.build_setup.image_name
@@ -53,8 +49,8 @@ class BuildTriggerFactory:
         )
 
     def _get_db_as_param(self, command: str) -> List[str]:
-        key = 'DATABASE_URL'
-        self.substitution.add(**{key: self.app.database.url})
+        key = 'DATABASE_CONNECTION'
+        self.substitution.add(**{key: self.app.database.connection_name})
         if self.app.database:
             return [command, str(getattr(self.substitution, key))]
         return []
@@ -73,6 +69,7 @@ class BuildTriggerFactory:
             identifier="Image Cache",
             entrypoint='bash',
             args=["-c", f"docker pull {self.substitution.IMAGE_NAME} || exit 0"],
+            timeout=self.build_setup.build_timeout,
         )
         self.steps.append(cache_loader)
 
@@ -84,6 +81,7 @@ class BuildTriggerFactory:
                 name='gcr.io/google.com/cloudsdktool/cloud-sdk',
                 identifier="Build Pack Download",
                 args=['gsutil', 'cp', f'{self.substitution.DOCKERFILE_LOCATION}', 'Dockerfile'],
+                timeout=self.build_setup.build_timeout,
             )
             self.steps.append(build_pack_sync)
         else:
@@ -107,6 +105,7 @@ class BuildTriggerFactory:
                 "--cache-from", f"{self.substitution.IMAGE_NAME}",
                 "."
             ],
+            timeout=self.build_setup.build_timeout,
         )
         self.steps.append(image_builder)
 
@@ -116,6 +115,7 @@ class BuildTriggerFactory:
             name="gcr.io/cloud-builders/docker",
             identifier="Image Upload",
             args=["push", f"{self.substitution.IMAGE_NAME}"],
+            timeout=self.build_setup.build_timeout,
         )
         self.steps.append(image_pusher)
 
@@ -134,6 +134,7 @@ class BuildTriggerFactory:
                     "--",
                     *command.split(),  # TODO Handle quoted command
                 ],
+                timeout=self.build_setup.build_timeout,
             )
 
         build_pack = self.build_setup.build_pack
@@ -177,6 +178,7 @@ class BuildTriggerFactory:
                 *label_params,
                 '--quiet'
             ],
+            timeout=self.build_setup.build_timeout,
         )
         self.steps.append(deployer)
 
@@ -193,6 +195,7 @@ class BuildTriggerFactory:
                 '--project', f"{self.substitution.PROJECT_ID}",
                 '--to-latest',
             ],
+            timeout=self.build_setup.build_timeout,
         )
         self.steps.append(traffic)
 
@@ -226,7 +229,6 @@ class BuildTriggerFactory:
             images=[self.build_setup.image_name],
             tags=self.build_setup.get_tags(),
             substitutions=self.substitution.as_dict,
-            timeout=self.build_setup.build_timeout,
         )
 
         return response.id

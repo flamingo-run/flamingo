@@ -175,11 +175,11 @@ class Database(EmbeddedDocument):
     @property
     def url(self) -> str:
         auth = f"{self.user}:{self.password}"
-        url = f"//cloudsql/{self.location}"
+        url = f"//cloudsql/{self.connection_name}"
         return f"{self.engine}://{auth}@{url}/{self.name}"
 
     @property
-    def location(self) -> str:
+    def connection_name(self) -> str:
         return f"{self.project.id}:{self.region}:{self.instance}"
 
     @property
@@ -188,7 +188,8 @@ class Database(EmbeddedDocument):
             prefix = self.env_var.replace('*', '')
             parts = urlparse(self.url)
             if parts.path.startswith('//'):  # CloudSQL socket
-                instance, name = parts.path.split('/')[-2:]
+                instance, name = parts.path.rsplit('/', 1)
+                instance = instance.replace('//', '/')
             else:
                 instance, name = parts.hostname, parts.path.replace('/', '')
             db_envs = [
@@ -247,8 +248,8 @@ class Bucket(EmbeddedDocument):
         return f'gs://{self.name}'
 
     @property
-    def as_env(self) -> EnvVar:
-        return EnvVar(key=self.env_var, value=self.name, is_secret=False)
+    def as_env(self) -> List[EnvVar]:
+        return [EnvVar(key=self.env_var, value=self.name, is_secret=False)]
 
     async def init(self):
         gcs = CloudStorage()
@@ -405,19 +406,32 @@ class App(Document):
 
         self.check_env_vars()
 
-    def check_env_vars(self):
+    def get_all_env_vars(self):
+        all_vars = self.vars.copy()
+
         if self.database:
-            for db_var in self.database.as_env:
-                self.assure_var(env=db_var)
+            all_vars.extend(self.database.as_env)
 
         if self.bucket:
-            self.assure_var(env=self.bucket.as_env)
+            all_vars.extend(self.bucket.as_env)
 
+        all_vars.extend([
+            EnvVar(key='APP_NAME', value=self.identifier, is_secret=False),
+            EnvVar(key='GCP_PROJECT', value=self.project.id, is_secret=False),
+            EnvVar(key='GCP_SERVICE_ACCOUNT', value=self.service_account.email, is_secret=False),
+            EnvVar(key='GCP_LOCATION', value=self.region, is_secret=False),
+        ])
+
+        all_vars.extend(self.environment.vars)
+        # all_vars.extend(self.build_setup.build_pack.vars)  # TODO: Add vars to buildpack
+
+        # TODO: Deduplicate and warn
+        deduplicated = {var.key: var for var in all_vars}
+        return list(deduplicated.values())
+
+    def check_env_vars(self):
         self.assure_var(env=EnvVar(key='SECRET', value=random_password(20), is_secret=True))
-        self.assure_var(env=EnvVar(key='APP_NAME', value=self.identifier, is_secret=False))
-        self.assure_var(env=EnvVar(key='GCP_PROJECT', value=self.project.id, is_secret=False))
-        self.assure_var(env=EnvVar(key='GCP_SERVICE_ACCOUNT', value=self.service_account.email, is_secret=False))
-        self.assure_var(env=EnvVar(key='GCP_LOCATION', value=self.region, is_secret=False))
+        # TODO Remove DB and Bucket explicit variables
 
     @property
     def path(self) -> str:
