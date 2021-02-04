@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 
 from gcp_pilot.build import CloudBuild, AnyEventType
 from gcp_pilot.datastore import Document, EmbeddedDocument
-from gcp_pilot.iam import IAM
+from gcp_pilot.iam import IdentityAccessManager
 from gcp_pilot.resource import ResourceManager
 from gcp_pilot.source import SourceRepository
 from gcp_pilot.sql import CloudSQL
@@ -55,7 +55,7 @@ class ServiceAccount(EmbeddedDocument):
         return f'{self.name}@{self.project.id}.iam.gserviceaccount.com'
 
     async def init(self):
-        iam = IAM()
+        iam = IdentityAccessManager()
         grm = ResourceManager()
 
         await iam.create_service_account(
@@ -464,7 +464,7 @@ class App(Document):
         # TODO: replace with deployment manager, so we can rollback everything
 
         async def setup_iam():
-            iam = IAM()
+            iam = IdentityAccessManager()
             grm = ResourceManager()
 
             await self.service_account.init()

@@ -3,11 +3,11 @@ from __future__ import annotations
 import random
 import string
 from dataclasses import dataclass
+from enum import Enum
 from typing import Type, Dict
 
 from gcp_pilot.datastore import EmbeddedDocument
-from gcp_pilot.iam import IAM
-from gcp_pilot.resource import ResourceManager
+from gcp_pilot.resource import ResourceManager, ServiceAgent
 
 import settings
 
@@ -62,20 +62,19 @@ class Project(EmbeddedDocument):
 
     def __post_init__(self):
         if not self.number:
-            project_info = ResourceManager().get_project(project_id=self.id)
-            self.number = project_info['projectNumber']
+            self.number = ResourceManager().get_project(project_id=self.id)['projectNumber']
 
     @property
     def compute_account(self) -> str:
-        return IAM().get_compute_service_account(project_number=self.number)
+        return ServiceAgent.get_compute_service_account(project_id=self.id)
 
     @property
     def cloud_build_account(self) -> str:
-        return IAM().get_cloud_build_service_account(project_number=self.number)
+        return ServiceAgent.get_cloud_build_service_account(project_id=self.id)
 
     @property
     def cloud_run_account(self) -> str:
-        return IAM().get_cloud_run_service_account(project_number=self.number)
+        return ServiceAgent.get_email(service_name="Google Cloud Run", project_id=self.id)
 
 
 REDACTED = '**********'
