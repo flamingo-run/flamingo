@@ -89,7 +89,7 @@ dev = ["tox", "bump2version (<1)", "sphinx (<2)", "importlib-metadata (<3)", "im
 
 [[package]]
 name = "gcp-pilot"
-version = "0.16.0"
+version = "0.16.1"
 description = "Google Cloud Platform Friendly Pilot"
 category = "main"
 optional = false
@@ -154,7 +154,7 @@ uritemplate = ">=3.0.0,<4dev"
 
 [[package]]
 name = "google-auth"
-version = "1.24.0"
+version = "1.25.0"
 description = "Google Authentication Library"
 category = "main"
 optional = false
@@ -904,8 +904,8 @@ deprecated = [
     {file = "Deprecated-1.2.11.tar.gz", hash = "sha256:471ec32b2755172046e28102cd46c481f21c6036a0ec027521eba8521aa4ef35"},
 ]
 gcp-pilot = [
-    {file = "gcp-pilot-0.16.0.tar.gz", hash = "sha256:75a5ee7a7852d6d492ea7dc56b9fed31fb4d2058bea142877befa17a8a037024"},
-    {file = "gcp_pilot-0.16.0-py3-none-any.whl", hash = "sha256:3825f80b41283a11e7c1d0f497f5c1c83ff5eb5e4103d14f5e4db800bcf1a46c"},
+    {file = "gcp-pilot-0.16.1.tar.gz", hash = "sha256:3978b67d6a922e756c3b42eb2c99f35da0a065836296c09f4c944fa7a5ed2b65"},
+    {file = "gcp_pilot-0.16.1-py3-none-any.whl", hash = "sha256:03f55f41e738287e69b345fbe91d1d7190b9e580af38105752b58a4cdda070db"},
 ]
 google-api-core = [
     {file = "google-api-core-1.25.1.tar.gz", hash = "sha256:0e152ec37b8481d1be1258d95844a5a7031cd3d83d7c7046d9e9b2d807042440"},
@@ -916,8 +916,8 @@ google-api-python-client = [
     {file = "google_api_python_client-1.12.8-py2.py3-none-any.whl", hash = "sha256:3c4c4ca46b5c21196bec7ee93453443e477d82cbfa79234d1ce0645f81170eaf"},
 ]
 google-auth = [
-    {file = "google-auth-1.24.0.tar.gz", hash = "sha256:0b0e026b412a0ad096e753907559e4bdb180d9ba9f68dd9036164db4fdc4ad2e"},
-    {file = "google_auth-1.24.0-py2.py3-none-any.whl", hash = "sha256:ce752cc51c31f479dbf9928435ef4b07514b20261b021c7383bee4bda646acb8"},
+    {file = "google-auth-1.25.0.tar.gz", hash = "sha256:514e39f4190ca972200ba33876da5a8857c5665f2b4ccc36c8b8ee21228aae80"},
+    {file = "google_auth-1.25.0-py2.py3-none-any.whl", hash = "sha256:008e23ed080674f69f9d2d7d80db4c2591b9bb307d136cea7b3bc129771d211d"},
 ]
 google-auth-httplib2 = [
     {file = "google-auth-httplib2-0.0.4.tar.gz", hash = "sha256:8d092cc60fb16517b12057ec0bba9185a96e3b7169d86ae12eae98e645b7bc39"},
