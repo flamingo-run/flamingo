@@ -437,10 +437,10 @@ class App(Document):
             EnvVar(key='GCP_SERVICE_ACCOUNT', value=self.service_account.email, is_secret=False, source=by_flamingo),
             EnvVar(key='GCP_LOCATION', value=self.region, is_secret=False, source=by_flamingo),
         ])
-        
+
         if self.domains:
             all_vars.extend([
-                EnvVar(key='DOMAIN_URL', value=self.domains[0], is_secret=False, source=by_flamingo),
+                EnvVar(key='DOMAIN_URL', value=f'https://{self.domains[0]}', is_secret=False, source=by_flamingo),
             ])
 
         endpoint = await self.get_url()
