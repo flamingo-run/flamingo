@@ -11,6 +11,7 @@ from gcp_pilot.build import CloudBuild, AnyEventType
 from gcp_pilot.datastore import Document, EmbeddedDocument
 from gcp_pilot.iam import IdentityAccessManager
 from gcp_pilot.resource import ResourceManager
+from gcp_pilot.run import CloudRun
 from gcp_pilot.source import SourceRepository
 from gcp_pilot.sql import CloudSQL
 from gcp_pilot.storage import CloudStorage
@@ -422,12 +423,18 @@ class App(Document):
             EnvVar(key='GCP_PROJECT', value=self.project.id, is_secret=False, source=by_flamingo),
             EnvVar(key='GCP_SERVICE_ACCOUNT', value=self.service_account.email, is_secret=False, source=by_flamingo),
             EnvVar(key='GCP_LOCATION', value=self.region, is_secret=False, source=by_flamingo),
+            EnvVar(key='GCP_URL', value=self.get_url(), is_secret=False, source=by_flamingo),
         ])
 
         all_vars.extend(self.environment.vars)
         # all_vars.extend(self.build_setup.build_pack.vars)  # TODO: Add vars to buildpack
 
         return all_vars
+
+    def get_url(self):
+        run = CloudRun()
+        service = run.get_service(service_name=self.identifier, project_id=self.project.id, location=self.region)
+        return service['status']['url']
 
     def check_env_vars(self):
         self.assure_var(env=EnvVar(key='SECRET', value=random_password(20), is_secret=True))
