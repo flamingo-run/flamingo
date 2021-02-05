@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import List
 
-from gcp_pilot.build import CloudBuild, SubstitutionHelper
+from gcp_pilot.build import CloudBuild, Substitutions
 
 import settings
 from models import App, EnvVar
@@ -15,7 +15,7 @@ logger = logging.getLogger()
 class BuildTriggerFactory:
     app: App
     steps: List = field(default_factory=list)
-    substitution: SubstitutionHelper = field(default_factory=SubstitutionHelper)
+    substitution: Substitutions = field(default_factory=Substitutions)
 
     def __post_init__(self):
         self._service = CloudBuild()
@@ -63,6 +63,17 @@ class BuildTriggerFactory:
             params.extend([command, f'{k}={v}'])
         return params
 
+    def _get_build_args_as_param(self, command: str = '--build-arg') -> List[str]:
+        build_pack = self.build_setup.build_pack
+
+        build_args = []
+        for key, value in build_pack.get_build_args(app=self.app).items():
+            self.substitution.add(**{key: value})
+
+            sub_variable = getattr(self.substitution, key)
+            build_args.extend([command, f"{sub_variable.key}={str(sub_variable)}"])
+        return build_args
+
     def _add_cache_step(self):
         cache_loader = self._service.make_build_step(
             name='gcr.io/cloud-builders/docker',
@@ -88,11 +99,7 @@ class BuildTriggerFactory:
             logger.info(f"No dockerfile predefined in BuildPack {build_pack.name}. I hope the repo has its own.")
 
     def _add_build_step(self):
-        build_pack = self.build_setup.build_pack
-        build_args = []
-        for key, value in build_pack.get_build_args(app=self.app).items():
-            self.substitution.add(**{key: value})
-            build_args.extend(["--build-arg", getattr(self.substitution, key).as_kv])
+        build_args = self._get_build_args_as_param()
 
         image_builder = self._service.make_build_step(
             name='gcr.io/cloud-builders/docker',
@@ -228,7 +235,7 @@ class BuildTriggerFactory:
             steps=self.steps,
             images=[self.build_setup.image_name],
             tags=self.build_setup.get_tags(),
-            substitutions=self.substitution.as_dict,
+            substitutions=self.substitution,
         )
 
         return response.id
