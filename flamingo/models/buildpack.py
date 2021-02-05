@@ -8,6 +8,7 @@ from gcp_pilot.datastore import Document
 from gcp_pilot.storage import CloudStorage
 from slugify import slugify
 
+import exceptions
 import settings
 
 if TYPE_CHECKING:
@@ -70,7 +71,21 @@ class BuildPack(Document):
             'APP_PATH': app.path,
             'ENVIRONMENT': app.environment_name,
         }
-        all_build_args.update(**self.build_args)
+
+        # dynamically create build args from env vars
+        all_env_vars = app.get_all_env_vars()
+
+        def _find_env_var(k):
+            for env_var in all_env_vars:
+                if env_var.key == k:
+                    return env_var.value
+            raise exceptions.ValidationError(f"Dynamic Build Argument {k} could not be filled from env variables")
+
+        for key, value in self.build_args.items():
+            if key.startswith('$'):
+                value = _find_env_var(key.replace('$', ''))
+            all_build_args[key] = value
+
         return all_build_args
 
     def get_extra_build_steps(self, app: App) -> List[str]:
