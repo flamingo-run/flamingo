@@ -196,8 +196,8 @@ class Database(EmbeddedDocument):
             db_envs = [
                 EnvVar(key=f'{prefix}ENGINE', value=parts.scheme, is_secret=False, source=by_flamingo),
                 EnvVar(key=f'{prefix}HOST', value=instance, is_secret=False, source=by_flamingo),
-                EnvVar(key=f'{prefix}NAME', value=name, is_secret=False, source=by_flamingo),
-                EnvVar(key=f'{prefix}USER', value=parts.username, is_secret=False, source=by_flamingo),
+                EnvVar(key=f'{prefix}SCHEMA', value=name, is_secret=False, source=by_flamingo),
+                EnvVar(key=f'{prefix}USERNAME', value=parts.username, is_secret=False, source=by_flamingo),
                 EnvVar(key=f'{prefix}PASSWORD', value=parts.password, is_secret=True, source=by_flamingo),
             ]
         else:
