@@ -71,7 +71,7 @@ class AppEnvVarsView(ActionView):
     def _serialize_env_vars(self, app: models.App) -> List[Dict[str, str]]:
         return [
             env.serialize()
-            for env in app.vars
+            for env in app.get_all_env_vars()
         ]
 
     async def perform_get(self, request: Request, obj: models.App) -> ResponseType:
