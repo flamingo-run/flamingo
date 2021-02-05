@@ -65,7 +65,7 @@ class BuildPack(Document):
         )
         return gcs.get_uri(blob)
 
-    def get_build_args(self, app: App) -> KeyValue:
+    async def get_build_args(self, app: App) -> KeyValue:
         all_build_args = {
             'RUNTIME_VERSION': self.runtime_version,
             'APP_PATH': app.path,
@@ -73,7 +73,7 @@ class BuildPack(Document):
         }
 
         # dynamically create build args from env vars
-        all_env_vars = app.get_all_env_vars()
+        all_env_vars = await app.get_all_env_vars()
 
         def _find_env_var(k):
             for env_var in all_env_vars:

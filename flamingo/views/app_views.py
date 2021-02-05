@@ -26,7 +26,7 @@ class AppBoostrapView(ActionView):
         raise exceptions.NotAllowedError()
 
     async def perform_post(self, request: Request, obj: models.App) -> ResponseType:
-        obj.add_default()
+        await obj.add_default()
         new_obj = obj.save()
         return new_obj.serialize(), 200
 
@@ -41,7 +41,7 @@ class AppCheckView(ActionView):
         raise exceptions.NotAllowedError()
 
     async def perform_post(self, request: Request, obj: models.App) -> ResponseType:
-        obj.check_env_vars()
+        await obj.check_env_vars()
         new_obj = obj.save()
         return new_obj.serialize(), 200
 
@@ -68,15 +68,16 @@ class AppInitializeView(ActionView):
 class AppEnvVarsView(ActionView):
     model = models.App
 
-    def _serialize_env_vars(self, app: models.App) -> List[Dict[str, str]]:
+    async def _serialize_env_vars(self, app: models.App) -> List[Dict[str, str]]:
+        env_vars = await app.get_all_env_vars()
         return [
             env.serialize()
-            for env in app.get_all_env_vars()
+            for env in env_vars
         ]
 
     async def perform_get(self, request: Request, obj: models.App) -> ResponseType:
         payload = {
-            'results': self._serialize_env_vars(app=obj)
+            'results': await self._serialize_env_vars(app=obj)
         }
         return payload, 200
 

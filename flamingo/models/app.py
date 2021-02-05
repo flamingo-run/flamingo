@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import List
@@ -9,6 +10,7 @@ from urllib.parse import urlparse
 
 from gcp_pilot.build import CloudBuild, AnyEventType
 from gcp_pilot.datastore import Document, EmbeddedDocument
+from gcp_pilot.exceptions import NotFound
 from gcp_pilot.iam import IdentityAccessManager
 from gcp_pilot.resource import ResourceManager
 from gcp_pilot.run import CloudRun
@@ -23,6 +25,9 @@ import settings
 from models import BuildPack
 from models.base import KeyValueEmbeddedDocument, random_password, Project, EnvVar, EnvVarVarSource
 from models.environment import Environment
+
+
+logger = logging.getLogger()
 
 
 @dataclass
@@ -351,6 +356,7 @@ class App(Document):
     bucket: Bucket = None
     region: str = None
     service_account: ServiceAccount = None
+    endpoint: str = None
     id: str = None
 
     _environment: Environment = None
@@ -393,7 +399,7 @@ class App(Document):
             existing_var for existing_var in self.vars if existing_var.key != key
         ]
 
-    def add_default(self):
+    async def add_default(self):
         if not self.database:
             self.database = Database.default(app=self)
 
@@ -413,9 +419,9 @@ class App(Document):
                 f'{self.name}.{self.environment.name}.{self.environment.network.zone}',
             ]
 
-        self.check_env_vars()
+        await self.check_env_vars()
 
-    def get_all_env_vars(self) -> List[EnvVar]:
+    async def get_all_env_vars(self) -> List[EnvVar]:
         all_vars = self.vars.copy()
 
         if self.database:
@@ -430,7 +436,16 @@ class App(Document):
             EnvVar(key='GCP_PROJECT', value=self.project.id, is_secret=False, source=by_flamingo),
             EnvVar(key='GCP_SERVICE_ACCOUNT', value=self.service_account.email, is_secret=False, source=by_flamingo),
             EnvVar(key='GCP_LOCATION', value=self.region, is_secret=False, source=by_flamingo),
-            EnvVar(key='GCP_URL', value=self.get_url(), is_secret=False, source=by_flamingo),
+        ])
+        
+        if self.domains:
+            all_vars.extend([
+                EnvVar(key='DOMAIN_URL', value=self.domains[0], is_secret=False, source=by_flamingo),
+            ])
+
+        endpoint = await self.get_url()
+        all_vars.extend([
+            EnvVar(key='GCP_APP_ENDPOINT', value=endpoint, is_secret=False, source=by_flamingo),
         ])
 
         all_vars.extend(self.environment.vars)
@@ -438,15 +453,25 @@ class App(Document):
 
         return all_vars
 
-    def get_url(self):
-        run = CloudRun()
-        service = run.get_service(service_name=self.identifier, project_id=self.project.id, location=self.region)
-        return service['status']['url']
+    async def get_url(self) -> str:
+        if not self.endpoint:
+            run = CloudRun()
+            try:
+                service = run.get_service(service_name=self.identifier, project_id=self.project.id, location=self.region)
+                url = service['status']['url']
+            except NotFound as e:
+                logger.warning(str(e))
+                from utils.build_engine import BuildTriggerFactory  # pylint: disable=import-outside-toplevel
+                url = await BuildTriggerFactory(app=self).placeholder()
 
-    def check_env_vars(self):
+            App.documents.update(pk=self.pk, endpoint=url)
+            self.endpoint = url
+        return self.endpoint
+
+    async def check_env_vars(self):
         self.assure_var(env=EnvVar(key='SECRET', value=random_password(20), is_secret=True))
 
-        all_vars = self.get_all_env_vars()
+        all_vars = await self.get_all_env_vars()
         implicit_vars = {var.key for var in all_vars if var.is_implicit}
         deduplicated_vars = {}
         for var in all_vars:
@@ -542,6 +567,15 @@ class App(Document):
 
         job = self.apply()
         asyncio.create_task(job)
+
+        async def setup_placeholder():
+            from utils.build_engine import BuildTriggerFactory  # pylint: disable=import-outside-toplevel
+            url = await BuildTriggerFactory(app=self).placeholder()
+            App.documents.update(pk=self.pk, endpoint=url)
+
+        if not self.endpoint:
+            job = setup_placeholder()
+            asyncio.create_task(job)
 
         # return job_names  # TODO: return scheduled jobs to use as response
 

@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from typing import List
 
 from gcp_pilot.build import CloudBuild, Substitutions
+from gcp_pilot.run import CloudRun
 
 import settings
 from models import App, EnvVar
@@ -24,15 +25,15 @@ class BuildTriggerFactory:
     def build_setup(self) -> BuildSetup:
         return self.app.build_setup
 
-    @property
-    def vars(self) -> List[EnvVar]:
-        return self.app.get_all_env_vars()
+    async def vars(self) -> List[EnvVar]:
+        return await self.app.get_all_env_vars()
 
-    def _populate_substitutions(self):
+    async def _populate_substitutions(self):
         image_name = self.build_setup.image_name
         self.substitution.add(IMAGE_NAME=image_name)
 
-        for var in self.vars:
+        vars = await self.app.get_all_env_vars()
+        for var in vars:
             self.substitution.add(**{f'ENV_{var.key}': var.value})
 
         self.substitution.add(
@@ -48,43 +49,44 @@ class BuildTriggerFactory:
             SERVICE_NAME=self.app.identifier,
         )
 
-    def _get_db_as_param(self, command: str) -> List[str]:
+    async def _get_db_as_param(self, command: str) -> List[str]:
         key = 'DATABASE_CONNECTION'
         self.substitution.add(**{key: self.app.database.connection_name})
         if self.app.database:
             return [command, str(getattr(self.substitution, key))]
         return []
 
-    def _get_env_var_as_param(self, command: str) -> List[str]:
+    async def _get_env_var_as_param(self, command: str) -> List[str]:
         params = []
-        for env_var in self.vars:
+        vars = await self.app.get_all_env_vars()
+        for env_var in vars:
             k = env_var.key
             v = str(getattr(self.substitution, f'ENV_{env_var.key}'))
             params.extend([command, f'{k}={v}'])
         return params
 
-    def _get_build_args_as_param(self, command: str = '--build-arg') -> List[str]:
+    async def _get_build_args_as_param(self, command: str = '--build-arg') -> List[str]:
         build_pack = self.build_setup.build_pack
+        build_args = await build_pack.get_build_args(app=self.app)
 
-        build_args = []
-        for key, value in build_pack.get_build_args(app=self.app).items():
+        build_params = []
+        for key, value in build_args.items():
             self.substitution.add(**{key: value})
 
             sub_variable = getattr(self.substitution, key)
-            build_args.extend([command, f"{sub_variable.key}={str(sub_variable)}"])
-        return build_args
+            build_params.extend([command, f"{sub_variable.key}={str(sub_variable)}"])
+        return build_params
 
-    def _add_cache_step(self):
+    async def _add_cache_step(self):
         cache_loader = self._service.make_build_step(
             name='gcr.io/cloud-builders/docker',
             identifier="Image Cache",
             entrypoint='bash',
             args=["-c", f"docker pull {self.substitution.IMAGE_NAME} || exit 0"],
-            timeout=self.build_setup.build_timeout,
         )
         self.steps.append(cache_loader)
 
-    def _add_dockerfile_step(self):
+    async def _add_dockerfile_step(self):
         build_pack = self.build_setup.build_pack
         if build_pack.dockerfile_url:
             self.substitution.add(DOCKERFILE_LOCATION=build_pack.dockerfile_url)
@@ -92,14 +94,13 @@ class BuildTriggerFactory:
                 name='gcr.io/google.com/cloudsdktool/cloud-sdk',
                 identifier="Build Pack Download",
                 args=['gsutil', 'cp', f'{self.substitution.DOCKERFILE_LOCATION}', 'Dockerfile'],
-                timeout=self.build_setup.build_timeout,
             )
             self.steps.append(build_pack_sync)
         else:
             logger.info(f"No dockerfile predefined in BuildPack {build_pack.name}. I hope the repo has its own.")
 
-    def _add_build_step(self):
-        build_args = self._get_build_args_as_param()
+    async def _add_build_step(self):
+        build_args = await self._get_build_args_as_param()
 
         image_builder = self._service.make_build_step(
             name='gcr.io/cloud-builders/docker',
@@ -112,21 +113,22 @@ class BuildTriggerFactory:
                 "--cache-from", f"{self.substitution.IMAGE_NAME}",
                 "."
             ],
-            timeout=self.build_setup.build_timeout,
         )
         self.steps.append(image_builder)
 
-    def _add_push_step(self):
+    async def _add_push_step(self):
         # TODO: replace with image attribute?
         image_pusher = self._service.make_build_step(
             name="gcr.io/cloud-builders/docker",
             identifier="Image Upload",
             args=["push", f"{self.substitution.IMAGE_NAME}"],
-            timeout=self.build_setup.build_timeout,
         )
         self.steps.append(image_pusher)
 
-    def _add_custom_command_steps(self):
+    async def _add_custom_command_steps(self):
+        db_params = await self._get_db_as_param('-s')
+        env_params = await self._get_env_var_as_param('-e')
+
         def _make_command_step(title: str, command: str):
             # More info: https://github.com/GoogleCloudPlatform/ruby-docker/tree/master/app-engine-exec-wrapper
             # Caveats: default ComputeEngine service account here, not app's service account as it should be
@@ -136,12 +138,11 @@ class BuildTriggerFactory:
                 name="gcr.io/google-appengine/exec-wrapper",
                 args=[
                     "-i", f"{self.substitution.IMAGE_NAME}",
-                    *self._get_db_as_param('-s'),
-                    *self._get_env_var_as_param('-e'),
+                    *db_params,
+                    *env_params,
                     "--",
                     *command.split(),  # TODO Handle quoted command
                 ],
-                timeout=self.build_setup.build_timeout,
             )
 
         build_pack = self.build_setup.build_pack
@@ -151,10 +152,9 @@ class BuildTriggerFactory:
         ]
         self.steps.extend(custom)
 
-    def _add_deploy_step(self):
-        db_params = self._get_db_as_param('--add-cloudsql-instances')
-
-        env_params = self._get_env_var_as_param('--set-env-vars')
+    async def _add_deploy_step(self):
+        db_params = await self._get_db_as_param('--add-cloudsql-instances')
+        env_params = await self._get_env_var_as_param('--set-env-vars')
 
         label_params = ['--clear-labels']
         for label in self.build_setup.get_labels():
@@ -185,11 +185,10 @@ class BuildTriggerFactory:
                 *label_params,
                 '--quiet'
             ],
-            timeout=self.build_setup.build_timeout,
         )
         self.steps.append(deployer)
 
-    def _add_traffic_step(self):
+    async def _add_traffic_step(self):
         # If roll-backed, just a deploy is not enough to redirect traffic to a new revision
         traffic = self._service.make_build_step(
             identifier="Redirect Traffic",
@@ -202,20 +201,19 @@ class BuildTriggerFactory:
                 '--project', f"{self.substitution.PROJECT_ID}",
                 '--to-latest',
             ],
-            timeout=self.build_setup.build_timeout,
         )
         self.steps.append(traffic)
 
     async def build(self) -> str:
-        self._populate_substitutions()
+        await self._populate_substitutions()
 
-        self._add_cache_step()
-        self._add_dockerfile_step()
-        self._add_build_step()
-        self._add_push_step()
-        self._add_custom_command_steps()
-        self._add_deploy_step()
-        self._add_traffic_step()
+        await self._add_cache_step()
+        await self._add_dockerfile_step()
+        await self._add_build_step()
+        await self._add_push_step()
+        await self._add_custom_command_steps()
+        await self._add_deploy_step()
+        await self._add_traffic_step()
 
         event = self.app.repository.as_event(
             branch_name=self.build_setup.deploy_branch,
@@ -236,6 +234,26 @@ class BuildTriggerFactory:
             images=[self.build_setup.image_name],
             tags=self.build_setup.get_tags(),
             substitutions=self.substitution,
+            timeout=self.build_setup.build_timeout,
         )
 
         return response.id
+
+    async def placeholder(self):
+        run = CloudRun()
+        service_params = dict(
+            service_name=self.app.identifier,
+            location=self.app.region,
+            project_id=self.app.project.id,
+        )
+
+        run.create_service(
+            service_account=self.app.service_account.email,
+            **service_params,
+        )
+
+        url = None
+        while not url:
+            service = run.get_service(**service_params)
+            url = service['status'].get('url')
+        return url
