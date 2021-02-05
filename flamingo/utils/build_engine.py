@@ -62,8 +62,17 @@ class BuildTriggerFactory:
         for env_var in vars:
             k = env_var.key
             v = str(getattr(self.substitution, f'ENV_{env_var.key}'))
-            params.extend([command, f'{k}={v}'])
+
+            params.extend([command, self._as_kv_param(key=k, value=v)])
         return params
+
+    def _as_kv_param(self, key: str, value: str):
+        # TODO: move this to gcp-pilot
+        if ',' in str(value):
+            # Escape delimiter <https://cloud.google.com/run/docs/configuring/environment-variables#setting>
+            escape = "^|^"
+            return f'"{escape}{key}={value}"'
+        return f'{key}={value}'
 
     async def _get_build_args_as_param(self, command: str = '--build-arg') -> List[str]:
         build_pack = self.build_setup.build_pack
@@ -74,7 +83,7 @@ class BuildTriggerFactory:
             self.substitution.add(**{key: value})
 
             sub_variable = getattr(self.substitution, key)
-            build_params.extend([command, f"{sub_variable.key}={str(sub_variable)}"])
+            build_params.extend([command, self._as_kv_param(key=sub_variable.key, value=str(sub_variable))])
         return build_params
 
     async def _add_cache_step(self):
