@@ -48,7 +48,7 @@ class BuildPack(Document):
         gcs = CloudStorage()
         await gcs.create_bucket(
             name=settings.FLAMINGO_GCS_BUCKET,
-            region=settings.DEFAULT_REGION,
+            region=settings.FLAMINGO_LOCATION,
             project_id=settings.FLAMINGO_PROJECT,
         )
 

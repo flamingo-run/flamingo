@@ -41,6 +41,7 @@ class KeyValueEmbeddedDocument(EmbeddedDocument):
 class Project(EmbeddedDocument):
     id: str
     number: str = None
+    region: str = None  # Project's have default region, as defined by AppEngine API
 
     @classmethod
     def default(cls) -> Project:
@@ -61,8 +62,10 @@ class Project(EmbeddedDocument):
         )
 
     def __post_init__(self):
-        if not self.number:
-            self.number = ResourceManager().get_project(project_id=self.id)['projectNumber']
+        if not self.number or not self.region:
+            rm = ResourceManager(project_id=self.id)
+            self.number = self.number or rm.get_project(project_id=self.id)['projectNumber']
+            self.region = self.region or rm.location
 
     @property
     def compute_account(self) -> str:

@@ -149,7 +149,7 @@ class Database(EmbeddedDocument):
     password: str
     version: str = settings.DEFAULT_DB_VERSION
     tier: str = settings.DEFAULT_DB_TIER
-    region: str = settings.DEFAULT_REGION
+    region: str = None
     project: Project = field(default_factory=Project.default)
     env_var: str = 'DATABASE_URL'
     high_availability: bool = False
@@ -157,6 +157,8 @@ class Database(EmbeddedDocument):
     def __post_init__(self):
         if not self.user:
             self.user = f'app.{self.name}'
+        if not self.region:
+            self.region = self.project.region
 
     @classmethod
     def default(cls, app: App) -> Database:
@@ -166,7 +168,6 @@ class Database(EmbeddedDocument):
             user=f'app.{app.path}',
             password=random_password(20),
             project=app.project,
-            region=app.region,
         )
 
     @property
@@ -234,8 +235,12 @@ class Database(EmbeddedDocument):
 class Bucket(EmbeddedDocument):
     name: str
     env_var: str = 'GCS_BUCKET_NAME'
-    region: str = settings.DEFAULT_REGION
+    region: str = None
     project: Project = field(default_factory=Project.default)
+
+    def __post_init__(self):
+        if not self.region:
+            self.region = self.project.region
 
     @classmethod
     def default(cls, app: App) -> Bucket:
@@ -344,7 +349,7 @@ class App(Document):
     vars: List[EnvVar] = field(default_factory=list)
     database: Database = None
     bucket: Bucket = None
-    region: str = settings.DEFAULT_REGION
+    region: str = None
     service_account: ServiceAccount = None
     id: str = None
 
@@ -357,6 +362,8 @@ class App(Document):
 
         if not self.identifier:
             self.identifier = f'{self.name}-{environment.name}'
+
+        self.region = self.project.region
 
         self.build_setup.name = self.identifier
 
