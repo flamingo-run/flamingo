@@ -88,7 +88,7 @@ class AppEnvVarsView(ActionView):
         new_obj = obj.save()
 
         payload = {
-            'results': self._serialize_env_vars(app=new_obj)
+            'results': await self._serialize_env_vars(app=new_obj)
         }
         return payload, 201
 
@@ -98,7 +98,7 @@ class AppEnvVarsView(ActionView):
         new_obj = obj.save()
 
         payload = {
-            'results': self._serialize_env_vars(app=new_obj)
+            'results': await self._serialize_env_vars(app=new_obj)
         }
         return payload, 202
 
@@ -111,6 +111,7 @@ class AppApplyView(ActionView):
 
     async def perform_post(self, request: Request, obj: models.App) -> ResponseType:
         await obj.apply()
+        # TODO Add support to re-deploy
         return {}, 201
 
     async def perform_delete(self, request: Request, obj: models.App) -> ResponseType:
