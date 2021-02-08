@@ -23,7 +23,7 @@ from slugify import slugify
 import exceptions
 import settings
 from models import BuildPack
-from models.base import KeyValueEmbeddedDocument, random_password, Project, EnvVar, EnvVarVarSource
+from models.base import KeyValueEmbeddedDocument, random_password, Project, EnvVar, EnvVarSource
 from models.environment import Environment
 
 
@@ -191,7 +191,7 @@ class Database(EmbeddedDocument):
 
     @property
     def as_env(self) -> List[EnvVar]:
-        by_flamingo = EnvVarVarSource.FLAMINGO.value
+        by_flamingo = EnvVarSource.FLAMINGO.value
         if '*' in self.env_var:
             prefix = self.env_var.replace('*', '')
             parts = urlparse(self.url)
@@ -261,7 +261,7 @@ class Bucket(EmbeddedDocument):
 
     @property
     def as_env(self) -> List[EnvVar]:
-        return [EnvVar(key=self.env_var, value=self.name, is_secret=False, source=EnvVarVarSource.FLAMINGO.value)]
+        return [EnvVar(key=self.env_var, value=self.name, is_secret=False, source=EnvVarSource.FLAMINGO.value)]
 
     async def init(self):
         gcs = CloudStorage()
@@ -430,7 +430,7 @@ class App(Document):
         if self.bucket:
             all_vars.extend(self.bucket.as_env)
 
-        by_flamingo = EnvVarVarSource.FLAMINGO.value
+        by_flamingo = EnvVarSource.FLAMINGO.value
         all_vars.extend([
             EnvVar(key='APP_NAME', value=self.identifier, is_secret=False, source=by_flamingo),
             EnvVar(key='GCP_PROJECT', value=self.project.id, is_secret=False, source=by_flamingo),
