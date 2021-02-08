@@ -1,6 +1,9 @@
 ARG PYTHON_VERSION=3.9-slim
 FROM python:$PYTHON_VERSION
 
+RUN apt-get update -y
+RUN apt-get install -y gcc build-essential libtool automake
+
 # Point to app folder
 ARG APP_HOME=/app
 WORKDIR $APP_HOME
