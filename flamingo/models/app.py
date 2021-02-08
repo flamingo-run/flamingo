@@ -432,7 +432,7 @@ class App(Document):
 
         by_flamingo = EnvVarSource.FLAMINGO.value
         all_vars.extend([
-            EnvVar(key='APP_NAME', value=self.identifier, is_secret=False, source=by_flamingo),
+            EnvVar(key='APP_NAME', value=self.name, is_secret=False, source=by_flamingo),
             EnvVar(key='GCP_PROJECT', value=self.project.id, is_secret=False, source=by_flamingo),
             EnvVar(key='GCP_SERVICE_ACCOUNT', value=self.service_account.email, is_secret=False, source=by_flamingo),
             EnvVar(key='GCP_LOCATION', value=self.region, is_secret=False, source=by_flamingo),

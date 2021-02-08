@@ -8,7 +8,7 @@ from gcp_pilot.datastore import Document, EmbeddedDocument
 from slugify import slugify
 
 import settings
-from models.base import Project, EnvVar
+from models.base import Project, EnvVar, EnvVarSource
 
 if TYPE_CHECKING:
     from models import App, Deployment  # pylint: disable=ungrouped-imports
@@ -119,4 +119,8 @@ class Environment(Document):
 
     def get_all_env_vars(self) -> List[EnvVar]:
         # Here's the opportunity to inject dynamic env vars from the app's Environment
-        return self.vars
+        all_vars = self.vars
+        all_vars.extend([
+            EnvVar(key='ENV', value=self.name, source=EnvVarSource.FLAMINGO)
+        ])
+        return all_vars
