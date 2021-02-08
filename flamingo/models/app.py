@@ -448,8 +448,8 @@ class App(Document):
             EnvVar(key='GCP_APP_ENDPOINT', value=endpoint, is_secret=False, source=by_flamingo),
         ])
 
-        all_vars.extend(self.environment.vars)
-        # all_vars.extend(self.build_setup.build_pack.vars)  # TODO: Add vars to buildpack
+        all_vars.extend(self.environment.get_all_env_vars())
+        all_vars.extend(self.build_setup.build_pack.get_all_env_vars())
 
         return all_vars
 

@@ -12,7 +12,7 @@ import exceptions
 import settings
 
 if TYPE_CHECKING:
-    from models import App  # pylint: disable=ungrouped-imports
+    from models import App, EnvVar  # pylint: disable=ungrouped-imports
 
 KeyValue = Dict[str, str]
 
@@ -24,6 +24,7 @@ class BuildPack(Document):
     target: str = 'cloudrun'  # TODO Add support to CloudFunctions and others
     build_args: KeyValue = field(default_factory=dict)
     post_build_commands: List[str] = field(default_factory=list)
+    vars: List[EnvVar] = field(default_factory=list)
     dockerfile_url: str = None
     id: str = None
 
@@ -92,3 +93,7 @@ class BuildPack(Document):
         custom_steps = self.post_build_commands
         custom_steps.extend(app.build_setup.post_build_commands)
         return custom_steps
+
+    def get_all_env_vars(self):
+        # Here's the opportunity to inject dynamic env vars from the app's BuildPack
+        return self.vars

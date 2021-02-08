@@ -116,3 +116,7 @@ class Environment(Document):
     def __post_init__(self):
         self.name = slugify(self.name)
         self.id = self.name
+
+    def get_all_env_vars(self) -> List[EnvVar]:
+        # Here's the opportunity to inject dynamic env vars from the app's Environment
+        return self.vars
