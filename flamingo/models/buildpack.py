@@ -8,11 +8,12 @@ from gcp_pilot.datastore import Document
 from gcp_pilot.storage import CloudStorage
 from slugify import slugify
 
+from models.base import EnvVar
 import exceptions
 import settings
 
 if TYPE_CHECKING:
-    from models import App, EnvVar  # pylint: disable=ungrouped-imports
+    from models import App  # pylint: disable=ungrouped-imports
 
 KeyValue = Dict[str, str]
 
