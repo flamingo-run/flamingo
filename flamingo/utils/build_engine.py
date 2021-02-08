@@ -156,8 +156,8 @@ class BuildTriggerFactory:
         env_params = await self._get_env_var_as_param('--set-env-vars')
 
         label_params = ['--clear-labels']
-        for label in self.build_setup.get_labels():
-            label_params.extend(['--update-labels', f'{label.key}={label.value}'])
+        for label in self.app.get_all_labels():
+            label_params.extend(['--update-labels', label.as_kv])
 
         auth_params = ['--allow-unauthenticated'] if not self.build_setup.is_authenticated else []
 

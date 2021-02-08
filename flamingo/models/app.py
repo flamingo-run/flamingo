@@ -453,6 +453,13 @@ class App(Document):
 
         return all_vars
 
+    def get_all_labels(self) -> List[Label]:
+        all_labels = self.build_setup.get_labels()
+        all_labels.extend([
+            Label(key='service', value=self.identifier),
+        ])
+        return all_labels
+
     async def get_url(self) -> str:
         if not self.endpoint:
             run = CloudRun()
