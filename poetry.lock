@@ -89,7 +89,7 @@ dev = ["tox", "bump2version (<1)", "sphinx (<2)", "importlib-metadata (<3)", "im
 
 [[package]]
 name = "gcp-pilot"
-version = "0.17.0"
+version = "0.17.1"
 description = "Google Cloud Platform Friendly Pilot"
 category = "main"
 optional = false
@@ -904,8 +904,8 @@ deprecated = [
     {file = "Deprecated-1.2.11.tar.gz", hash = "sha256:471ec32b2755172046e28102cd46c481f21c6036a0ec027521eba8521aa4ef35"},
 ]
 gcp-pilot = [
-    {file = "gcp-pilot-0.17.0.tar.gz", hash = "sha256:cf83b0d5f2fae0e2646a98d1f5a5782672e87a3ecb64952e93ae0b97a850bbf8"},
-    {file = "gcp_pilot-0.17.0-py3-none-any.whl", hash = "sha256:45e8f417d152ebe04cb9b54464177f603df6d9f900b57d4931ddf88c1249de0f"},
+    {file = "gcp-pilot-0.17.1.tar.gz", hash = "sha256:e092c1f97bf76b4feb9bbfedd1078cd98bb24b47f10a367321aa604a2b53a764"},
+    {file = "gcp_pilot-0.17.1-py3-none-any.whl", hash = "sha256:e960659a1edffd6bf0f1020fa9c5cd7119c57d1cc9d70a9af44d72572a631313"},
 ]
 google-api-core = [
     {file = "google-api-core-1.25.1.tar.gz", hash = "sha256:0e152ec37b8481d1be1258d95844a5a7031cd3d83d7c7046d9e9b2d807042440"},
