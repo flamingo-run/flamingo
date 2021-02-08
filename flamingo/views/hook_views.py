@@ -22,13 +22,16 @@ class CloudBuildHookView(HTTPMethodView):
     async def post(self, request: Request) -> HTTPResponse:
         message = Message.load(body=request.body.decode())
         payload = message.data
+
+        logger.debug(f"BUILD HOOK PAYLOAD: {payload}")
+
         trigger_id = payload['buildTriggerId']
 
         git_source = payload['source'].get('gitSource', None)
         if not git_source:
             logger.warning(f"Ignoring build event from trigger {trigger_id}")
             return json({'status': 'done'}, 204)
-            
+
         event = models.Event(
             status=payload['status'],
             created_at=self._get_timestamp(payload=payload),
