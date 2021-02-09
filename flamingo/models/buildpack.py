@@ -97,4 +97,5 @@ class BuildPack(Document):
 
     def get_all_env_vars(self):
         # Here's the opportunity to inject dynamic env vars from the app's BuildPack
-        return self.vars
+        all_vars = self.vars.copy()
+        return all_vars

@@ -119,7 +119,7 @@ class Environment(Document):
 
     def get_all_env_vars(self) -> List[EnvVar]:
         # Here's the opportunity to inject dynamic env vars from the app's Environment
-        all_vars = self.vars
+        all_vars = self.vars.copy()
         all_vars.extend([
             EnvVar(key='ENV', value=self.name, source=EnvVarSource.FLAMINGO)
         ])
