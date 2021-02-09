@@ -4,6 +4,7 @@ from typing import Dict
 
 from gcp_pilot.datastore import DoesNotExist, MultipleObjectsFound
 from gcp_pilot.pubsub import Message
+from requests import HTTPError
 from sanic import Blueprint
 from sanic.request import Request
 from sanic.response import HTTPResponse, json
@@ -47,11 +48,14 @@ class CloudBuildHookView(HTTPMethodView):
             logger.warning(f"Ignoring build event from trigger {trigger_id}")
             return json({'status': 'done'}, 204)
 
-        await self._register_event(
-            app_id=app.id,
-            build_id=payload['id'],
-            event=event,
-        )
+        try:
+            await self._register_event(
+                app_id=app.id,
+                build_id=payload['id'],
+                event=event,
+            )
+        except HTTPError as e:
+            return json({'error': f"Failed handling build hook: {e}", 'payload': payload}, 400)
         return json({'status': 'done'}, 202)
 
     def _get_timestamp(self, payload: Dict) -> datetime:
