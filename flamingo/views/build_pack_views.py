@@ -10,13 +10,10 @@ build_packs = Blueprint('build-packs', url_prefix='/build-packs')
 class BuildPackListView(ListView):
     model = models.BuildPack
 
-    async def perform_create(self, data: PayloadType) -> ResponseType:
-        data, status = await super().perform_create(data=data)
-
-        obj = self.model.deserialize(**data)
+    async def perform_create(self, data: PayloadType) -> models.BuildPack:
+        obj = await super().perform_create(data=data)
         await obj.init()
-
-        return data, status
+        return obj
 
 
 class BuildPackDetailView(DetailView):
