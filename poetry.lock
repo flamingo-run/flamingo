@@ -89,7 +89,7 @@ dev = ["tox", "bump2version (<1)", "sphinx (<2)", "importlib-metadata (<3)", "im
 
 [[package]]
 name = "gcp-pilot"
-version = "0.17.1"
+version = "0.17.2"
 description = "Google Cloud Platform Friendly Pilot"
 category = "main"
 optional = false
@@ -805,8 +805,8 @@ dev-kit = ["pylint", "coverage"]
 
 [metadata]
 lock-version = "1.1"
-python-versions = "^3.8"
-content-hash = "6b768ab7279eca0d96cc7473b4325aae6f847b403328f9b42517d0adfbbb0321"
+python-versions = "^3.9"
+content-hash = "03912546efd32b90a1c5d4c498d2dbd71228a9b8377418bfc7bf2523f89a230d"
 
 [metadata.files]
 aiofiles = [
@@ -928,8 +928,8 @@ deprecated = [
     {file = "Deprecated-1.2.11.tar.gz", hash = "sha256:471ec32b2755172046e28102cd46c481f21c6036a0ec027521eba8521aa4ef35"},
 ]
 gcp-pilot = [
-    {file = "gcp-pilot-0.17.1.tar.gz", hash = "sha256:e092c1f97bf76b4feb9bbfedd1078cd98bb24b47f10a367321aa604a2b53a764"},
-    {file = "gcp_pilot-0.17.1-py3-none-any.whl", hash = "sha256:e960659a1edffd6bf0f1020fa9c5cd7119c57d1cc9d70a9af44d72572a631313"},
+    {file = "gcp-pilot-0.17.2.tar.gz", hash = "sha256:c40300233adde99ff75e0a37da3ed25fb7a868b7a5325d73c6f73f31512e6715"},
+    {file = "gcp_pilot-0.17.2-py3-none-any.whl", hash = "sha256:85ad5d3b24161fe4159a800ec5e4a9ebf5ac5272d8a1058abd9e2cb279972a5e"},
 ]
 google-api-core = [
     {file = "google-api-core-1.26.0.tar.gz", hash = "sha256:4230ec764d48ca934fe69b85cc217e31e844e176f68df93e252acd55350e730b"},
