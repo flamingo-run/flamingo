@@ -159,8 +159,6 @@ class BuildTriggerFactory:
         for label in self.app.get_all_labels():
             label_params.extend(['--update-labels', label.as_kv])
 
-        auth_params = ['--allow-unauthenticated'] if not self.build_setup.is_authenticated else []
-
         deployer = self._service.make_build_step(
             identifier="Deploy",
             name="gcr.io/google.com/cloudsdktool/cloud-sdk",
@@ -180,7 +178,6 @@ class BuildTriggerFactory:
                 '--max-instances', f"{self.substitution.MAX_INSTANCES}",
                 '--timeout', f"{self.substitution.TIMEOUT}",
                 '--concurrency', f"{self.substitution.CONCURRENCY}",
-                *auth_params,
                 *label_params,
                 '--quiet'
             ],
