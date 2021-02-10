@@ -469,8 +469,8 @@ class App(Document):
                 url = service['status']['url']
             except NotFound as e:
                 logger.warning(str(e))
-                from utils.build_engine import BuildTriggerFactory  # pylint: disable=import-outside-toplevel
-                url = BuildTriggerFactory(app=self).placeholder()
+                from utils.boilerplate_engine import BoilerplateEngine  # pylint: disable=import-outside-toplevel
+                url = BoilerplateEngine.placeholder(app=self)
 
             App.documents.update(pk=self.pk, endpoint=url)
             self.endpoint = url

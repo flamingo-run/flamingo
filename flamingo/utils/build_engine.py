@@ -3,7 +3,6 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Any, ClassVar, Tuple
 
 from gcp_pilot.build import CloudBuild, Substitutions
-from gcp_pilot.run import CloudRun
 
 import settings
 from models import App
@@ -271,22 +270,3 @@ class BuildTriggerFactory:
         )
 
         return response.id
-
-    def placeholder(self):
-        run = CloudRun()
-        service_params = dict(
-            service_name=self.app.identifier,
-            location=self.app.region,
-            project_id=self.app.project.id,
-        )
-
-        run.create_service(
-            service_account=self.app.service_account.email,
-            **service_params,
-        )
-
-        url = None
-        while not url:
-            service = run.get_service(**service_params)
-            url = service['status'].get('url')
-        return url
