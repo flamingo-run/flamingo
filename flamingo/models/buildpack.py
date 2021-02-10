@@ -9,7 +9,6 @@ from gcp_pilot.storage import CloudStorage
 from slugify import slugify
 
 from models.base import EnvVar
-import exceptions
 import settings
 
 if TYPE_CHECKING:
@@ -67,27 +66,13 @@ class BuildPack(Document):
         )
         return gcs.get_uri(blob)
 
-    async def get_build_args(self, app: App) -> KeyValue:
+    def get_build_args(self, app: App) -> KeyValue:
         all_build_args = {
             'RUNTIME_VERSION': self.runtime_version,
             'APP_PATH': app.path,
             'ENVIRONMENT': app.environment_name,
         }
-
-        # dynamically create build args from env vars
-        all_env_vars = await app.get_all_env_vars()
-
-        def _find_env_var(k):
-            for env_var in all_env_vars:
-                if env_var.key == k:
-                    return env_var.value
-            raise exceptions.ValidationError(f"Dynamic Build Argument {k} could not be filled from env variables")
-
-        for key, value in self.build_args.items():
-            if key.startswith('$'):
-                value = _find_env_var(key.replace('$', ''))
-            all_build_args[key] = value
-
+        all_build_args.update(self.build_args)
         return all_build_args
 
     def get_extra_build_steps(self, app: App) -> List[str]:

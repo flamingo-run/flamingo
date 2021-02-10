@@ -399,7 +399,7 @@ class App(Document):
             existing_var for existing_var in self.vars if existing_var.key != key
         ]
 
-    async def add_default(self):
+    def add_default(self):
         if not self.database:
             self.database = Database.default(app=self)
 
@@ -419,9 +419,9 @@ class App(Document):
                 f'{self.name}.{self.environment.name}.{self.environment.network.zone}',
             ]
 
-        await self.check_env_vars()
+        self.check_env_vars()
 
-    async def get_all_env_vars(self) -> List[EnvVar]:
+    def get_all_env_vars(self) -> List[EnvVar]:
         all_vars = self.vars.copy()
 
         if self.database:
@@ -443,7 +443,7 @@ class App(Document):
                 EnvVar(key='DOMAIN_URL', value=f'https://{self.domains[0]}', is_secret=False, source=by_flamingo),
             ])
 
-        endpoint = await self.get_url()
+        endpoint = self.get_url()
         all_vars.extend([
             EnvVar(key='GCP_APP_ENDPOINT', value=endpoint, is_secret=False, source=by_flamingo),
         ])
@@ -460,7 +460,7 @@ class App(Document):
         ])
         return all_labels
 
-    async def get_url(self) -> str:
+    def get_url(self) -> str:
         if not self.endpoint:
             run = CloudRun()
             try:
@@ -469,16 +469,16 @@ class App(Document):
             except NotFound as e:
                 logger.warning(str(e))
                 from utils.build_engine import BuildTriggerFactory  # pylint: disable=import-outside-toplevel
-                url = await BuildTriggerFactory(app=self).placeholder()
+                url = BuildTriggerFactory(app=self).placeholder()
 
             App.documents.update(pk=self.pk, endpoint=url)
             self.endpoint = url
         return self.endpoint
 
-    async def check_env_vars(self):
+    def check_env_vars(self):
         self.assure_var(env=EnvVar(key='SECRET', value=random_password(20), is_secret=True))
 
-        all_vars = await self.get_all_env_vars()
+        all_vars = self.get_all_env_vars()
         implicit_vars = {var.key for var in all_vars if var.is_implicit}
         deduplicated_vars = {}
         for var in all_vars:
@@ -577,7 +577,7 @@ class App(Document):
 
         async def setup_placeholder():
             from utils.build_engine import BuildTriggerFactory  # pylint: disable=import-outside-toplevel
-            url = await BuildTriggerFactory(app=self).placeholder()
+            url = BuildTriggerFactory(app=self).placeholder()
             App.documents.update(pk=self.pk, endpoint=url)
 
         if not self.endpoint:
