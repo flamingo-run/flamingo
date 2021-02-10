@@ -41,7 +41,7 @@ class AppCheckView(ActionView):
         raise exceptions.NotAllowedError()
 
     async def perform_post(self, request: Request, obj: models.App) -> ResponseType:
-        await obj.check_env_vars()
+        obj.check_env_vars()
         new_obj = obj.save()
         return new_obj.serialize(), 200
 
@@ -69,7 +69,7 @@ class AppEnvVarsView(ActionView):
     model = models.App
 
     async def _serialize_env_vars(self, app: models.App) -> List[Dict[str, str]]:
-        env_vars = await app.get_all_env_vars()
+        env_vars = app.get_all_env_vars()
         return [
             env.serialize()
             for env in env_vars
