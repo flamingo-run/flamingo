@@ -91,7 +91,7 @@ class BuildPack(Document):
         return all_build_args
 
     def get_extra_build_steps(self, app: App) -> List[str]:
-        custom_steps = self.post_build_commands
+        custom_steps = self.post_build_commands.copy()
         custom_steps.extend(app.build_setup.post_build_commands)
         return custom_steps
 
