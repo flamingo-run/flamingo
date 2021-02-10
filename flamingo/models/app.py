@@ -603,3 +603,5 @@ class App(Document):
         # adding the ID we just received
         if trigger_not_bound:
             return await self.apply()
+
+        return trigger_id

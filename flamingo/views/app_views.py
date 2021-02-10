@@ -110,9 +110,9 @@ class AppApplyView(ActionView):
         raise exceptions.NotAllowedError()
 
     async def perform_post(self, request: Request, obj: models.App) -> ResponseType:
-        await obj.apply()
+        trigger_id = await obj.apply()
         # TODO Add support to re-deploy
-        return {}, 201
+        return {'trigger_id': trigger_id}, 201
 
     async def perform_delete(self, request: Request, obj: models.App) -> ResponseType:
         raise exceptions.NotAllowedError()
