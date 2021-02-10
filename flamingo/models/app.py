@@ -369,7 +369,8 @@ class App(Document):
         if not self.identifier:
             self.identifier = f'{self.name}-{environment.name}'
 
-        self.region = self.project.region
+        if not self.region:
+            self.region = self.project.region
 
         self.build_setup.name = self.identifier
 
