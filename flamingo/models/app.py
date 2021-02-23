@@ -5,7 +5,7 @@ import asyncio
 import logging
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List
+from typing import List, Union, TYPE_CHECKING
 from urllib.parse import urlparse
 
 from gcp_pilot.build import CloudBuild, AnyEventType
@@ -25,6 +25,9 @@ import settings
 from models import BuildPack
 from models.base import KeyValueEmbeddedDocument, random_password, Project, EnvVar, EnvVarSource
 from models.environment import Environment
+
+if TYPE_CHECKING:
+    from utils.build_engine import CloudRunFactory, CloudFunctionsFactory  # pylint: disable=ungrouped-imports
 
 
 logger = logging.getLogger()
@@ -283,13 +286,14 @@ class BuildSetup(EmbeddedDocument):
     os_dependencies: List[str] = field(default_factory=list)
     labels: List[Label] = field(default_factory=list)
     project: Project = field(default_factory=Project.default_for_flamingo)
-    memory: int = 256  # measured in Mi
+    memory: int = 256  # measured in MB
     cpu: int = 1  # number of cores
     min_instances: int = 0
     max_instances: int = 10
-    timeout: int = 60 * 15  # TODO: timeout above 15m is still beta
+    timeout: int = 60 * 15  # TODO: timeout above 15m is still beta on CloudRun
     concurrency: int = 80
     is_authenticated: bool = True
+    entrypoint: str = None
     build_timeout: int = 60 * 30  # <https://cloud.google.com/cloud-build/docs/build-config#timeout_2>
 
     _build_pack: BuildPack = None
@@ -469,8 +473,7 @@ class App(Document):
                 url = service['status']['url']
             except NotFound as e:
                 logger.warning(str(e))
-                from utils.boilerplate_engine import BoilerplateEngine  # pylint: disable=import-outside-toplevel
-                url = BoilerplateEngine.placeholder(app=self)
+                url = self.factory.placeholder()
 
             App.documents.update(pk=self.pk, endpoint=url)
             self.endpoint = url
@@ -577,8 +580,7 @@ class App(Document):
         asyncio.create_task(job)
 
         async def setup_placeholder():
-            from utils.build_engine import get_factory  # pylint: disable=import-outside-toplevel
-            url = get_factory(app=self).placeholder()
+            url = self.factory.placeholder()
             App.documents.update(pk=self.pk, endpoint=url)
 
         if not self.endpoint:
@@ -588,9 +590,7 @@ class App(Document):
         # return job_names  # TODO: return scheduled jobs to use as response
 
     async def apply(self):
-        from utils.build_engine import get_factory  # pylint: disable=import-outside-toplevel
-        factory = get_factory(app=self)
-        trigger_id = await factory.build()
+        trigger_id = await self.factory.build()
 
         trigger_not_bound = self.build_setup.trigger_id is None
 
@@ -605,3 +605,8 @@ class App(Document):
             return await self.apply()
 
         return trigger_id
+
+    @property
+    def factory(self) -> Union[CloudRunFactory, CloudFunctionsFactory]:
+        from utils.build_engine import get_factory  # pylint: disable=import-outside-toplevel
+        return get_factory(app=self)

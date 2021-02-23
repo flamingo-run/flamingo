@@ -1,12 +1,13 @@
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, ClassVar, Tuple
+from typing import List, Dict, Any, ClassVar, Tuple, Union
 
 from gcp_pilot.build import CloudBuild, Substitutions
+from gcp_pilot.run import CloudRun
 
 import settings
-from models import App
+from models import App, Target
 from utils.alias_engine import AliasEngine
 
 logger = logging.getLogger()
@@ -128,7 +129,12 @@ class BuildTriggerFactory(ABC):
 
         return response.id
 
+    @abstractmethod
+    def placeholder(self):
+        raise NotImplementedError()
 
+
+@dataclass
 class CloudRunFactory(BuildTriggerFactory):
     def _add_steps(self) -> None:
         self._add_cache_step()
@@ -283,9 +289,105 @@ class CloudRunFactory(BuildTriggerFactory):
         )
         self.steps.append(traffic)
 
+    def placeholder(self):
+        run = CloudRun()
+        service_params = dict(
+            service_name=self.app.identifier,
+            location=self.app.region,
+            project_id=self.app.project.id,
+        )
 
-def get_factory(app: App):
+        run.create_service(
+            service_account=self.app.service_account.email,
+            **service_params,
+        )
+
+        url = None
+        while not url:
+            service = run.get_service(**service_params)
+            url = service['status'].get('url')
+        return url
+
+
+@dataclass
+class CloudFunctionsFactory(BuildTriggerFactory):
+    def _get_setup_params(self) -> KeyValue:
+        from gcp_pilot.functions import CloudFunctions
+
+        if self._build_setup.deploy_tag:
+            kwargs = dict(tag=self._build_setup.deploy_tag)
+        elif self._build_setup.deploy_branch:
+            kwargs = dict(branch=self._build_setup.deploy_branch)
+        else:
+            kwargs = dict()
+
+        directory = self.app.identifier.replace('-', '_')  # TODO: Maybe let if parameterized in model?
+        repo_url = CloudFunctions.build_repo_source(
+            name=self.app.repository.name,
+            directory=directory,
+            project_id=self.app.repository.project.id,
+            **kwargs,
+        )['url']
+
+        params = dict(
+            REGION=self.app.region,
+            CPU=self._build_setup.cpu,
+            RAM=self._build_setup.memory,
+            MAX_INSTANCES=self._build_setup.max_instances,
+            TIMEOUT=self._build_setup.timeout,
+            SERVICE_ACCOUNT=self.app.service_account.email,
+            PROJECT_ID=self.app.project.id,
+            SERVICE_NAME=self.app.identifier,
+            SOURCE=repo_url,
+            ENTRYPOINT=self._build_setup.entrypoint,
+        )
+        if self.app.database:
+            params[self.DB_CONN_KEY] = self.app.database.connection_name
+        return params
+
+    def _add_deploy_step(self):
+        env_params = self._get_env_var_as_param('--set-env-vars')
+
+        label_params = ['--clear-labels']
+        for label in self.app.get_all_labels():
+            label_params.extend(['--update-labels', label.as_kv])
+
+        auth_params = ['--allow-unauthenticated'] if self._build_setup.is_authenticated else []
+
+        deployer = self._service.make_build_step(
+            identifier="Deploy",
+            name="gcr.io/google.com/cloudsdktool/cloud-sdk",
+            entrypoint='gcloud',
+            args=[
+                "functions", "deploy", f"{self._substitution.SERVICE_NAME}",
+                '--runtime', f"{self._substitution.RUNTIME_VERSION}",
+                '--source', f"{self._substitution.SOURCE}",
+                '--entry-point', f"{self._substitution.ENTRYPOINT}",
+                '--region', f"{self._substitution.REGION}",
+                *env_params,
+                '--service-account', f"{self._substitution.SERVICE_ACCOUNT}",
+                '--project', f"{self._substitution.PROJECT_ID}",
+                '--memory', f"{self._substitution.RAM}MB",
+                '--max-instances', f"{self._substitution.MAX_INSTANCES}",
+                '--timeout', f"{self._substitution.TIMEOUT}",
+                *label_params,
+                *auth_params,
+                '--trigger-http',
+                '--quiet'
+            ],
+        )
+        self.steps.append(deployer)
+
+    def _add_steps(self) -> None:
+        self._add_deploy_step()
+
+    def placeholder(self):
+        return f'https://{self.app.region}-{self.app.project.id}.cloudfunctions.net/{self.app.identifier}'
+
+
+def get_factory(app: App) -> Union[CloudRunFactory, CloudFunctionsFactory]:
     factories = {
-        'cloudrun': CloudRunFactory,
+        Target.CLOUD_RUN.value: CloudRunFactory,
+        Target.CLOUD_FUNCTIONS.value: CloudFunctionsFactory,
     }
-    return factories[app.build_setup.build_pack.target]
+    return factories[app.build_setup.build_pack.target](app=app)

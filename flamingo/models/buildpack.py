@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from enum import Enum
 from pathlib import Path
 from typing import Dict, List, TYPE_CHECKING
 
@@ -17,11 +18,16 @@ if TYPE_CHECKING:
 KeyValue = Dict[str, str]
 
 
+class Target(Enum):
+    CLOUD_RUN = 'cloudrun'
+    CLOUD_FUNCTIONS = 'cloud-functions'
+
+
 @dataclass
 class BuildPack(Document):
     name: str
     runtime_version: str
-    target: str = 'cloudrun'  # TODO Add support to CloudFunctions and others
+    target: str = Target.CLOUD_RUN.value
     build_args: KeyValue = field(default_factory=dict)
     post_build_commands: List[str] = field(default_factory=list)
     vars: List[EnvVar] = field(default_factory=list)
@@ -34,7 +40,7 @@ class BuildPack(Document):
 
     @property
     def tags(self):
-        if self.target == 'cloudrun':
+        if self.target == Target.CLOUD_RUN.value:
             return [
                 'gcp-cloud-build-deploy-cloud-run',
                 'gcp-cloud-build-deploy-cloud-run-managed',
