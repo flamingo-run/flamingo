@@ -1,10 +1,12 @@
 import abc
 from collections import defaultdict
+from dataclasses import _MISSING_TYPE
+from enum import Enum
 from pathlib import Path
 from typing import Tuple, Dict, Any, List
 
 import aiofiles
-from gcp_pilot.datastore import Document, DoesNotExist
+from gcp_pilot.datastore import Document, DoesNotExist, EmbeddedDocument
 from sanic.request import Request, RequestParameters, File
 from sanic.response import json, HTTPResponse
 from sanic.views import HTTPMethodView
@@ -14,6 +16,28 @@ import settings
 
 PayloadType = Dict[str, Any]
 ResponseType = Tuple[PayloadType, int]
+
+
+def _get_model_options(model_klass):
+    hints = model_klass.__dataclass_fields__
+
+    field_options = {}
+    for field_name, field_type in model_klass.Meta.fields.items():
+        hint = hints[field_name]
+        options = {
+            'type': field_type.__name__,
+            'required': isinstance(hint.default, _MISSING_TYPE)
+        }
+
+        if issubclass(field_type, Enum):
+            options['choices'] = [enum.value for enum in field_type]
+        elif issubclass(field_type, EmbeddedDocument):
+            options.update(_get_model_options(model_klass=field_type))
+
+        field_options[field_name] = options
+    return {
+        'fields': field_options,
+    }
 
 
 class ViewBase(HTTPMethodView):
@@ -26,29 +50,47 @@ class ViewBase(HTTPMethodView):
             await f.write(file.body)
         await f.close()
 
-    def _parse_query(self, query_args: List[Tuple[str, str]]) -> Dict[str, str]:
-        query = {}
-        for key, value in query_args:
-            if key not in query:
-                query[key] = value
-            elif isinstance(query[key], list):
-                query[key].append(value)
-            else:
-                query[key] = [query[key], value]
-
-        return query
-
 
 class ListView(ViewBase):
     async def get(self, request: Request) -> HTTPResponse:
+        query_args, page, page_size = self._parse_query_args(request=request)
+        items = await self.perform_get(query_filters=query_args)
+
+        items_in_page = self._paginate(items=items, page=page, page_size=page_size)
+
         response = {
             'results': [
                 obj.serialize()
                 for obj in
-                await self.perform_get(query_filters=self._parse_query(request.query_args))
-            ]
+                items_in_page
+            ],
+            'count': len(items_in_page)
         }
         return json(response, 200)
+
+    def _parse_query_args(self, request: Request) -> Tuple[Dict[str, Any], int, int]:
+        query_args = {}
+        for key, value in request.query_args:
+            if key not in query_args:
+                query_args[key] = value
+            elif isinstance(query_args[key], list):
+                query_args[key].append(value)
+            else:
+                query_args[key] = [query_args[key], value]
+
+        page = query_args.pop('page', 1)
+        page_size = query_args.pop('page_size', 10)
+        return query_args, page, page_size
+
+    def _paginate(self, items: List[Document], page: int, page_size: int) -> List[Document]:
+        start_idx = (page - 1) * page_size
+        start_idx = min(start_idx, len(items))
+
+        end_idx = start_idx + page_size
+        end_idx = min(end_idx, len(items))
+
+        items_in_page = items[start_idx:end_idx]
+        return items_in_page
 
     async def perform_get(self, query_filters) -> List[Document]:
         return self.model.documents.filter(**query_filters)
@@ -61,6 +103,13 @@ class ListView(ViewBase):
     async def perform_create(self, data: PayloadType) -> Document:
         obj = self.model.deserialize(**data)
         return obj.save()
+
+    async def options(self, request: Request) -> HTTPResponse:
+        data = await self.perform_options()
+        return json(data, 200)
+
+    async def perform_options(self) -> PayloadType:
+        return _get_model_options(model_klass=self.model)
 
 
 class DetailView(ViewBase):
