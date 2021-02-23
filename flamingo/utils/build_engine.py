@@ -1,4 +1,5 @@
 import logging
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, ClassVar, Tuple
 
@@ -15,7 +16,7 @@ KeyValue = Dict[str, Any]
 
 
 @dataclass
-class BuildTriggerFactory:
+class BuildTriggerFactory(ABC):
     DB_CONN_KEY: ClassVar = 'DATABASE_CONNECTION'
     DOCKERFILE_KEY: ClassVar = 'DOCKERFILE_LOCATION'
     ENV_PREFIX_KEY: ClassVar = 'ENV_'
@@ -40,26 +41,18 @@ class BuildTriggerFactory:
         self._env_vars, self._build_args = self._get_env_and_build_args()
         self._substitution = self._populate_substitutions()
 
-    def _get_setup_params(self) -> KeyValue:
-        params = dict(
-            IMAGE_NAME=self._build_setup.image_name,
-            REGION=self.app.region,
-            CPU=self._build_setup.cpu,
-            RAM=self._build_setup.memory,
-            MIN_INSTANCES=self._build_setup.min_instances,
-            MAX_INSTANCES=self._build_setup.max_instances,
-            TIMEOUT=self._build_setup.timeout,
-            CONCURRENCY=self._build_setup.concurrency,
-            SERVICE_ACCOUNT=self.app.service_account.email,
-            PROJECT_ID=self.app.project.id,
-            SERVICE_NAME=self.app.identifier,
-        )
-        if self._build_pack.dockerfile_url:
-            params[self.DOCKERFILE_KEY] = self._build_pack.dockerfile_url
+    def _populate_substitutions(self) -> Substitutions:
+        substitution = Substitutions()
 
-        if self.app.database:
-            params[self.DB_CONN_KEY] = self.app.database.connection_name
-        return params
+        substitution.add(**self._setup_params)
+        substitution.add(**self._build_args)
+        substitution.add(**{f'{self.ENV_PREFIX_KEY}{key}': value for key, value in self._env_vars.items()})
+
+        return substitution
+
+    @abstractmethod
+    def _get_setup_params(self) -> KeyValue:
+        raise NotImplementedError()
 
     def _get_env_and_build_args(self) -> Tuple[KeyValue, KeyValue]:
         all_env_vars = {var.key: var.value for var in self.app.get_all_env_vars()}
@@ -82,15 +75,6 @@ class BuildTriggerFactory:
 
         return dict(env_var_engine.items()), dict(build_args_engine.items())
 
-    def _populate_substitutions(self) -> Substitutions:
-        substitution = Substitutions()
-
-        substitution.add(**self._setup_params)
-        substitution.add(**self._build_args)
-        substitution.add(**{f'{self.ENV_PREFIX_KEY}{key}': value for key, value in self._env_vars.items()})
-
-        return substitution
-
     def _get_db_as_param(self, command: str) -> List[str]:
         if self.app.database:
             return [command, str(getattr(self._substitution, self.DB_CONN_KEY))]
@@ -109,6 +93,72 @@ class BuildTriggerFactory:
             sub_variable = getattr(self._substitution, key)
             build_params.extend([command, sub_variable.as_env_var()])
         return build_params
+
+    @abstractmethod
+    def _add_steps(self) -> None:
+        raise NotImplementedError()
+
+    def _get_description(self) -> str:
+        if self._build_setup.deploy_branch:
+            _event_str = f'pushed to {self._build_setup.deploy_branch}'
+        else:
+            _event_str = f'tagged {self._build_setup.deploy_tag}'
+        return f'🦩 Deploy to {self._build_setup.build_pack.target} when {_event_str}'
+
+    async def build(self) -> str:
+        self._add_steps()
+
+        event = self.app.repository.as_event(
+            branch_name=self._build_setup.deploy_branch,
+            tag_name=self._build_setup.deploy_tag,
+        )
+        description = self._get_description()
+
+        response = await self._service.create_or_update_trigger(
+            name=self.app.identifier,
+            description=description,
+            event=event,
+            project_id=settings.FLAMINGO_PROJECT,
+            steps=self.steps,
+            images=[self._build_setup.image_name],
+            tags=self._build_setup.get_tags(),
+            substitutions=self._substitution,
+            timeout=self._build_setup.build_timeout,
+        )
+
+        return response.id
+
+
+class CloudRunFactory(BuildTriggerFactory):
+    def _add_steps(self) -> None:
+        self._add_cache_step()
+        self._add_dockerfile_step()
+        self._add_build_step()
+        self._add_push_step()
+        self._add_custom_command_steps()
+        self._add_deploy_step()
+        self._add_traffic_step()
+
+    def _get_setup_params(self) -> KeyValue:
+        params = dict(
+            IMAGE_NAME=self._build_setup.image_name,
+            REGION=self.app.region,
+            CPU=self._build_setup.cpu,
+            RAM=self._build_setup.memory,
+            MIN_INSTANCES=self._build_setup.min_instances,
+            MAX_INSTANCES=self._build_setup.max_instances,
+            TIMEOUT=self._build_setup.timeout,
+            CONCURRENCY=self._build_setup.concurrency,
+            SERVICE_ACCOUNT=self.app.service_account.email,
+            PROJECT_ID=self.app.project.id,
+            SERVICE_NAME=self.app.identifier,
+        )
+        if self._build_pack.dockerfile_url:
+            params[self.DOCKERFILE_KEY] = self._build_pack.dockerfile_url
+
+        if self.app.database:
+            params[self.DB_CONN_KEY] = self.app.database.connection_name
+        return params
 
     def _add_cache_step(self):
         cache_loader = self._service.make_build_step(
@@ -233,40 +283,9 @@ class BuildTriggerFactory:
         )
         self.steps.append(traffic)
 
-    def _get_description(self) -> str:
-        if self._build_setup.deploy_branch:
-            _event_str = f'pushed to {self._build_setup.deploy_branch}'
-        else:
-            _event_str = f'tagged {self._build_setup.deploy_tag}'
-        return f'🦩 Deploy to {self._build_setup.build_pack.target} when {_event_str}'
 
-    async def build(self) -> str:
-        self._populate_substitutions()
-
-        self._add_cache_step()
-        self._add_dockerfile_step()
-        self._add_build_step()
-        self._add_push_step()
-        self._add_custom_command_steps()
-        self._add_deploy_step()
-        self._add_traffic_step()
-
-        event = self.app.repository.as_event(
-            branch_name=self._build_setup.deploy_branch,
-            tag_name=self._build_setup.deploy_tag,
-        )
-        description = self._get_description()
-
-        response = await self._service.create_or_update_trigger(
-            name=self.app.identifier,
-            description=description,
-            event=event,
-            project_id=settings.FLAMINGO_PROJECT,
-            steps=self.steps,
-            images=[self._build_setup.image_name],
-            tags=self._build_setup.get_tags(),
-            substitutions=self._substitution,
-            timeout=self._build_setup.build_timeout,
-        )
-
-        return response.id
+def get_factory(app: App):
+    factories = {
+        'cloudrun': CloudRunFactory,
+    }
+    return factories[app.build_setup.build_pack.target]

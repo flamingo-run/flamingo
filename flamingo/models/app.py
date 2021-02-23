@@ -577,8 +577,8 @@ class App(Document):
         asyncio.create_task(job)
 
         async def setup_placeholder():
-            from utils.build_engine import BuildTriggerFactory  # pylint: disable=import-outside-toplevel
-            url = BuildTriggerFactory(app=self).placeholder()
+            from utils.build_engine import get_factory  # pylint: disable=import-outside-toplevel
+            url = get_factory(app=self).placeholder()
             App.documents.update(pk=self.pk, endpoint=url)
 
         if not self.endpoint:
@@ -588,8 +588,8 @@ class App(Document):
         # return job_names  # TODO: return scheduled jobs to use as response
 
     async def apply(self):
-        from utils.build_engine import BuildTriggerFactory  # pylint: disable=import-outside-toplevel
-        factory = BuildTriggerFactory(app=self)
+        from utils.build_engine import get_factory  # pylint: disable=import-outside-toplevel
+        factory = get_factory(app=self)
         trigger_id = await factory.build()
 
         trigger_not_bound = self.build_setup.trigger_id is None
