@@ -128,3 +128,5 @@ staging/
 .idea/
 
 *.DS_Store
+
+.run/
