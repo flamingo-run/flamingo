@@ -29,6 +29,7 @@ steps:
       - '--set-env-vars'
       - 'GIT_ACCESS_TOKEN=${_GIT_ACCESS_TOKEN}'
       - '--region=$_DEPLOY_REGION'
+      - '--memory=${_DEPLOY_REGION}MB'
       - '--quiet'
     id: Deploy
     entrypoint: gcloud
@@ -54,6 +55,7 @@ substitutions:
   _TRIGGER_ID: 608bb523-1a82-4f98-bf53-60d1820500b1
   _SERVICE_NAME: flamingo
   _DEPLOY_REGION: us-east1
+  _MEMORY: '256'
 tags:
   - gcp-cloud-build-deploy-cloud-run
   - gcp-cloud-build-deploy-cloud-run-managed
