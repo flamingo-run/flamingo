@@ -6,6 +6,7 @@ from typing import List, Dict, Any, ClassVar, Tuple, Union
 from gcp_pilot.build import CloudBuild, Substitutions
 from gcp_pilot.exceptions import NotFound
 from gcp_pilot.run import CloudRun
+from google.cloud.devtools import cloudbuild_v1
 
 import settings
 from models import App, Target
@@ -24,7 +25,7 @@ class BuildTriggerFactory(ABC):
     ENV_PREFIX_KEY: ClassVar = 'ENV_'
 
     app: App
-    steps: List = field(default_factory=list)
+    steps: List[cloudbuild_v1.BuildStep] = field(default_factory=list)
 
     _substitution: Substitutions = None
     _setup_params: KeyValue = None
