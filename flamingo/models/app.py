@@ -349,6 +349,17 @@ class BuildSetup(EmbeddedDocument):
 
 
 @dataclass
+class ScheduledInvocation(EmbeddedDocument):
+    name: str
+    cron: str
+    path: str = '/'
+    method: str = 'GET'
+    body: str = None
+    cloud_scheduler_id: str = None
+    content_type: str = 'application/json'
+
+
+@dataclass
 class App(Document):
     name: str
     environment_name: str
@@ -357,6 +368,7 @@ class App(Document):
     identifier: str = None
     domains: List[str] = field(default_factory=list)
     vars: List[EnvVar] = field(default_factory=list)
+    scheduled_invocations: List[ScheduledInvocation] = field(default_factory=list)
     database: Database = None
     bucket: Bucket = None
     region: str = None

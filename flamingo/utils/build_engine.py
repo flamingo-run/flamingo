@@ -9,7 +9,7 @@ from gcp_pilot.run import CloudRun
 from google.cloud.devtools import cloudbuild_v1
 
 import settings
-from models import App, Target
+from models import App, Target, ScheduledInvocation
 from utils.alias_engine import AliasEngine
 
 logger = logging.getLogger()
@@ -109,9 +109,43 @@ class BuildTriggerFactory(ABC):
             _event_str = f'tagged {self._build_setup.deploy_tag}'
         return f'🦩 Deploy to {self._build_setup.build_pack.target} when {_event_str}'
 
+    def _add_scheduled_invocation_step(self, scheduled_invocation: ScheduledInvocation, wait_for: str):
+        schedule_name = f"{self.app.identifier}--{scheduled_invocation.name}"
+
+        auth_params = []
+        if self._build_setup.is_authenticated:
+            auth_params = [
+                '--oidc-token-audience', f"{self.app.endpoint}",
+                '--oidc-service-account-email', f"{self._substitution.SERVICE_ACCOUNT}",
+            ]
+
+        scheduler = self._service.make_build_step(
+            identifier=f"Schedule {scheduled_invocation.name}",
+            name="gcr.io/google.com/cloudsdktool/cloud-sdk",
+            entrypoint='gcloud',
+            args=[
+                "beta", "scheduler", "jobs", "create", "http", "deploy", f"{schedule_name}",
+                '--uri', f"{self.app.endpoint}{scheduled_invocation.path}",
+                '--schedule', f'{scheduled_invocation.cron}',
+                '--http-method', f'{scheduled_invocation.method}',
+                '--headers', f'Content-Type={scheduled_invocation.content_type}',
+                '--region', f"{self._substitution.REGION}",
+                *auth_params,
+            ],
+            wait_for=[wait_for],
+        )
+        self.steps.append(scheduler)
+
     async def build(self) -> str:
         self.init()
         self._add_steps()
+
+        last_step_id = self.steps[-1].id
+        for scheduled_invocation in self.app.scheduled_invocations:
+            self._add_scheduled_invocation_step(
+                scheduled_invocation=scheduled_invocation,
+                wait_for=last_step_id,
+            )
 
         event = self.app.repository.as_event(
             branch_name=self._build_setup.deploy_branch,
@@ -329,6 +363,7 @@ class CloudRunFactory(BuildTriggerFactory):
 
 @dataclass
 class CloudFunctionsFactory(BuildTriggerFactory):
+    # TODO: setup this <https://cloud.google.com/functions/docs/reference/iam/roles#additional-configuration>
     def _get_setup_params(self) -> KeyValue:
         from gcp_pilot.functions import CloudFunctions
 
