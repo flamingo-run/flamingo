@@ -37,6 +37,7 @@ class BuildTriggerFactory(ABC):
         self._build_setup = self.app.build_setup
         self._build_pack = self.app.build_setup.build_pack
 
+    def init(self):
         # key-value pairs
         self._setup_params = self._get_setup_params()
         self._env_vars, self._build_args = self._get_env_and_build_args()
@@ -107,6 +108,7 @@ class BuildTriggerFactory(ABC):
         return f'🦩 Deploy to {self._build_setup.build_pack.target} when {_event_str}'
 
     async def build(self) -> str:
+        self.init()
         self._add_steps()
 
         event = self.app.repository.as_event(
