@@ -54,7 +54,7 @@ class ViewBase(HTTPMethodView):
 class ListView(ViewBase):
     async def get(self, request: Request) -> HTTPResponse:
         query_args, page, page_size = self._parse_query_args(request=request)
-        items = await self.perform_get(query_filters=query_args)
+        items = list(await self.perform_get(query_filters=query_args))
 
         items_in_page = self._paginate(items=items, page=page, page_size=page_size)
 
@@ -64,7 +64,7 @@ class ListView(ViewBase):
                 for obj in
                 items_in_page
             ],
-            'count': len(items_in_page)
+            'count': len(items)
         }
         return json(response, 200)
 
@@ -80,7 +80,7 @@ class ListView(ViewBase):
 
         page = query_args.pop('page', 1)
         page_size = query_args.pop('page_size', 10)
-        return query_args, page, page_size
+        return query_args, int(page), int(page_size)
 
     def _paginate(self, items: List[Document], page: int, page_size: int) -> List[Document]:
         start_idx = (page - 1) * page_size
