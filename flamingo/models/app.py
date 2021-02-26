@@ -294,6 +294,7 @@ class BuildSetup(EmbeddedDocument):
     concurrency: int = 80
     is_authenticated: bool = True
     entrypoint: str = None
+    directory: str = None
     build_timeout: int = 60 * 30  # <https://cloud.google.com/cloud-build/docs/build-config#timeout_2>
 
     _build_pack: BuildPack = None

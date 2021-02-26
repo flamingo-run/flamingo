@@ -321,7 +321,7 @@ class CloudFunctionsFactory(BuildTriggerFactory):
         else:
             kwargs = dict()
 
-        directory = self.app.identifier.replace('-', '_')  # TODO: Maybe let if parameterized in model?
+        directory = self._build_setup.directory
         repo_url = CloudFunctions.build_repo_source(
             name=self.app.repository.name,
             directory=directory,
