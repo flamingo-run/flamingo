@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Any, ClassVar, Tuple, Union
 
 from gcp_pilot.build import CloudBuild, Substitutions
+from gcp_pilot.exceptions import NotFound
 from gcp_pilot.run import CloudRun
 
 import settings
@@ -132,7 +133,7 @@ class BuildTriggerFactory(ABC):
         return response.id
 
     @abstractmethod
-    def placeholder(self):
+    def get_url(self):
         raise NotImplementedError()
 
 
@@ -291,7 +292,21 @@ class CloudRunFactory(BuildTriggerFactory):
         )
         self.steps.append(traffic)
 
-    def placeholder(self):
+    def get_url(self):
+        run = CloudRun()
+        try:
+            service = run.get_service(
+                service_name=self.app.identifier,
+                project_id=self.app.project.id,
+                location=self.app.region,
+            )
+            url = service['status']['url']
+        except NotFound as e:
+            logger.warning(str(e))
+            url = self._create_placeholder()
+        return url
+
+    def _create_placeholder(self):
         run = CloudRun()
         service_params = dict(
             service_name=self.app.identifier,
@@ -383,7 +398,8 @@ class CloudFunctionsFactory(BuildTriggerFactory):
     def _add_steps(self) -> None:
         self._add_deploy_step()
 
-    def placeholder(self):
+    def get_url(self):
+        # TODO: Create a placeholder
         return f'https://{self.app.region}-{self.app.project.id}.cloudfunctions.net/{self.app.identifier}'
 
 

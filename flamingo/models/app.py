@@ -468,14 +468,7 @@ class App(Document):
 
     def get_url(self) -> str:
         if not self.endpoint:
-            run = CloudRun()
-            try:
-                service = run.get_service(service_name=self.identifier, project_id=self.project.id, location=self.region)
-                url = service['status']['url']
-            except NotFound as e:
-                logger.warning(str(e))
-                url = self.factory.placeholder()
-
+            url = self.factory.get_url()
             App.documents.update(pk=self.pk, endpoint=url)
             self.endpoint = url
         return self.endpoint
