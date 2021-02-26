@@ -43,7 +43,7 @@ class ServiceAccount(EmbeddedDocument):
     name: str
     description: str
     display_name: str
-    roles: List[str] = field(default=list)
+    roles: List[str] = field(default_factory=list)
     project: Project = field(default_factory=Project.default)
 
     @classmethod
