@@ -1,7 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, ClassVar, Tuple, Union
+from typing import List, ClassVar, Tuple, Union
 
 from gcp_pilot.build import CloudBuild, Substitutions
 from gcp_pilot.exceptions import NotFound
@@ -9,13 +9,13 @@ from gcp_pilot.run import CloudRun
 from google.cloud.devtools import cloudbuild_v1
 
 import settings
-from models import App, Target, ScheduledInvocation
-from utils.alias_engine import AliasEngine
+from models.app import App
+from models.base import KeyValue
+from models.buildpack import Target
+from models.schedule import ScheduledInvocation
+from services.alias_engine import AliasEngine
 
 logger = logging.getLogger()
-
-
-KeyValue = Dict[str, Any]
 
 
 @dataclass
@@ -36,8 +36,8 @@ class BuildTriggerFactory(ABC):
         self._service = CloudBuild()
 
         # Cache locally some references
-        self._build_setup = self.app.build_setup
-        self._build_pack = self.app.build_setup.build_pack
+        self._build = self.app.build
+        self._build_pack = self.app.build.build_pack
 
     def init(self):
         # key-value pairs
@@ -60,7 +60,7 @@ class BuildTriggerFactory(ABC):
 
     def _get_env_and_build_args(self) -> Tuple[KeyValue, KeyValue]:
         all_env_vars = {var.key: var.value for var in self.app.get_all_env_vars()}
-        all_build_args = self._build_setup.build_pack.get_build_args(app=self.app)
+        all_build_args = self._build.build_pack.get_build_args(app=self.app)
 
         replacements = dict()
         replacements.update(self._setup_params)
@@ -103,17 +103,17 @@ class BuildTriggerFactory(ABC):
         raise NotImplementedError()
 
     def _get_description(self) -> str:
-        if self._build_setup.deploy_branch:
-            _event_str = f'pushed to {self._build_setup.deploy_branch}'
+        if self._build.deploy_branch:
+            _event_str = f'pushed to {self._build.deploy_branch}'
         else:
-            _event_str = f'tagged {self._build_setup.deploy_tag}'
-        return f'🦩 Deploy to {self._build_setup.build_pack.target} when {_event_str}'
+            _event_str = f'tagged {self._build.deploy_tag}'
+        return f'🦩 Deploy to {self._build.build_pack.target} when {_event_str}'
 
     def _add_scheduled_invocation_step(self, scheduled_invocation: ScheduledInvocation, wait_for: str):
         schedule_name = f"{self.app.identifier}--{scheduled_invocation.name}"
 
         auth_params = []
-        if self._build_setup.is_authenticated:
+        if self._build.is_authenticated:
             auth_params = [
                 '--oidc-token-audience', f"{self.app.endpoint}",
                 '--oidc-service-account-email', f"{self._substitution.SERVICE_ACCOUNT}",
@@ -148,8 +148,8 @@ class BuildTriggerFactory(ABC):
             )
 
         event = self.app.repository.as_event(
-            branch_name=self._build_setup.deploy_branch,
-            tag_name=self._build_setup.deploy_tag,
+            branch_name=self._build.deploy_branch,
+            tag_name=self._build.deploy_tag,
         )
         description = self._get_description()
 
@@ -159,10 +159,10 @@ class BuildTriggerFactory(ABC):
             event=event,
             project_id=settings.FLAMINGO_PROJECT,
             steps=self.steps,
-            images=[self._build_setup.image_name],
-            tags=self._build_setup.get_tags(),
+            images=[self._build.get_image_name(app=self.app)],
+            tags=self._build.get_tags(app=self.app),
             substitutions=self._substitution,
-            timeout=self._build_setup.build_timeout,
+            timeout=self._build.build_timeout,
         )
 
         return response.id
@@ -185,14 +185,14 @@ class CloudRunFactory(BuildTriggerFactory):
 
     def _get_setup_params(self) -> KeyValue:
         params = dict(
-            IMAGE_NAME=self._build_setup.image_name,
+            IMAGE_NAME=self._build.get_image_name(app=self.app),
             REGION=self.app.region,
-            CPU=self._build_setup.cpu,
-            RAM=self._build_setup.memory,
-            MIN_INSTANCES=self._build_setup.min_instances,
-            MAX_INSTANCES=self._build_setup.max_instances,
-            TIMEOUT=self._build_setup.timeout,
-            CONCURRENCY=self._build_setup.concurrency,
+            CPU=self._build.cpu,
+            RAM=self._build.memory,
+            MIN_INSTANCES=self._build.min_instances,
+            MAX_INSTANCES=self._build.max_instances,
+            TIMEOUT=self._build.timeout,
+            CONCURRENCY=self._build.concurrency,
             SERVICE_ACCOUNT=self.app.service_account.email,
             PROJECT_ID=self.app.project.id,
             SERVICE_NAME=self.app.identifier,
@@ -367,14 +367,14 @@ class CloudFunctionsFactory(BuildTriggerFactory):
     def _get_setup_params(self) -> KeyValue:
         from gcp_pilot.functions import CloudFunctions
 
-        if self._build_setup.deploy_tag:
-            kwargs = dict(tag=self._build_setup.deploy_tag)
-        elif self._build_setup.deploy_branch:
-            kwargs = dict(branch=self._build_setup.deploy_branch)
+        if self._build.deploy_tag:
+            kwargs = dict(tag=self._build.deploy_tag)
+        elif self._build.deploy_branch:
+            kwargs = dict(branch=self._build.deploy_branch)
         else:
             kwargs = dict()
 
-        directory = self._build_setup.directory
+        directory = self._build.directory
         repo_url = CloudFunctions.build_repo_source(
             name=self.app.repository.name,
             directory=directory,
@@ -384,15 +384,15 @@ class CloudFunctionsFactory(BuildTriggerFactory):
 
         params = dict(
             REGION=self.app.region,
-            CPU=self._build_setup.cpu,
-            RAM=self._build_setup.memory,
-            MAX_INSTANCES=self._build_setup.max_instances,
-            TIMEOUT=self._build_setup.timeout,
+            CPU=self._build.cpu,
+            RAM=self._build.memory,
+            MAX_INSTANCES=self._build.max_instances,
+            TIMEOUT=self._build.timeout,
             SERVICE_ACCOUNT=self.app.service_account.email,
             PROJECT_ID=self.app.project.id,
             SERVICE_NAME=self.app.identifier,
             SOURCE=repo_url,
-            ENTRYPOINT=self._build_setup.entrypoint,
+            ENTRYPOINT=self._build.entrypoint,
         )
         if self.app.database:
             params[self.DB_CONN_KEY] = self.app.database.connection_name
@@ -405,7 +405,7 @@ class CloudFunctionsFactory(BuildTriggerFactory):
         for label in self.app.get_all_labels():
             label_params.extend(['--update-labels', label.as_kv])
 
-        auth_params = ['--allow-unauthenticated'] if self._build_setup.is_authenticated else []
+        auth_params = ['--allow-unauthenticated'] if self._build.is_authenticated else []
 
         deployer = self._service.make_build_step(
             identifier="Deploy",
@@ -444,4 +444,4 @@ def get_factory(app: App) -> Union[CloudRunFactory, CloudFunctionsFactory]:
         Target.CLOUD_RUN.value: CloudRunFactory,
         Target.CLOUD_FUNCTIONS.value: CloudFunctionsFactory,
     }
-    return factories[app.build_setup.build_pack.target](app=app)
+    return factories[app.build.build_pack.target](app=app)

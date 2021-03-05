@@ -6,8 +6,10 @@ from typing import List, TYPE_CHECKING
 
 from gcp_pilot.datastore import Document, EmbeddedDocument
 
+from services.notifiers import ChatNotifier
+
 if TYPE_CHECKING:
-    from models import App  # pylint: disable=ungrouped-imports
+    from models.app import App  # pylint: disable=ungrouped-imports
 
 
 @dataclass
@@ -33,6 +35,8 @@ class Event(EmbeddedDocument):
 
 @dataclass
 class Deployment(Document):
+    __namespace__ = 'v1'
+
     app_id: str
     build_id: str
     events: List[Event] = field(default_factory=list)
@@ -42,10 +46,7 @@ class Deployment(Document):
         self.save()
 
         if notify:
-            await self.app.environment.channel.notify(
-                deployment=self,
-                app=self.app,
-            )
+            await self.notify()
 
     @property
     def url(self):
@@ -53,7 +54,7 @@ class Deployment(Document):
 
     @property
     def app(self) -> App:
-        from models import App  # pylint: disable=import-outside-toplevel
+        from models.app import App  # pylint: disable=import-outside-toplevel
         return App.documents.get(id=self.app_id)
 
     @classmethod
@@ -63,3 +64,14 @@ class Deployment(Document):
             for event in deployment.events:
                 new_deployment.add_event(event=event, notify=False)
         return new_deployment
+
+    async def notify(self) -> None:
+        app = self.app
+        channel = app.environment.channel
+        if not channel:
+            return None
+
+        await ChatNotifier.notify(
+            app=app,
+            deployment=self,
+        )

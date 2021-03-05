@@ -11,7 +11,8 @@ from sanic.response import HTTPResponse, json
 from sanic.views import HTTPMethodView
 
 import exceptions
-import models
+from models.app import App
+from models.deployment import Deployment, Event, Source
 
 hooks = Blueprint('hooks', url_prefix='/hooks')
 
@@ -33,10 +34,10 @@ class CloudBuildHookView(HTTPMethodView):
             logger.warning(f"Ignoring build event from trigger {trigger_id}")
             return json({'status': 'done'}, 204)
 
-        event = models.Event(
+        event = Event(
             status=payload['status'],
             created_at=self._get_timestamp(payload=payload),
-            source=models.Source(
+            source=Source(
                 url=git_source['url'],
                 revision=git_source['revision'],
             )
@@ -67,25 +68,25 @@ class CloudBuildHookView(HTTPMethodView):
             except KeyError:
                 continue
 
-    def _get_app(self, trigger_id: str) -> models.App:
-        return models.App.documents.get(build_setup__trigger_id=trigger_id)
+    def _get_app(self, trigger_id: str) -> App:
+        return App.documents.get(build_setup__trigger_id=trigger_id)
 
-    async def _register_event(self, app_id: str, build_id: str, event: models.Event):
+    async def _register_event(self, app_id: str, build_id: str, event: Event):
         kwargs = dict(
             build_id=build_id,
             app_id=app_id
         )
         try:
-            deployment = models.Deployment.documents.get(**kwargs)
+            deployment = Deployment.documents.get(**kwargs)
         except DoesNotExist as e:
             if event.is_first:
                 raise exceptions.ValidationError(
                     message=f"Event {event.status} received before deployment register"
                 ) from e
-            deployment = models.Deployment(**kwargs).save()
+            deployment = Deployment(**kwargs).save()
         except MultipleObjectsFound:
             logger.warning(f"Merging duplicated deployments with build_id={build_id}")
-            deployment = models.Deployment.merge(**kwargs)
+            deployment = Deployment.merge(**kwargs)
         await deployment.add_event(event=event, notify=True)
 
 
