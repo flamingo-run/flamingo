@@ -51,7 +51,7 @@ class Build(EmbeddedDocument):
     @property
     def build_pack(self):
         if not self._build_pack:
-            self._build_pack = BuildPack.documents.get(id=self.build_pack_name)
+            self._build_pack = BuildPack.documents.get(name=self.build_pack_name)
         return self._build_pack
 
     def get_image_name(self, app: 'App') -> str:

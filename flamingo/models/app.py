@@ -63,7 +63,7 @@ class App(Document):
     @property
     def environment(self) -> Environment:
         if not self._environment:
-            self._environment = Environment.documents.get(id=self.environment_name)
+            self._environment = Environment.documents.get(name=self.environment_name)
         return self._environment
 
     @property
