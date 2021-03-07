@@ -12,7 +12,6 @@ class BuildPackListView(ListView):
 
     async def perform_create(self, data: PayloadType) -> BuildPack:
         obj = await super().perform_create(data=data)
-        await obj.init()
         return obj
 
 
