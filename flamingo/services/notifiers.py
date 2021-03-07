@@ -1,4 +1,4 @@
-from __future__ import annotations
+
 
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Dict
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 @dataclass
 class ChatNotifier:
     @classmethod
-    async def notify(cls, deployment: Deployment, app: App) -> Dict:
+    async def notify(cls, deployment: 'Deployment', app: 'App') -> Dict:
         channel = app.environment.channel
 
         chat = ChatsHook(hook_url=channel.webhook_url)
@@ -24,7 +24,7 @@ class ChatNotifier:
         return chat.send_card(card=card, thread_key=f'flamingo_{deployment.build_id}')
 
     @classmethod
-    def _build_message_card(cls, deployment: Deployment, app: App, channel: NotificationChannel) -> Card:
+    def _build_message_card(cls, deployment: 'Deployment', app: 'App', channel: 'NotificationChannel') -> Card:
         current_event = deployment.events[-1]
         try:
             previous_event = deployment.events[-2]

@@ -1,4 +1,3 @@
-from __future__ import annotations
 from dataclasses import dataclass
 
 from gcp_pilot.datastore import EmbeddedDocument
@@ -32,19 +31,19 @@ class Project(EmbeddedDocument):
         return ServiceAgent.get_email(service_name="Google Cloud Run", project_id=self.id)
 
     @classmethod
-    def default(cls) -> Project:
+    def default(cls) -> 'Project':
         return Project(
             id=settings.DEFAULT_PROJECT,
         )
 
     @classmethod
-    def default_for_network(cls) -> Project:
+    def default_for_network(cls) -> 'Project':
         return Project(
             id=settings.DEFAULT_PROJECT_NETWORK,
         )
 
     @classmethod
-    def default_for_flamingo(cls) -> Project:
+    def default_for_flamingo(cls) -> 'Project':
         return Project(
             id=settings.FLAMINGO_PROJECT,
         )

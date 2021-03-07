@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -63,7 +61,7 @@ class BuildPack(Document):
         )
         return gcs.get_uri(blob)
 
-    def get_build_args(self, app: App) -> KeyValue:
+    def get_build_args(self, app: 'App') -> KeyValue:
         all_build_args = {
             'RUNTIME': self.runtime,
             'APP_DIRECTORY': app.path,
@@ -72,7 +70,7 @@ class BuildPack(Document):
         all_build_args.update(self.build_args)
         return all_build_args
 
-    def get_extra_build_steps(self, app: App) -> List[str]:
+    def get_extra_build_steps(self, app: 'App') -> List[str]:
         custom_steps = self.post_build_commands.copy()
         custom_steps.extend(app.build.post_build_commands)
         return custom_steps

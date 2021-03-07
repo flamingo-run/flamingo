@@ -1,5 +1,5 @@
 # pylint: disable=too-many-lines
-from __future__ import annotations
+
 
 import logging
 from dataclasses import dataclass, field
@@ -173,7 +173,7 @@ class App(Document):
         return trigger_id
 
     @property
-    def factory(self) -> Union[CloudRunFactory, CloudFunctionsFactory]:
+    def factory(self) -> Union['CloudRunFactory', 'CloudFunctionsFactory']:
         from services.builders import get_factory  # pylint: disable=import-outside-toplevel
         return get_factory(app=self)
 

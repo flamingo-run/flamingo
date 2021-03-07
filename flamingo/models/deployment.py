@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, TYPE_CHECKING
@@ -53,12 +51,12 @@ class Deployment(Document):
         return f'https://console.cloud.google.com/cloud-build/builds;region=global/{self.build_id}'
 
     @property
-    def app(self) -> App:
+    def app(self) -> 'App':
         from models.app import App  # pylint: disable=import-outside-toplevel
         return App.documents.get(id=self.app_id)
 
     @classmethod
-    def merge(cls, app_id: str, build_id: str) -> Deployment:
+    def merge(cls, app_id: str, build_id: str) -> 'Deployment':
         new_deployment = cls(app_id=app_id, build_id=build_id)
         for deployment in cls.documents.filter(build_id=build_id):
             for event in deployment.events:
