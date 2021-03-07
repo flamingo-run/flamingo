@@ -195,7 +195,7 @@ class CloudRunFactory(BuildTriggerFactory):
             CONCURRENCY=self._build.concurrency,
             SERVICE_ACCOUNT=self.app.service_account.email,
             PROJECT_ID=self.app.project.id,
-            SERVICE_NAME=self.app.identifier,
+            SERVICE_NAME=self.app.name,
         )
         if self._build_pack.dockerfile_url:
             params[self.DOCKERFILE_KEY] = self._build_pack.dockerfile_url
