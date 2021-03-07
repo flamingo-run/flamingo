@@ -88,7 +88,7 @@ dev = ["tox", "bump2version (<1)", "sphinx (<2)", "importlib-metadata (<3)", "im
 
 [[package]]
 name = "gcp-pilot"
-version = "0.20.0"
+version = "0.20.2"
 description = "Google Cloud Platform Friendly Pilot"
 category = "main"
 optional = false
@@ -701,16 +701,19 @@ test = ["coverage (==4.5.3)", "pytest (==4.6.2)", "pytest-cov (==2.7.1)", "pytes
 
 [[package]]
 name = "sanic-rest"
-version = "1.0.0"
+version = "1.1.0"
 description = "Sanic Rest Framework with Google Cloud Datastore"
 category = "main"
 optional = false
 python-versions = ">=3.8,<3.10"
 
 [package.dependencies]
-gcp-pilot = {version = "*", extras = ["datastore"]}
+gcp-pilot = {version = "*", extras = ["datastore", "storage"]}
 sanic = "*"
 sanic-openapi = "*"
+
+[package.extras]
+auth = ["sanic-jwt", "passlib", "argon2-cffi"]
 
 [[package]]
 name = "six"
@@ -948,8 +951,8 @@ deprecated = [
     {file = "Deprecated-1.2.11.tar.gz", hash = "sha256:471ec32b2755172046e28102cd46c481f21c6036a0ec027521eba8521aa4ef35"},
 ]
 gcp-pilot = [
-    {file = "gcp-pilot-0.20.0.tar.gz", hash = "sha256:50dd3c5719186fef16cd8aa4a105c4b14567cf0a47f27b4e5ec04a258639562d"},
-    {file = "gcp_pilot-0.20.0-py3-none-any.whl", hash = "sha256:78e17627655e4709a5d9a91eb2dbe8d1d45d0553cca0189a0dcfefc6ae49677b"},
+    {file = "gcp-pilot-0.20.2.tar.gz", hash = "sha256:169e4e345e89d28a1ccd9fe731f02db29c55533fae9fadde6d42cd6d018d2b42"},
+    {file = "gcp_pilot-0.20.2-py3-none-any.whl", hash = "sha256:0e381cd15e2a9887f6a558579aef099b1aa5e767736caa6807e3587dfa1f1345"},
 ]
 google-api-core = [
     {file = "google-api-core-1.26.1.tar.gz", hash = "sha256:23b0df512c4cc8729793f8992edb350e3211f5fd0ec007afb1599864b421beef"},
@@ -1326,8 +1329,8 @@ sanic-openapi = [
     {file = "sanic-openapi-0.6.2.tar.gz", hash = "sha256:0ddd11983443d4136ef3e93146cbf89a7196533eb198d72f7489b840cf4016c4"},
 ]
 sanic-rest = [
-    {file = "sanic-rest-1.0.0.tar.gz", hash = "sha256:4adaf5f974790e55c7bbda23d041e1fb973e5dfa1f4e172dfe21ed44a5a568ca"},
-    {file = "sanic_rest-1.0.0-py3-none-any.whl", hash = "sha256:f94301b41f3860cc2a259683526ea3c601c0c048e293554baaa18db1c663b25a"},
+    {file = "sanic-rest-1.1.0.tar.gz", hash = "sha256:c2d468d5bd2d80b6d5d936932a85460caee9be0eddac78beab4639a21ee54b8a"},
+    {file = "sanic_rest-1.1.0-py3-none-any.whl", hash = "sha256:213246f55abcc1751fbb3d1119ba3400e5ed3ef916e4f3062a654344c8146957"},
 ]
 six = [
     {file = "six-1.15.0-py2.py3-none-any.whl", hash = "sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced"},
