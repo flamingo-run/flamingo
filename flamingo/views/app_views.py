@@ -9,7 +9,7 @@ from models.database import Database
 from models.env_var import EnvVar
 from services.bootstrap import AppBootstrap
 from services.foundations import AppFoundation
-from views.base import ActionView, DetailView, ListView, ResponseType
+from sanic_rest.views import ActionView, DetailView, ListView, ResponseType
 
 apps = Blueprint('apps', url_prefix='/apps')
 

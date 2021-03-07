@@ -1,10 +1,10 @@
 from sanic import Blueprint
 from sanic.request import Request
+from sanic_rest import exceptions
 
-import exceptions
 from models.environment import Environment
 from services.foundations import EnvironmentFoundation
-from views.base import DetailView, ListView, ActionView, ResponseType
+from sanic_rest.views import DetailView, ListView, ActionView, ResponseType
 
 environments = Blueprint('environments', url_prefix='/environments')
 

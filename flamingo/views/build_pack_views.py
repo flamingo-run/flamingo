@@ -2,7 +2,7 @@ from sanic import Blueprint
 from sanic.request import File
 
 from models.buildpack import BuildPack
-from views.base import DetailView, ListView, PayloadType
+from sanic_rest.views import DetailView, ListView, PayloadType
 
 build_packs = Blueprint('build-packs', url_prefix='/build-packs')
 

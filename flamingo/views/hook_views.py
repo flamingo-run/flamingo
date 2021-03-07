@@ -9,8 +9,8 @@ from sanic import Blueprint
 from sanic.request import Request
 from sanic.response import HTTPResponse, json
 from sanic.views import HTTPMethodView
+from sanic_rest import exceptions
 
-import exceptions
 from models.app import App
 from models.deployment import Deployment, Event, Source
 

@@ -700,6 +700,19 @@ doc = ["recommonmark (==0.5.0)", "sphinx (==2.1.2)", "sphinx-rtd-theme (==0.4.3)
 test = ["coverage (==4.5.3)", "pytest (==4.6.2)", "pytest-cov (==2.7.1)", "pytest-html (==1.20.0)", "pytest-runner (==5.1)", "tox (==3.12.1)"]
 
 [[package]]
+name = "sanic-rest"
+version = "1.0.0"
+description = "Sanic Rest Framework with Google Cloud Datastore"
+category = "main"
+optional = false
+python-versions = ">=3.8,<3.10"
+
+[package.dependencies]
+gcp-pilot = {version = "*", extras = ["datastore"]}
+sanic = "*"
+sanic-openapi = "*"
+
+[[package]]
 name = "six"
 version = "1.15.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -809,8 +822,8 @@ dev-kit = ["pylint", "coverage"]
 
 [metadata]
 lock-version = "1.1"
-python-versions = ">=3.9,<3.10"
-content-hash = "00ef415fb0a96071e9215b42908d174df4d1a42a02994970e0101152126c4e73"
+python-versions = "~3.9"
+content-hash = "74addc51713a8f8d8aa9b8d5c4defcf8e810b75a2ef4ead0c36a2067e7800424"
 
 [metadata.files]
 aiofiles = [
@@ -1311,6 +1324,10 @@ sanic = [
 ]
 sanic-openapi = [
     {file = "sanic-openapi-0.6.2.tar.gz", hash = "sha256:0ddd11983443d4136ef3e93146cbf89a7196533eb198d72f7489b840cf4016c4"},
+]
+sanic-rest = [
+    {file = "sanic-rest-1.0.0.tar.gz", hash = "sha256:4adaf5f974790e55c7bbda23d041e1fb973e5dfa1f4e172dfe21ed44a5a568ca"},
+    {file = "sanic_rest-1.0.0-py3-none-any.whl", hash = "sha256:f94301b41f3860cc2a259683526ea3c601c0c048e293554baaa18db1c663b25a"},
 ]
 six = [
     {file = "six-1.15.0-py2.py3-none-any.whl", hash = "sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced"},
