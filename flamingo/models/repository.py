@@ -3,8 +3,8 @@ from dataclasses import field, dataclass
 from gcp_pilot.build import AnyEventType, CloudBuild
 from gcp_pilot.datastore import EmbeddedDocument
 from github import Github
+from sanic_rest import exceptions
 
-import exceptions
 import settings
 from models.project import Project
 

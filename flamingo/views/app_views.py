@@ -2,8 +2,8 @@ from typing import List, Dict
 
 from sanic import Blueprint
 from sanic.request import Request
+from sanic_rest import exceptions
 
-import exceptions
 from models.app import App
 from models.database import Database
 from models.env_var import EnvVar
