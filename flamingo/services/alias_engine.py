@@ -1,10 +1,9 @@
 import logging
-from typing import Dict, Generator, Any, Tuple
+from typing import Generator, Any, Tuple
 
-import exceptions
+from sanic_rest.exceptions import ValidationError
 
-
-
+from models.base import KeyValue
 
 logger = logging.getLogger()
 
@@ -39,6 +38,6 @@ class AliasEngine:
         try:
             value = self._replacements[alias_to]
         except KeyError as e:
-            raise exceptions.ValidationError(f"Could not find the referenced env var for {virtual_value.as_kv}") from e
+            raise ValidationError(f"Could not find the referenced env var for {virtual_value.as_kv}") from e
 
         return value

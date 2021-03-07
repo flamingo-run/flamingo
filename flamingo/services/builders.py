@@ -132,7 +132,7 @@ class BuildTriggerFactory(ABC):
                 '--region', f"{self._substitution.REGION}",
                 *auth_params,
             ],
-            wait_for=[wait_for],
+            # wait_for=[wait_for],
         )
         self.steps.append(scheduler)
 
