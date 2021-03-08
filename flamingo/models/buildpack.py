@@ -61,11 +61,9 @@ class BuildPack(Document):
         )
         return gcs.get_uri(blob)
 
-    def get_build_args(self, app: 'App') -> KeyValue:
+    def get_build_args(self) -> KeyValue:
         all_build_args = {
             'RUNTIME': self.runtime,
-            'APP_DIRECTORY': app.path,
-            'ENVIRONMENT': app.environment_name,
         }
         all_build_args.update(self.build_args)
         return all_build_args

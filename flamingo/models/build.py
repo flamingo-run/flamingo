@@ -5,6 +5,7 @@ from gcp_pilot.datastore import EmbeddedDocument
 from sanic_rest import exceptions
 
 import settings
+from models.base import KeyValue
 from models.buildpack import BuildPack
 from models.label import Label
 from models.project import Project
@@ -72,3 +73,10 @@ class Build(EmbeddedDocument):
         return self.build_pack.tags + [
             f'{app.name}',
         ]
+
+    def get_build_args(self) -> KeyValue:
+        all_build_args = self.build_pack.get_build_args()
+        all_build_args.update({
+            'OS_DEPENDENCIES': self.os_dependencies,
+        })
+        return all_build_args

@@ -60,7 +60,7 @@ class BuildTriggerFactory(ABC):
 
     def _get_env_and_build_args(self) -> Tuple[KeyValue, KeyValue]:
         all_env_vars = {var.key: var.value for var in self.app.get_all_env_vars()}
-        all_build_args = self._build.build_pack.get_build_args(app=self.app)
+        all_build_args = self.app.get_all_build_args()
 
         replacements = dict()
         replacements.update(self._setup_params)

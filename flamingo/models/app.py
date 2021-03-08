@@ -6,7 +6,7 @@ from typing import List, Union, TYPE_CHECKING
 from gcp_pilot.datastore import Document
 from slugify import slugify
 
-from models.base import random_password
+from models.base import random_password, KeyValue
 from models.bucket import Bucket
 from models.build import Build
 from models.database import Database
@@ -115,6 +115,14 @@ class App(Document):
             Label(key='service', value=self.name),
         ])
         return all_labels
+
+    def get_all_build_args(self) -> KeyValue:
+        return {
+            'APP_NAME': self.name,
+            'ENV': self.environment_name,
+            'APP_DIRECTORY': self.path,
+            **self.build.get_build_args()
+        }
 
     def get_url(self) -> str:
         if not self.endpoint:
