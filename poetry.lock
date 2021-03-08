@@ -701,7 +701,7 @@ test = ["coverage (==4.5.3)", "pytest (==4.6.2)", "pytest-cov (==2.7.1)", "pytes
 
 [[package]]
 name = "sanic-rest"
-version = "1.1.1"
+version = "1.1.2"
 description = "Sanic Rest Framework with Google Cloud Datastore"
 category = "main"
 optional = false
@@ -1329,8 +1329,8 @@ sanic-openapi = [
     {file = "sanic-openapi-0.6.2.tar.gz", hash = "sha256:0ddd11983443d4136ef3e93146cbf89a7196533eb198d72f7489b840cf4016c4"},
 ]
 sanic-rest = [
-    {file = "sanic-rest-1.1.1.tar.gz", hash = "sha256:5c1da7a069bcd2ddd6347178f64b0b9f8cb55beb97f95c2550eda83da3a3dc81"},
-    {file = "sanic_rest-1.1.1-py3-none-any.whl", hash = "sha256:b1d26b6643b34c0d1eab20d08c542ca088e006ff4ab3fd92ccef77015838d2b5"},
+    {file = "sanic-rest-1.1.2.tar.gz", hash = "sha256:7b80f9b2183c6438eaf1e2e0d06c5b1a93256f0f95c694e2a9f6eaa4924c1c4d"},
+    {file = "sanic_rest-1.1.2-py3-none-any.whl", hash = "sha256:c0d36424e13914a5483e19b50cb246e2113d97e2ec2eb9cda76c1b2ca4206bb0"},
 ]
 six = [
     {file = "six-1.15.0-py2.py3-none-any.whl", hash = "sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced"},
