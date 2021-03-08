@@ -17,8 +17,11 @@ class AliasEngine:
 
         self.extend(items)
 
+    def is_virtual(self, value):
+        return False  # TODO We need an use case for this, the syntax must not be defined too
+
     def append(self, key: str, value: Any) -> None:
-        container = self._virtual if '$' in str(value) else self._concrete
+        container = self._virtual if self.is_virtual(value) else self._concrete
         if key in container and value != container[key]:
             logger.warning(f"Duplicate key {key}")
         container[key] = value
