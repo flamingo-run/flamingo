@@ -344,7 +344,7 @@ class CloudRunFactory(BuildTriggerFactory):
     def _create_placeholder(self):
         run = CloudRun()
         service_params = dict(
-            service_name=self.app.identifier,
+            service_name=self.app.name,
             location=self.app.region,
             project_id=self.app.project.id,
         )
