@@ -28,6 +28,8 @@ steps:
       - 'FLAMINGO_URL=${_URL}'
       - '--set-env-vars'
       - 'GIT_ACCESS_TOKEN=${_GIT_ACCESS_TOKEN}'
+      - '--set-env-vars'
+      - 'DEFAULT_ROLE=${_DEFAULT_ROLE}'
       - '--region=$_DEPLOY_REGION'
       - '--memory=${_MEMORY}Mi'
       - '--quiet'
