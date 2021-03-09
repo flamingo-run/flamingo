@@ -77,6 +77,6 @@ class Build(EmbeddedDocument):
     def get_build_args(self) -> KeyValue:
         all_build_args = self.build_pack.get_build_args()
         all_build_args.update({
-            'OS_DEPENDENCIES': self.os_dependencies,
+            'OS_DEPENDENCIES': ','.join(self.os_dependencies),
         })
         return all_build_args
