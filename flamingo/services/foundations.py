@@ -5,8 +5,11 @@ from dataclasses import dataclass
 from typing import Dict, Callable
 
 from gcp_pilot.build import CloudBuild
+from gcp_pilot.dns import CloudDNS, RecordType
+from gcp_pilot.exceptions import NotFound
 from gcp_pilot.iam import IdentityAccessManager
 from gcp_pilot.resource import ResourceManager
+from gcp_pilot.run import CloudRun
 from gcp_pilot.sql import CloudSQL
 from gcp_pilot.storage import CloudStorage
 
@@ -75,6 +78,7 @@ class AppFoundation(BaseFoundation):
             'bucket': self.setup_bucket,
             'placeholder': self.setup_placeholder,
             'database': self.setup_database,
+            'custom_domains': self.setup_custom_domains,
         }
 
     async def setup_placeholder(self):
@@ -173,3 +177,46 @@ class AppFoundation(BaseFoundation):
             role='iam.serviceAccountTokenCreator',
             project_id=self.app.project.id,
         )
+
+    async def setup_custom_domains(self):
+        run = CloudRun()
+
+        def _is_ready(domain_mapping):
+            conditions = domain_mapping['status'].get('conditions', [])
+            for condition in conditions:
+                if condition['type'] != 'Ready':
+                    continue
+                status = condition['status']
+                if status == 'True':
+                    return True
+                elif 'does not exist' in condition.get('message', ''):
+                    raise NotFound(condition['message'])
+                return True
+            return False
+
+        for domain in self.app.domains:
+            mapped_domain = run.create_domain_mapping(
+                domain=domain,
+                service_name=self.app.name,
+                project_id=self.app.project.id,
+                location=self.app.region,
+            )
+
+            while not _is_ready(domain_mapping=mapped_domain):
+                mapped_domain = run.get_domain_mapping(
+                    domain=domain,
+                    project_id=self.app.project.id,
+                    location=self.app.region,
+                )
+
+            network = self.app.environment.network
+            dns = CloudDNS(project_id=network.project.id)
+
+            for record in mapped_domain['status']['resourceRecords']:
+                dns.add_record(
+                    zone_name=network.zone_name,
+                    zone_dns=network.zone,
+                    name=network.get_record_name(domain=record['name']),
+                    record_type=RecordType.CNAME if record['type'] == 'CNAME' else RecordType.A,
+                    record_data=[record['rrdata']],
+                )
