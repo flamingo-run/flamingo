@@ -6,6 +6,7 @@ from typing import List, ClassVar, Tuple, Union
 from gcp_pilot.build import CloudBuild, Substitutions
 from gcp_pilot.exceptions import NotFound
 from gcp_pilot.run import CloudRun
+from gcp_pilot.dns import CloudDNS, RecordType
 from google.cloud.devtools import cloudbuild_v1
 
 import settings
@@ -174,6 +175,10 @@ class BuildTriggerFactory(ABC):
 
 @dataclass
 class CloudRunFactory(BuildTriggerFactory):
+    @property
+    def service_name(self):
+        return self.app.name
+
     def _add_steps(self) -> None:
         self._add_cache_step()
         self._add_dockerfile_step()
@@ -195,7 +200,7 @@ class CloudRunFactory(BuildTriggerFactory):
             CONCURRENCY=self._build.concurrency,
             SERVICE_ACCOUNT=self.app.service_account.email,
             PROJECT_ID=self.app.project.id,
-            SERVICE_NAME=self.app.name,
+            SERVICE_NAME=self.service_name,
         )
         if self._build_pack.dockerfile_url:
             params[self.DOCKERFILE_KEY] = self._build_pack.dockerfile_url
@@ -337,7 +342,7 @@ class CloudRunFactory(BuildTriggerFactory):
         run = CloudRun()
         try:
             service = run.get_service(
-                service_name=self.app.identifier,
+                service_name=self.service_name,
                 project_id=self.app.project.id,
                 location=self.app.region,
             )
@@ -350,7 +355,7 @@ class CloudRunFactory(BuildTriggerFactory):
     def _create_placeholder(self):
         run = CloudRun()
         service_params = dict(
-            service_name=self.app.name,
+            service_name=self.service_name,
             location=self.app.region,
             project_id=self.app.project.id,
         )
