@@ -9,3 +9,4 @@ from models.project import Project
 class Network(EmbeddedDocument):
     zone: str
     project: Project = field(default_factory=Project.default_for_network)
+    vpc_connector: str = None
