@@ -3,7 +3,7 @@ FROM python:$RUNTIME
 
 # Install OS dependencies
 RUN apt update -y
-RUN apt install -y git gcc python3-dev build-essential libffi-dev libssl-dev libtool automake
+RUN apt install -y git python3-dev build-essential libffi-dev libssl-dev libtool automake
 
 # Point to app folder
 ARG APP_HOME=/app
@@ -23,7 +23,6 @@ RUN poetry config virtualenvs.create false
 COPY pyproject.toml .
 COPY poetry.lock .
 COPY Makefile .
-RUN make setup
 RUN poetry install --no-dev --no-root
 
 # Copy local code to the container image.
