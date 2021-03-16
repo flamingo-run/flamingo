@@ -1,9 +1,9 @@
-ARG RUNTIME=3.9-slim
-FROM python:$RUNTIME
+ARG PYTHON_VERSION=3.9-slim
+FROM python:$PYTHON_VERSION
 
 # Install OS dependencies
 RUN apt update -y
-RUN apt install -y git python3-dev build-essential libffi-dev libssl-dev libtool automake
+RUN apt install -y git build-essential
 
 # Point to app folder
 ARG APP_HOME=/app
@@ -28,5 +28,6 @@ RUN poetry install --no-dev --no-root
 # Copy local code to the container image.
 COPY . .
 
-# Prepare image entry-point
-CMD exec make run-server
+# Prepare image entrypoint
+WORKDIR $APP_HOME/flamingo
+ENTRYPOINT python main.py
