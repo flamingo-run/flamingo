@@ -1,19 +1,13 @@
-ARG PYTHON_VERSION=3.9-slim
-FROM python:$PYTHON_VERSION
+ARG RUNTIME=3.9-slim
+FROM python:$RUNTIME
 
-RUN apt-get update -y
-RUN apt-get install -y gcc build-essential libtool automake
+# Install OS dependencies
+RUN apt update -y
+RUN apt install -y git gcc python3-dev build-essential libffi-dev libssl-dev libtool automake
 
 # Point to app folder
 ARG APP_HOME=/app
 WORKDIR $APP_HOME
-
-# Install dependencies
-RUN pip install -U pip poetry
-COPY pyproject.toml .
-COPY poetry.lock .
-RUN poetry export -f requirements.txt --output requirements.txt
-RUN pip install -r requirements.txt
 
 # Service must listen to $PORT environment variable.
 # This default value facilitates local development.
@@ -23,8 +17,17 @@ ENV PORT 8080
 # promptly appear in Cloud Logging.
 ENV PYTHONUNBUFFERED TRUE
 
-# Copy local code to the container image
+# Install dependencies
+RUN pip install -U pip poetry
+RUN poetry config virtualenvs.create false
+COPY pyproject.toml .
+COPY poetry.lock .
+COPY Makefile .
+RUN make setup
+RUN poetry install --no-dev --no-root
+
+# Copy local code to the container image.
 COPY . .
 
-# Image entrypoint
-CMD exec python ./flamingo/main.py
+# Prepare image entry-point
+CMD exec make run-server
