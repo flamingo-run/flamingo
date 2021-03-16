@@ -69,7 +69,7 @@ class CloudBuildHookView(HTTPMethodView):
                 continue
 
     def _get_app(self, trigger_id: str) -> App:
-        return App.documents.get(build_setup__trigger_id=trigger_id)
+        return App.documents.get(build__trigger_id=trigger_id)
 
     async def _register_event(self, app_id: str, build_id: str, event: Event):
         kwargs = dict(
