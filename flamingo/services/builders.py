@@ -291,10 +291,11 @@ class CloudRunFactory(BuildTriggerFactory):
         for label in self.app.get_all_labels():
             label_params.extend(['--update-labels', label.as_kv])
 
-        vpc_params = ['--clear-vpc-connector']
         vpc_connector = self.app.environment.network.vpc_connector
         if vpc_connector:
-            vpc_params.extend(['--vpc-connector', vpc_connector])
+            vpc_params = ['--vpc-connector', vpc_connector]
+        else:
+            vpc_params = ['--clear-vpc-connector']
 
         deployer = self._service.make_build_step(
             identifier="Deploy",
