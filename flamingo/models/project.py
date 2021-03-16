@@ -30,6 +30,10 @@ class Project(EmbeddedDocument):
     def cloud_run_account(self) -> str:
         return ServiceAgent.get_email(service_name="Google Cloud Run", project_id=self.id)
 
+    @property
+    def pubsub_account(self) -> str:
+        return ServiceAgent.get_email(service_name="Cloud Pub/Sub", project_id=self.id)
+
     @classmethod
     def default(cls) -> 'Project':
         return Project(

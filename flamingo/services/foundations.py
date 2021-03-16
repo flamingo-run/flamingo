@@ -54,6 +54,7 @@ class EnvironmentFoundation(BaseFoundation):
         # TODO Check flamingo permissions on project
         return {
             'notification': self.setup_build_notifications,
+            'pubsub': self.setup_authenticated_pubsub,
         }
 
     async def setup_build_notifications(self):
@@ -64,6 +65,14 @@ class EnvironmentFoundation(BaseFoundation):
             project_id=self.environment.project.id,
             push_to_url=url,
             use_oidc_auth=True,
+        )
+
+    async def setup_authenticated_pubsub(self):
+        grm = ResourceManager()
+        await grm.add_member(
+            email=self.environment.project.pubsub_account,
+            role='iam.serviceAccountTokenCreator',
+            project_id=self.environment.project.id,
         )
 
 
