@@ -20,7 +20,7 @@ class ChatNotifier:
         channel = app.environment.channel
 
         chat = ChatsHook(hook_url=channel.webhook_url)
-        card = cls._build_message_card(deployment=deployment, app=app)
+        card = cls._build_message_card(deployment=deployment, app=app, channel=channel)
         return chat.send_card(card=card, thread_key=f'flamingo_{deployment.build_id}')
 
     @classmethod
