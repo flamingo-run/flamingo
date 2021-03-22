@@ -155,10 +155,10 @@ class BuildTriggerFactory(ABC):
         description = self._get_description()
 
         response = await self._service.create_or_update_trigger(
-            name=self.app.identifier,
+            name=self.app.name,
             description=description,
             event=event,
-            project_id=settings.FLAMINGO_PROJECT,
+            project_id=self.app.build.project.id,
             steps=self.steps,
             images=[self._build.get_image_name(app=self.app)],
             tags=self._build.get_tags(app=self.app),

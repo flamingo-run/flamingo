@@ -20,7 +20,7 @@ class Build(EmbeddedDocument):
     post_build_commands: List[str] = field(default_factory=list)
     os_dependencies: List[str] = field(default_factory=list)
     labels: List[Label] = field(default_factory=list)
-    project: Project = field(default_factory=Project.default_for_flamingo)
+    project: Project = None
     memory: int = 256  # measured in MB
     cpu: int = 1  # number of cores
     min_instances: int = 0
@@ -56,7 +56,7 @@ class Build(EmbeddedDocument):
         return self._build_pack
 
     def get_image_name(self, app: 'App') -> str:
-        return f"gcr.io/{settings.FLAMINGO_PROJECT}/{app.identifier}:latest"
+        return f"gcr.io/{app.build.project.id}/{app.name}:latest"
 
     def get_labels(self) -> List[Label]:
         all_labels = self.labels.copy()

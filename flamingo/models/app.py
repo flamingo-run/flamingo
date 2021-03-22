@@ -50,6 +50,9 @@ class App(Document):
         if not self.region:
             self.region = self.project.region
 
+        if not self.build.project:
+            self.build.project = self.project
+
     def serialize(self) -> dict:
         data = super().serialize()
 
