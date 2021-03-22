@@ -64,9 +64,12 @@ class Build(EmbeddedDocument):
         # https://cloud.google.com/run/docs/continuous-deployment-with-cloud-build#attach_existing_trigger_to_service
         # Does not seem to work when the trigger and the service deployed are not in the same project
         if self.trigger_id:
-            all_labels.append(
-                Label(key='gcb-trigger-id', value=self.trigger_id)
-            )
+            all_labels.extend([
+                Label(key='gcb-trigger-id', value=self.trigger_id),
+                Label(key='commit-sha', value='$COMMIT_SHA'),
+                Label(key='gcb-build-id', value='$BUILD_ID'),
+                Label(key='managed-by', value='gcp-cloud-build-deploy-cloud-run'),
+            ])
         return all_labels
 
     def get_tags(self, app: 'App') -> List[str]:
