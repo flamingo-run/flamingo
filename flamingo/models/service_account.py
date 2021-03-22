@@ -17,3 +17,6 @@ class ServiceAccount(EmbeddedDocument):
     @property
     def email(self) -> str:
         return f'{self.name}@{self.project.id}.iam.gserviceaccount.com'
+
+    def get_all_roles(self):
+        return self.roles + ['run.admin']

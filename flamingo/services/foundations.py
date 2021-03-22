@@ -169,16 +169,28 @@ class AppFoundation(BaseFoundation):
             role='iam.serviceAccountUser',
             project_id=self.app.project.id,
         )
+        # ...and get buildpack's Dockerfile from Flamingo's project
+        await grm.add_member(
+            email=cloud_build_account,
+            role='storage.objectViewer',
+            project_id=settings.FLAMINGO_PROJECT,
+        )
+        # ...and store app's Dockerfile in build's project
+        await grm.add_member(
+            email=cloud_build_account,
+            role='storage.admin',
+            project_id=self.app.build.project.id,
+        )
 
         # When deploying from other projects (https://cloud.google.com/run/docs/deploying#other-projects)...
         # the CloudRun agent must have permission to...
         cloud_run_account = self.app.project.cloud_run_account
 
-        # ...pull container images from Flamingo's project
+        # ...pull container images from build's project
         await grm.add_member(
             email=cloud_run_account,
             role='containerregistry.ServiceAgent',
-            project_id=settings.FLAMINGO_PROJECT,
+            project_id=self.app.build.project.id,
         )
         # ... deploy as the app's service account
         await grm.add_member(
