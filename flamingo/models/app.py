@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 from typing import List, Union, TYPE_CHECKING
 
 from gcp_pilot.datastore import Document
+from google.api_core.exceptions import FailedPrecondition
+from sanic_rest import exceptions
 from slugify import slugify
 
 from models.base import random_password, KeyValue
@@ -166,7 +168,10 @@ class App(Document):
         self.vars.append(env)
 
     async def apply(self):
-        trigger_id = await self.factory.build()
+        try:
+            trigger_id = await self.factory.build()
+        except FailedPrecondition as e:
+            raise exceptions.ValidationError(str(e))
 
         build = self.build
 
