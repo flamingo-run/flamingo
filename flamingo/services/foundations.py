@@ -58,6 +58,7 @@ class EnvironmentFoundation(BaseFoundation):
         }
 
     async def setup_build_notifications(self):
+        # FIXME: does not seem to work on other projects than flamingo
         build = CloudBuild()
         url = f'{settings.FLAMINGO_URL}/hooks/build'
         await build.subscribe(

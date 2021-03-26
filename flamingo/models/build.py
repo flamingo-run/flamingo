@@ -4,7 +4,6 @@ from typing import List
 from gcp_pilot.datastore import EmbeddedDocument
 from sanic_rest import exceptions
 
-import settings
 from models.base import KeyValue
 from models.buildpack import BuildPack
 from models.label import Label
