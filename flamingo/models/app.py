@@ -3,7 +3,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import List, Union, TYPE_CHECKING
 
-from gcp_pilot.datastore import Document
+from gcp_pilot.datastore import Document, DoesNotExist
 from google.api_core.exceptions import FailedPrecondition
 from sanic_rest import exceptions
 from slugify import slugify
@@ -41,6 +41,7 @@ class App(Document):
     region: str = None
     service_account: ServiceAccount = None
     endpoint: str = None
+    integrated_apps: List[str] = field(default_factory=list)
 
     _environment: Environment = None
 
@@ -108,6 +109,17 @@ class App(Document):
         all_vars.extend([
             EnvVar(key='GCP_APP_ENDPOINT', value=endpoint, is_secret=False, source=by_flamingo),
         ])
+
+        for integrated_app in self.integrated_apps:
+            try:
+                app = App.documents.get(name=integrated_app, environment_name=self.environment_name)
+                var_name = f"{app.name.replace('-', '_').upper()}_URL"
+                all_vars.extend([
+                    EnvVar(key=var_name, value=app.endpoint, is_secret=False, source=by_flamingo),
+                ])
+            except DoesNotExist:
+                logger.warning(f"Integrated app {integrated_app} not found in {self.environment_name}")
+                continue
 
         all_vars.extend(self.environment.get_all_env_vars())
         all_vars.extend(self.build.build_pack.get_all_env_vars())
