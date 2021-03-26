@@ -6,15 +6,13 @@ from typing import List, ClassVar, Tuple, Union
 from gcp_pilot.build import CloudBuild, Substitutions
 from gcp_pilot.exceptions import NotFound
 from gcp_pilot.run import CloudRun
-from gcp_pilot.dns import CloudDNS, RecordType
 from google.cloud.devtools import cloudbuild_v1
 
-import settings
 from models.app import App
 from models.base import KeyValue
 from models.buildpack import Target
 from models.schedule import ScheduledInvocation
-from services.alias_engine import AliasEngine
+from services.alias_engine import AliasEngine, ReplacementEngine
 
 logger = logging.getLogger()
 
@@ -63,10 +61,10 @@ class BuildTriggerFactory(ABC):
         all_env_vars = {var.key: var.value for var in self.app.get_all_env_vars()}
         all_build_args = self.app.get_all_build_args()
 
-        replacements = dict()
-        replacements.update(self._setup_params)
-        replacements.update(all_env_vars)
-        replacements.update(all_build_args)
+        replacements = ReplacementEngine()
+        replacements.add(items=self._setup_params)
+        replacements.add(items=all_env_vars)
+        replacements.add(items=all_build_args)
 
         env_var_engine = AliasEngine(
             items=all_env_vars,
