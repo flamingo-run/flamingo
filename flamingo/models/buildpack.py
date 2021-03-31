@@ -1,10 +1,12 @@
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import List, TYPE_CHECKING
 
 from gcp_pilot.datastore import Document
 from gcp_pilot.storage import CloudStorage
+from google.api_core.exceptions import NotFound
 from slugify import slugify
 
 import settings
@@ -49,10 +51,23 @@ class BuildPack(Document):
         return settings.PROJECT_DIR / 'engine' / self.name / 'Dockerfile'
 
     async def upload_dockerfile(self):
+        target_file_name = f'buildpack/{self.name}/Dockerfile'
+
         gcs = CloudStorage()
 
+        # versioning
+        try:
+            timestamp = int(datetime.now().timestamp())
+            await gcs.copy(
+                source_file_name=target_file_name,
+                target_file_name=f"{target_file_name}.{timestamp}",
+                source_bucket_name=settings.FLAMINGO_GCS_BUCKET,
+                target_bucket_name=settings.FLAMINGO_GCS_BUCKET,
+            )
+        except NotFound:
+            pass
+
         # TODO: invalidate GCS file cache?
-        target_file_name = f'buildpack/{self.name}/Dockerfile'
         blob = await gcs.upload(
             bucket_name=settings.FLAMINGO_GCS_BUCKET,
             source_file=str(self.local_dockerfile),
