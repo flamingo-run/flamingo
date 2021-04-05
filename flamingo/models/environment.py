@@ -24,7 +24,12 @@ class Environment(Document):
         self.name = slugify(self.name)
 
     def get_all_env_vars(self) -> List[EnvVar]:
-        all_vars = self.vars.copy()
+        all_vars = []
+
+        for var in self.vars.copy():
+            var.source = EnvVarSource.SHARED.value
+            all_vars.append(var)
+
         all_vars.extend([
             EnvVar(key='ENV', value=self.name, source=EnvVarSource.FLAMINGO)
         ])

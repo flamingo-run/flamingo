@@ -11,7 +11,7 @@ from slugify import slugify
 
 import settings
 from models.base import KeyValue
-from models.env_var import EnvVar
+from models.env_var import EnvVar, EnvVarSource
 
 if TYPE_CHECKING:
     from models.app import App
@@ -90,5 +90,10 @@ class BuildPack(Document):
 
     def get_all_env_vars(self):
         # Here's the opportunity to inject dynamic env vars from the app's BuildPack
-        all_vars = self.env_vars.copy()
+        all_vars = []
+
+        for var in self.env_vars.copy():
+            var.source = EnvVarSource.SHARED.value
+            all_vars.append(var)
+
         return all_vars

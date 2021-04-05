@@ -9,6 +9,7 @@ REDACTED = '**********'
 
 class EnvVarSource(Enum):
     USER = 'user'
+    SHARED = 'shared'
     FLAMINGO = 'flamingo'
 
 
@@ -25,4 +26,4 @@ class EnvVar(KeyValueEmbeddedDocument):
 
     @property
     def is_implicit(self):
-        return self.source != EnvVarSource.USER
+        return self.source == EnvVarSource.FLAMINGO
