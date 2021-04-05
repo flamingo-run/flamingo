@@ -24,5 +24,8 @@ class KeyValueEmbeddedDocument(EmbeddedDocument):
     def as_kv(self):
         return f'{self.key}={self.value}'
 
+    def __str__(self):
+        return self.as_kv
+
 
 KeyValue = Dict[str, Any]

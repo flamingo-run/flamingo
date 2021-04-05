@@ -32,7 +32,7 @@ class ReplacementEngine:
         try:
             replace_with = self.replacements[alias_to]
         except KeyError as e:
-            raise ValidationError(f"Could not find the referenced env var for {virtual_value.as_kv}") from e
+            raise ValidationError(f"Could not find the referenced value for {alias_to}") from e
 
         return re.sub(ALIAS_REGEX, replace_with, virtual_value)
 
