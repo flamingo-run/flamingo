@@ -1,30 +1,29 @@
 
 
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, Dict
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Dict, List
 
 from gcp_pilot.chats import ChatsHook, Card, Section
 
 import settings
+from services.new_relic import NewRelicAPI
 
 if TYPE_CHECKING:
     from models.app import App
     from models.deployment import Deployment
-    from models.notification_channel import NotificationChannel
 
 
 @dataclass
 class ChatNotifier:
-    @classmethod
-    async def notify(cls, deployment: 'Deployment', app: 'App') -> Dict:
-        channel = app.environment.channel
+    webhook_url: str
+    show_commit_for: List[str] = field(default_factory=lambda: ['SUCCESS'])
 
-        chat = ChatsHook(hook_url=channel.webhook_url)
-        card = cls._build_message_card(deployment=deployment, app=app, channel=channel)
+    async def notify(self, deployment: 'Deployment', app: 'App') -> Dict:
+        chat = ChatsHook(hook_url=self.webhook_url)
+        card = self._build_message_card(deployment=deployment, app=app)
         return chat.send_card(card=card, thread_key=f'flamingo_{deployment.build_id}')
 
-    @classmethod
-    def _build_message_card(cls, deployment: 'Deployment', app: 'App', channel: 'NotificationChannel') -> Card:
+    def _build_message_card(self, deployment: 'Deployment', app: 'App') -> Card:
         current_event = deployment.events[-1]
         try:
             previous_event = deployment.events[-2]
@@ -36,7 +35,7 @@ class ChatNotifier:
         card = Card()
         card.add_header(
             title=f'{app.name}',
-            subtitle=f'{cls._get_action(status=status)} <b>{app.environment_name.upper()}</b>'
+            subtitle=f'{self._get_action(status=status)} <b>{app.environment_name.upper()}</b>'
         )
 
         section = Section()
@@ -57,7 +56,7 @@ class ChatNotifier:
                 content=str(duration),
             )
 
-        if previous_event and status in channel.show_commit_for:
+        if previous_event and status in self.show_commit_for:
             commits = app.repository.get_commit_diff(
                 current_revision=current_event.source.revision,
                 previous_revision=previous_event.source.revision,
@@ -98,3 +97,16 @@ class ChatNotifier:
         # https://cloud.google.com/cloud-build/docs/api/reference/rest/v1/projects.builds#status
         icon_name = f'deploy_{status.lower()}.png'
         return f'https://storage.googleapis.com/{settings.FLAMINGO_GCS_BUCKET}/media/{icon_name}'
+
+
+@dataclass
+class NewRelicNotifier:
+    api_key: str
+
+    async def notify(self, deployment: 'Deployment', app: 'App') -> Dict:
+        api = NewRelicAPI(api_key=self.api_key)
+        api.notify_deployment(
+            app_name=app.identifier,
+            revision=deployment.build_id,
+            # user=''  # TODO get user
+        )

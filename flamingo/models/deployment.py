@@ -4,7 +4,6 @@ from typing import List, TYPE_CHECKING
 
 from gcp_pilot.datastore import Document, EmbeddedDocument
 
-from services.notifiers import ChatNotifier
 
 if TYPE_CHECKING:
     from models.app import App  # pylint: disable=ungrouped-imports
@@ -65,11 +64,10 @@ class Deployment(Document):
 
     async def notify(self) -> None:
         app = self.app
-        channel = app.environment.channel
-        if not channel:
-            return None
 
-        await ChatNotifier.notify(
-            app=app,
-            deployment=self,
-        )
+        for channel in app.environment.notification_channels:
+            engine = channel.build_engine()
+            await engine.notify(
+                app=app,
+                deployment=self,
+            )

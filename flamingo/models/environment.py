@@ -17,7 +17,7 @@ class Environment(Document):
     name: str
     network: Network = None
     project: Project = field(default_factory=Project.default)
-    channel: NotificationChannel = None
+    notification_channels: List[NotificationChannel] = field(default_factory=list)
     vars: List[EnvVar] = field(default_factory=list)
 
     def __post_init__(self):
