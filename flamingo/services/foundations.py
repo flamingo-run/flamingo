@@ -59,6 +59,13 @@ class EnvironmentFoundation(BaseFoundation):
 
     async def setup_build_notifications(self):
         # FIXME: does not seem to work on other projects than flamingo
+        grm = ResourceManager()
+        await grm.add_member(
+            email=self.environment.project.pubsub_account,
+            role='iam.serviceAccountTokenCreator',
+            project_id=settings.FLAMINGO_PROJECT,
+        )
+
         build = CloudBuild()
         url = f'{settings.FLAMINGO_URL}/hooks/build'
         await build.subscribe(
