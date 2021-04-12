@@ -64,6 +64,9 @@ class App(Document):
 
         return data
 
+    def __str__(self):
+        return self.identifier
+
     @property
     def environment(self) -> Environment:
         if not self._environment:
