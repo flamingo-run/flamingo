@@ -120,7 +120,7 @@ class BuildTriggerFactory(ABC):
 
         scheduler = self._service.make_build_step(
             identifier=f"Schedule {scheduled_invocation.name}",
-            name="gcr.io/google.com/cloudsdktool/cloud-sdk",
+            name="gcr.io/google.com/cloudsdktool/cloud-sdk:slim",
             entrypoint='gcloud',
             args=[
                 "beta", "scheduler", "jobs", "create", "http", "deploy", f"{schedule_name}",
@@ -221,7 +221,7 @@ class CloudRunFactory(BuildTriggerFactory):
             sub_variable = getattr(self._substitution, self.DOCKERFILE_KEY)
 
             build_pack_sync = self._service.make_build_step(
-                name='gcr.io/google.com/cloudsdktool/cloud-sdk',
+                name='gcr.io/google.com/cloudsdktool/cloud-sdk:slim',
                 identifier="Build Pack Download",
                 args=['gsutil', 'cp', str(sub_variable), 'Dockerfile'],
             )
@@ -297,7 +297,7 @@ class CloudRunFactory(BuildTriggerFactory):
 
         deployer = self._service.make_build_step(
             identifier="Deploy",
-            name="gcr.io/google.com/cloudsdktool/cloud-sdk",
+            name="gcr.io/google.com/cloudsdktool/cloud-sdk:slim",
             entrypoint='gcloud',
             args=[
                 "run", "services", "update", f"{self._substitution.SERVICE_NAME}",
@@ -325,7 +325,7 @@ class CloudRunFactory(BuildTriggerFactory):
         # If roll-backed, just a deploy is not enough to redirect traffic to a new revision
         traffic = self._service.make_build_step(
             identifier="Redirect Traffic",
-            name="gcr.io/google.com/cloudsdktool/cloud-sdk",
+            name="gcr.io/google.com/cloudsdktool/cloud-sdk:slim",
             entrypoint='gcloud',
             args=[
                 "run", "services", "update-traffic", f"{self._substitution.SERVICE_NAME}",
@@ -419,7 +419,7 @@ class CloudFunctionsFactory(BuildTriggerFactory):
 
         deployer = self._service.make_build_step(
             identifier="Deploy",
-            name="gcr.io/google.com/cloudsdktool/cloud-sdk",
+            name="gcr.io/google.com/cloudsdktool/cloud-sdk:slim",
             entrypoint='gcloud',
             args=[
                 "functions", "deploy", f"{self._substitution.SERVICE_NAME}",
