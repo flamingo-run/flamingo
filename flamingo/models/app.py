@@ -141,7 +141,7 @@ class App(Document):
             'APP_NAME': self.name,
             'ENV': self.environment_name,
             'APP_DIRECTORY': self.path,
-            **self.build.get_build_args()
+            **self.build.get_build_args(),
         }
 
     def get_url(self) -> str:

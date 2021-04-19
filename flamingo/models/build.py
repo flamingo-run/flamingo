@@ -17,6 +17,7 @@ class Build(EmbeddedDocument):
     deploy_branch: str = None
     deploy_tag: str = None
     post_build_commands: List[str] = field(default_factory=list)
+    build_args: KeyValue = field(default_factory=dict)
     os_dependencies: List[str] = field(default_factory=list)
     labels: List[Label] = field(default_factory=list)
     project: Project = None
@@ -81,4 +82,5 @@ class Build(EmbeddedDocument):
         all_build_args.update({
             'OS_DEPENDENCIES': ','.join(self.os_dependencies),
         })
+        all_build_args.update(**self.build_args)
         return all_build_args
