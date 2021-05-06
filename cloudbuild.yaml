@@ -53,8 +53,6 @@ options:
 substitutions:
   _GCR_HOSTNAME: us.gcr.io
   _PLATFORM: managed
-  _LABELS: gcb-trigger-id=608bb523-1a82-4f98-bf53-60d1820500b1
-  _TRIGGER_ID: 608bb523-1a82-4f98-bf53-60d1820500b1
   _SERVICE_NAME: flamingo
   _DEPLOY_REGION: us-east1
   _MEMORY: '256'
