@@ -15,6 +15,7 @@ from gcp_pilot.storage import CloudStorage
 
 import settings
 from models.app import App
+from models.buildpack import Target
 from models.environment import Environment
 
 
@@ -54,8 +55,19 @@ class EnvironmentFoundation(BaseFoundation):
         # TODO Check flamingo permissions on project
         return {
             'notification': self.setup_build_notifications,
-            'pubsub': self.setup_authenticated_pubsub,
+            'iam': self.setup_iam,
         }
+
+    async def setup_devops(self):
+        iam = IdentityAccessManager()
+        grm = ResourceManager()
+
+        await grm.add_member(
+            email=settings.FLAMINGO_SERVICE_ACCOUNT,
+            role='iam.serviceAccountUser',
+            project_id=self.environment.project.id,
+        )
+        # TODO add the other DEVOPS permissions
 
     async def setup_build_notifications(self):
         # FIXME: does not seem to work on other projects than flamingo
@@ -73,14 +85,6 @@ class EnvironmentFoundation(BaseFoundation):
             project_id=self.environment.project.id,
             push_to_url=url,
             use_oidc_auth=True,
-        )
-
-    async def setup_authenticated_pubsub(self):
-        grm = ResourceManager()
-        await grm.add_member(
-            email=self.environment.project.pubsub_account,
-            role='iam.serviceAccountTokenCreator',
-            project_id=self.environment.project.id,
         )
 
 
@@ -161,7 +165,12 @@ class AppFoundation(BaseFoundation):
         # that requires accessing the same resources (SQL, GCS) the app has access to
         # AND the CloudBuild account also must be able to deploy CloudRun services
         cloud_build_account = self.app.build.project.cloud_build_account
-        desired_roles = service_account.roles + ['run.admin']
+        desired_roles = service_account.roles
+        if self.app.build.build_pack.target == Target.CLOUD_RUN.value:
+            desired_roles.append("run.admin")
+        elif self.app.build.build_pack.target == Target.CLOUD_FUNCTIONS.value:
+            desired_roles.append("cloudfunctions.admin")
+
         for role in desired_roles:
             await grm.add_member(
                 email=cloud_build_account,
@@ -169,13 +178,22 @@ class AppFoundation(BaseFoundation):
                 project_id=self.app.project.id,
             )
 
-        # The CloudBuild account must also be able to act as the app's project's Compute account
-        # TODO: add docs
+        # The CloudBuild account must be able to:
+        cloud_build_account = self.app.project.cloud_build_account
+        project_id = self.app.project.id
+
+        # ... act as the app's project's Compute account
         await iam.bind_member(
             target_email=self.app.project.compute_account,
             member_email=cloud_build_account,
             role='iam.serviceAccountUser',
-            project_id=self.app.project.id,
+            project_id=project_id,
+        )
+        # ..and to impersonate the app's account (very common during custom steps)
+        await grm.add_member(
+            email=cloud_build_account,
+            role='iam.serviceAccountTokenCreator',
+            project_id=project_id,
         )
         # ...and get buildpack's Dockerfile from Flamingo's project
         await grm.add_member(
@@ -187,7 +205,7 @@ class AppFoundation(BaseFoundation):
         await grm.add_member(
             email=cloud_build_account,
             role='storage.admin',
-            project_id=self.app.build.project.id,
+            project_id=project_id,
         )
 
         # When deploying from other projects (https://cloud.google.com/run/docs/deploying#other-projects)...
@@ -206,6 +224,21 @@ class AppFoundation(BaseFoundation):
             role='iam.serviceAccountTokenCreator',
             project_id=self.app.project.id,
         )
+
+        # The related services must also be able to impersonate the app's account
+        related_services = [
+            self.app.project.scheduler_account,
+            self.app.project.tasks_account,
+            self.app.project.pubsub_account,
+        ]
+        for service in related_services:
+            await grm.add_member(
+                email=service,
+                role='iam.serviceAccountTokenCreator',
+                project_id=self.app.project.id,
+            )
+
+
 
     async def setup_custom_domains(self):
         run = CloudRun()

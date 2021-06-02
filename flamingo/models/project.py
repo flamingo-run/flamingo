@@ -34,6 +34,14 @@ class Project(EmbeddedDocument):
     def pubsub_account(self) -> str:
         return ServiceAgent.get_email(service_name="Cloud Pub/Sub", project_id=self.id)
 
+    @property
+    def tasks_account(self) -> str:
+        return ServiceAgent.get_email(service_name="Cloud Tasks", project_id=self.id)
+
+    @property
+    def scheduler_account(self) -> str:
+        return ServiceAgent.get_email(service_name="Cloud Scheduler", project_id=self.id)
+
     @classmethod
     def default(cls) -> 'Project':
         return Project(
