@@ -185,6 +185,8 @@ class CloudRunFactory(BuildTriggerFactory):
         self._add_custom_command_steps()
         self._add_deploy_step()
         self._add_traffic_step()
+        if self.app.gateway:
+            self._add_api_gateway_steps()
 
     def _get_setup_params(self) -> KeyValue:
         params = dict(
@@ -205,6 +207,9 @@ class CloudRunFactory(BuildTriggerFactory):
 
         if self.app.database:
             params[self.DB_CONN_KEY] = self.app.database.connection_name
+
+        if self.app.gateway:
+            params["GATEWAY_ID"] = self.app.gateway.gateway_id
         return params
 
     def _add_cache_step(self):
@@ -336,6 +341,51 @@ class CloudRunFactory(BuildTriggerFactory):
             ],
         )
         self.steps.append(traffic)
+
+    def _add_api_gateway_steps(self):
+        labels_str = ','.join([label.as_kv for label in self.app.get_all_labels()])
+        unique_identifier = "${COMMIT_SHA}"
+        config_name = f"{self._substitution.SERVICE_NAME}-{unique_identifier}"
+
+        # We use the default volume to share date between steps
+        # https://cloud.google.com/build/docs/build-config#volumes
+        spec_path = self.app.gateway.spec_path
+        custom_yaml = f"x-google-backend:\\n  address: {self.app.endpoint}"
+        config = self._service.make_build_step(
+            identifier="Personalize API Gateway Specification",
+            name="bash",
+            args=['-c', f"echo -e '{custom_yaml}' >> {spec_path}"],
+        )
+        self.steps.append(config)
+
+        config = self._service.make_build_step(
+            identifier="Create API Gateway Specification",
+            name="gcr.io/google.com/cloudsdktool/cloud-sdk:slim",
+            entrypoint='gcloud',
+            args=[
+                "api-gateway", "api-configs", "create", f"{config_name}",
+                f'--api={self._substitution.SERVICE_NAME}',
+                f'--openapi-spec={spec_path}',
+                f'--backend-auth-service-account={self._substitution.SERVICE_ACCOUNT}',
+                f'--project={self._substitution.PROJECT_ID}',
+                f'--labels={labels_str}',
+            ],
+        )
+        self.steps.append(config)
+
+        config = self._service.make_build_step(
+            identifier="Update API Gateway",
+            name="gcr.io/google.com/cloudsdktool/cloud-sdk:slim",
+            entrypoint='gcloud',
+            args=[
+                "api-gateway", "gateways", "update", f"{self._substitution.GATEWAY_ID}",
+                f'--api={self._substitution.SERVICE_NAME}',
+                f'--api-config={config_name}',
+                f'--location={self._substitution.REGION}',
+                f'--project={self._substitution.PROJECT_ID}',
+            ],
+        )
+        self.steps.append(config)
 
     def get_url(self):
         run = CloudRun()

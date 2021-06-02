@@ -5,6 +5,7 @@ from models.app import App
 from models.base import random_password
 from models.bucket import Bucket
 from models.database import Database
+from models.gateway import ApiGateway
 from models.repository import Repository
 from models.service_account import ServiceAccount
 
@@ -29,6 +30,9 @@ class AppBootstrap:
 
         if not self.app.domains:
             changes['domains'] = self.domains
+
+        if not self.app.gateway:
+            changes['gateway'] = self.gateway
 
         return changes
 
@@ -82,3 +86,9 @@ class AppBootstrap:
                 f'{self.app.name}.{self.app.environment.name}.{self.app.environment.network.zone}',
             ]
         return []
+
+    @property
+    def gateway(self) -> ApiGateway:
+        return ApiGateway(
+            api_name=f"{self.app.name}",
+        )

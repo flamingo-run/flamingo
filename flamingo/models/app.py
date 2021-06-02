@@ -14,6 +14,7 @@ from models.build import Build
 from models.database import Database
 from models.env_var import EnvVar, EnvVarSource
 from models.environment import Environment
+from models.gateway import ApiGateway
 from models.label import Label
 from models.repository import Repository
 from models.schedule import ScheduledInvocation
@@ -42,6 +43,7 @@ class App(Document):
     service_account: ServiceAccount = None
     endpoint: str = None
     integrated_apps: List[str] = field(default_factory=list)
+    gateway: ApiGateway = None
 
     _environment: Environment = None
 
