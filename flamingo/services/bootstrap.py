@@ -4,6 +4,7 @@ import settings
 from models.app import App
 from models.base import random_password
 from models.bucket import Bucket
+from models.buildpack import Target
 from models.database import Database
 from models.gateway import ApiGateway
 from models.repository import Repository
@@ -68,10 +69,25 @@ class AppBootstrap:
 
     @property
     def service_account(self) -> ServiceAccount:
-        all_roles = ([settings.DEFAULT_ROLE] if settings.DEFAULT_ROLE else []) + [
-            # TODO Handle other types
-            'run.invoker',  # allow authenticated integrations such as PubSub, Cloud Scheduler
+        all_roles = [
+            "cloudtasks.admin",
+            "cloudscheduler.admin",
+            "pubsub.admin",
+            "pubsub.admin",
+            "iam.serviceAccountUser",
         ]
+
+        if self.app.bucket:
+            all_roles.append("storage.objectAdmin")
+
+        if self.app.database:
+            all_roles.append("cloudsql.client")
+
+        if self.app.build.build_pack.target == Target.CLOUD_RUN.value:
+            all_roles.append("run.invoker")
+        elif self.app.build.build_pack.target == Target.CLOUD_FUNCTIONS.value:
+            all_roles.append("cloudfunctions.invoker")
+
         return ServiceAccount(
             name=self.app.name,
             display_name=self.app.name,
