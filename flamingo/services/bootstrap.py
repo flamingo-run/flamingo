@@ -45,8 +45,9 @@ class AppBootstrap:
 
     @property
     def bucket(self) -> Bucket:
+        prefix = f"{settings.ORGANIZATION_PREFIX}--" if settings.ORGANIZATION_PREFIX else ""
         return Bucket(
-            name=self.app.name,
+            name=f"{prefix}{self.app.identifier}",
             project=self.app.project,
             region=self.app.region,
         )

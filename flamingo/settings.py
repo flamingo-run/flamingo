@@ -19,7 +19,7 @@ DEFAULT_PROJECT = os.environ.get('DEFAULT_PROJECT', project_id)
 DEFAULT_PROJECT_NETWORK = os.environ.get('DEFAULT_PROJECT_NETWORK', DEFAULT_PROJECT)
 DEFAULT_DB_VERSION = os.environ.get('DEFAULT_DB_VERSION', 'POSTGRES_12')
 DEFAULT_DB_TIER = os.environ.get('DEFAULT_DB_TIER', 'db-f1-micro')
-DEFAULT_ROLE = os.environ.get('DEFAULT_ROLE', None)
+ORGANIZATION_PREFIX = os.environ.get('ORGANIZATION_PREFIX', '')
 
 STAGE_DIR = Path(BASE_DIR).joinpath('staging')
 STAGE_DIR.mkdir(parents=True, exist_ok=True)
