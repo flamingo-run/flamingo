@@ -12,6 +12,7 @@ from gcp_pilot.resource import ResourceManager
 from gcp_pilot.run import CloudRun
 from gcp_pilot.sql import CloudSQL
 from gcp_pilot.storage import CloudStorage
+from google.api_core.exceptions import Conflict
 
 import settings
 from models.app import App
@@ -250,7 +251,7 @@ class AppFoundation(BaseFoundation):
                     continue
                 status = condition['status']
                 if status == 'True':
-                    return True
+                    return bool(mapped_domain['status'].get('resourceRecords', []))
                 elif 'does not exist' in condition.get('message', ''):
                     raise NotFound(condition['message'])
                 return True
@@ -275,10 +276,13 @@ class AppFoundation(BaseFoundation):
             dns = CloudDNS(project_id=network.project.id)
 
             for record in mapped_domain['status']['resourceRecords']:
-                dns.add_record(
-                    zone_name=network.zone_name,
-                    zone_dns=network.zone,
-                    name=network.get_record_name(domain=record['name']),
-                    record_type=RecordType.CNAME if record['type'] == 'CNAME' else RecordType.A,
-                    record_data=[record['rrdata']],
-                )
+                try:
+                    dns.add_record(
+                        zone_name=network.zone_name,
+                        zone_dns=network.zone,
+                        name=network.get_record_name(domain=record['name']),
+                        record_type=RecordType.CNAME if record['type'] == 'CNAME' else RecordType.A,
+                        record_data=[record['rrdata']],
+                    )
+                except Conflict:
+                    continue
