@@ -17,7 +17,7 @@ class AppBootstrap:
     def check(self):
         changes = {}
         if not self.app.database:
-            changes['database'] = self.database()
+            changes['database'] = self.database
 
         if not self.app.bucket:
             changes['bucket'] = self.bucket
@@ -25,7 +25,7 @@ class AppBootstrap:
         if not self.app.service_account:
             changes['service_account'] = self.service_account
 
-        if not self.repository:
+        if not self.app.repository:
             changes['repository'] = self.repository
 
         if not self.app.domains:
@@ -50,6 +50,7 @@ class AppBootstrap:
             region=self.app.region,
         )
 
+    @property
     def database(self) -> Database:
         return Database(
             instance=self.app.name,
