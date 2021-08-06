@@ -45,11 +45,11 @@ class AppBootstrap:
 
     @property
     def bucket(self) -> Bucket:
-        prefix = f"{settings.ORGANIZATION_PREFIX}--" if settings.ORGANIZATION_PREFIX else ""
         return Bucket(
-            name=f"{prefix}{self.app.identifier}",
+            name=f"{self.app.project.id}--{self.app.name}",
             project=self.app.project,
             region=self.app.region,
+            env_var="GCS_BUCKET",
         )
 
     @property

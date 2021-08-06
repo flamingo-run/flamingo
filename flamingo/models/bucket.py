@@ -10,7 +10,7 @@ from models.project import Project
 @dataclass
 class Bucket(EmbeddedDocument):
     name: str
-    env_var: str = 'GCS_BUCKET_NAME'
+    env_var: str = 'GCS_BUCKET'
     region: str = None
     project: Project = field(default_factory=Project.default)
 
