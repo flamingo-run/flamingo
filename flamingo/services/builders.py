@@ -350,7 +350,9 @@ class CloudRunFactory(BuildTriggerFactory):
         # We use the default volume to share date between steps
         # https://cloud.google.com/build/docs/build-config#volumes
         spec_path = self.app.gateway.spec_path
-        custom_yaml = f"x-google-backend:\\n  address: {self.app.endpoint}"
+        custom_yaml = f"x-google-backend:\\n  address: {self.app.gateway.gateway_endpoint}"
+        custom_yaml += f"host: \"{self.app.gateway.gateway_service}\"\\n"
+        custom_yaml += f"x-google-endpoints:\\n  name: \"{self.app.gateway.gateway_service}\"\\n  allowCors: True"
         config = self._service.make_build_step(
             identifier="Personalize API Gateway Specification",
             name="bash",

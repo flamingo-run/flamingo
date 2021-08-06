@@ -9,6 +9,7 @@ class ApiGateway(EmbeddedDocument):
     spec_path: str = "./openapi.yaml"
     gateway_id: str = None
     gateway_endpoint: str = None
+    gateway_service: str = None
 
     def __post_init__(self):
         if not self.gateway_id:
