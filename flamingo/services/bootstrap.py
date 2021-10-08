@@ -101,7 +101,7 @@ class AppBootstrap:
     def domains(self):
         if self.app.environment.network:
             return [
-                f'{self.app.name}.{self.app.environment.name}.{self.app.environment.network.zone}',
+                f'{self.app.name}.{self.app.environment.network.zone}',
             ]
         return []
 
