@@ -10,7 +10,7 @@ from models.base import KeyValue
 logger = logging.getLogger()
 
 
-ALIAS_REGEX = r"\${(?P<alias_to>.*)}"
+ALIAS_REGEX = r"\${(?P<alias_to>\w+)}"
 
 
 @dataclass
@@ -27,14 +27,17 @@ class ReplacementEngine:
         return self.replacements[value]
 
     def replace(self, virtual_value):
-        alias_to = re.match(ALIAS_REGEX, virtual_value).group('alias_to')
+        aliases_to = re.findall(ALIAS_REGEX, virtual_value)
 
-        try:
-            replace_with = self.replacements[alias_to]
-        except KeyError as e:
-            raise ValidationError(f"Could not find the referenced value for {alias_to}") from e
+        new_value = virtual_value
+        for alias_to in aliases_to:
+            try:
+                replace_with = self.replacements[alias_to]
+                new_value = new_value.replace("${%s}" % alias_to, replace_with)
+            except KeyError as e:
+                raise ValidationError(f"Could not find the referenced value for {alias_to}") from e
 
-        return re.sub(ALIAS_REGEX, replace_with, virtual_value)
+        return new_value
 
 
 class AliasEngine:
