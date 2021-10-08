@@ -115,6 +115,11 @@ class App(Document):
             EnvVar(key='GCP_APP_ENDPOINT', value=endpoint, is_secret=False, source=by_flamingo),
         ])
 
+        if self.gateway:
+            all_vars.extend([
+                EnvVar(key='GCP_GATEWAY_ENDPOINT', value=self.gateway.gateway_endpoint, is_secret=False, source=by_flamingo),
+            ])
+
         for integrated_app in self.integrated_apps:
             try:
                 app = App.documents.get(name=integrated_app, environment_name=self.environment_name)
