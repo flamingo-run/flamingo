@@ -9,7 +9,7 @@ from models.database import Database
 from models.env_var import EnvVar
 from services.bootstrap import AppBootstrap
 from services.foundations import AppFoundation
-from sanic_rest.views import ActionView, DetailView, ListView, ResponseType
+from sanic_rest.views import NestedListView, DetailView, ListView, ResponseType
 
 apps = Blueprint('apps', url_prefix='/apps')
 
@@ -22,7 +22,7 @@ class AppDetailView(DetailView):
     model = App
 
 
-class AppBoostrapView(ActionView):
+class AppBoostrapView(NestedListView):
     model = App
 
     async def perform_get(self, request: Request, obj: App) -> ResponseType:
@@ -39,7 +39,7 @@ class AppBoostrapView(ActionView):
         raise exceptions.NotAllowedError()
 
 
-class AppInitializeView(ActionView):
+class AppInitializeView(NestedListView):
     model = App
 
     async def perform_get(self, request: Request, obj: App) -> ResponseType:
@@ -56,7 +56,7 @@ class AppInitializeView(ActionView):
         raise exceptions.NotAllowedError()
 
 
-class AppEnvVarsView(ActionView):
+class AppEnvVarsView(NestedListView):
     model = App
 
     async def _serialize_env_vars(self, app: App) -> List[Dict[str, str]]:
@@ -94,7 +94,7 @@ class AppEnvVarsView(ActionView):
         return payload, 202
 
 
-class AppDatabaseView(ActionView):
+class AppDatabaseView(NestedListView):
     model = App
 
     async def perform_get(self, request: Request, obj: App) -> ResponseType:
@@ -117,7 +117,7 @@ class AppDatabaseView(ActionView):
         return payload, 204
 
 
-class AppApplyView(ActionView):
+class AppApplyView(NestedListView):
     model = App
 
     async def perform_get(self, request: Request, obj: App) -> ResponseType:

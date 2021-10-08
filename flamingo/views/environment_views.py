@@ -4,7 +4,7 @@ from sanic_rest import exceptions
 
 from models.environment import Environment
 from services.foundations import EnvironmentFoundation
-from sanic_rest.views import DetailView, ListView, ActionView, ResponseType
+from sanic_rest.views import DetailView, ListView, NestedListView, ResponseType
 
 environments = Blueprint('environments', url_prefix='/environments')
 
@@ -17,7 +17,7 @@ class EnvironmentDetailView(DetailView):
     model = Environment
 
 
-class EnvironmentInitializeView(ActionView):
+class EnvironmentInitializeView(NestedListView):
     model = Environment
 
     async def perform_get(self, request: Request, obj: Environment) -> ResponseType:
