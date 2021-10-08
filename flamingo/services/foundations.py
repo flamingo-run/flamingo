@@ -59,16 +59,29 @@ class EnvironmentFoundation(BaseFoundation):
             'iam': self.setup_iam,
         }
 
-    async def setup_devops(self):
+    async def setup_iam(self):
         iam = IdentityAccessManager()
         grm = ResourceManager()
 
-        await grm.add_member(
-            email=settings.FLAMINGO_SERVICE_ACCOUNT,
-            role='iam.serviceAccountUser',
-            project_id=self.environment.project.id,
-        )
-        # TODO add the other DEVOPS permissions
+        roles = [
+            "iam.serviceAccountUser",
+            "iam.serviceAccountTokenCreator",
+            "apigateway.admin",
+            "cloudsql.admin",
+            "appengine.appAdmin",
+            "cloudbuild.builds.editor",
+            "run.admin",
+            "secretmanager.admin",
+            "source.admin",
+            "storage.admin",
+        ]
+
+        for role in roles:
+            await grm.add_member(
+                email=settings.FLAMINGO_SERVICE_ACCOUNT,
+                role=role,
+                project_id=self.environment.project.id,
+            )
 
     async def setup_build_notifications(self):
         # FIXME: does not seem to work on other projects than flamingo
@@ -238,8 +251,6 @@ class AppFoundation(BaseFoundation):
                 role='iam.serviceAccountTokenCreator',
                 project_id=self.app.project.id,
             )
-
-
 
     async def setup_custom_domains(self):
         run = CloudRun()
