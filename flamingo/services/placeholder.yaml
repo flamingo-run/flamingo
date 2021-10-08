@@ -1,0 +1,36 @@
+swagger: '2.0'
+info:
+  title: sample-api
+  contact:
+    email: tech@nilo.co
+  version: v1
+host: 0.0.0.0
+schemes:
+  - http
+basePath: /
+consumes:
+  - application/json
+produces:
+  - application/json
+securityDefinitions:
+  Bearer:
+    type: apiKey
+    name: x-api-key
+    in: header
+security:
+  - Bearer: []
+paths:
+  /healthcheck:
+    get:
+      operationId: healthcheck_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - healthcheck
+      security: []
+    parameters: []
+x-google-backend:
+  address: https://sample-api-pawsjwquka-ue.a.run.app

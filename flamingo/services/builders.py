@@ -401,26 +401,7 @@ class CloudRunFactory(BuildTriggerFactory):
             url = service['status']['url']
         except NotFound as e:
             logger.warning(str(e))
-            url = self._create_placeholder()
-        return url
-
-    def _create_placeholder(self):
-        run = CloudRun()
-        service_params = dict(
-            service_name=self.service_name,
-            location=self.app.region,
-            project_id=self.app.project.id,
-        )
-
-        run.create_service(
-            service_account=self.app.service_account.email,
-            **service_params,
-        )
-
-        url = None
-        while not url:
-            service = run.get_service(**service_params)
-            url = service['status'].get('url')
+            url = self._create_run_placeholder()
         return url
 
 

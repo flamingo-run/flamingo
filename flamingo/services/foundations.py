@@ -2,13 +2,16 @@ import abc
 import asyncio
 from abc import abstractmethod
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Dict, Callable
 
 from gcp_pilot.build import CloudBuild
 from gcp_pilot.dns import CloudDNS, RecordType
-from gcp_pilot.exceptions import NotFound
+from gcp_pilot.exceptions import NotFound, AlreadyExists
 from gcp_pilot.iam import IdentityAccessManager
 from gcp_pilot.resource import ResourceManager
+from gcp_pilot.api_gateway import APIGateway
+from gcp_pilot.service_usage import ServiceUsage
 from gcp_pilot.run import CloudRun
 from gcp_pilot.sql import CloudSQL
 from gcp_pilot.storage import CloudStorage
@@ -117,8 +120,83 @@ class AppFoundation(BaseFoundation):
         }
 
     async def setup_placeholder(self):
-        url = self.app.factory.get_url()
-        App.documents.update(pk=self.app.pk, endpoint=url)
+        run = CloudRun()
+        service_params = dict(
+            service_name=self.app.name,
+            location=self.app.region,
+            project_id=self.app.project.id,
+        )
+
+        try:
+            run.create_service(
+                service_account=self.app.service_account.email,
+                **service_params,
+            )
+        except AlreadyExists:
+            pass
+
+        url = None
+        while not url:
+            service = run.get_service(**service_params)
+            url = service['status'].get('url')
+
+        extra_update = {}
+        if self.app.gateway:
+            labels = {label.key: label.value for label in self.app.get_all_labels()}
+            gateway = APIGateway()
+
+            try:
+                gateway_api = gateway.create_api(
+                    api_name=self.app.gateway.api_name,
+                    labels=labels,
+                    project_id=self.app.project.id,
+                )
+            except AlreadyExists:
+                gateway_api = gateway.get_api(
+                    api_name=self.app.gateway.api_name,
+                    project_id=self.app.project.id,
+                )
+
+            try:
+                gateway_config = gateway.create_config(
+                    config_name=f"{self.app.name}-placeholder",
+                    api_name=self.app.gateway.api_name,
+                    service_account=self.app.service_account.email,
+                    open_api_file=Path(__file__).parent / "placeholder.yaml",
+                    labels=labels,
+                    project_id=self.app.project.id,
+                )
+            except AlreadyExists:
+                gateway_config = gateway.get_config(
+                    config_name=f"{self.app.name}-placeholder",
+                    api_name=self.app.gateway.api_name,
+                    project_id=self.app.project.id,
+                )
+
+            try:
+                gateway_service = gateway.create_gateway(
+                    gateway_name=self.app.name,
+                    api_name=self.app.gateway.api_name,
+                    config_name=f"{self.app.name}-placeholder",
+                    labels=labels,
+                    project_id=self.app.project.id,
+                    location=self.app.region,
+                )
+            except AlreadyExists:
+                gateway_service = gateway.get_gateway(
+                    gateway_name=self.app.name,
+                    project_id=self.app.project.id,
+                    location=self.app.region,
+                )
+
+            gateway_info = self.app.gateway
+            gateway_info.gateway_service = gateway_api["managedService"]
+            gateway_info.gateway_endpoint = "https://" + gateway_service["defaultHostname"]
+            extra_update["gateway"] = gateway_info
+
+            ServiceUsage().enable_service(service_name=gateway_info.gateway_service, project_id=self.app.project.id)
+
+        App.documents.update(pk=self.app.pk, endpoint=url, **extra_update)
 
     async def setup_bucket(self):
         bucket = self.app.bucket
