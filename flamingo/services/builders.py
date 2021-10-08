@@ -20,7 +20,7 @@ logger = logging.getLogger()
 @dataclass
 class BuildTriggerFactory(ABC):
     DB_CONN_KEY: ClassVar = 'DATABASE_CONNECTION'
-    DOCKERFILE_KEY: ClassVar = 'DOCKERFILE_LOCATION'
+    DOCKERFILE_CONTEXT: ClassVar = 'DOCKERFILE_CONTEXT'
     ENV_PREFIX_KEY: ClassVar = 'ENV_'
 
     app: App
@@ -203,7 +203,8 @@ class CloudRunFactory(BuildTriggerFactory):
             SERVICE_NAME=self.service_name,
         )
         if self._build_pack.dockerfile_url:
-            params[self.DOCKERFILE_KEY] = self._build_pack.dockerfile_url
+            docker_path = self._build_pack.dockerfile_url.rsplit("/", 1)[0]
+            params[self.DOCKERFILE_CONTEXT] = f"{docker_path}/*"
 
         if self.app.database:
             params[self.DB_CONN_KEY] = self.app.database.connection_name
@@ -223,12 +224,12 @@ class CloudRunFactory(BuildTriggerFactory):
 
     def _add_dockerfile_step(self):
         if self._build_pack.dockerfile_url:
-            sub_variable = getattr(self._substitution, self.DOCKERFILE_KEY)
+            sub_variable = getattr(self._substitution, self.DOCKERFILE_CONTEXT)
 
             build_pack_sync = self._service.make_build_step(
                 name='gcr.io/google.com/cloudsdktool/cloud-sdk:slim',
                 identifier="Build Pack Download",
-                args=['gsutil', 'cp', str(sub_variable), 'Dockerfile'],
+                args=['gsutil', '-m', 'cp', f"{sub_variable}", '.'],
             )
             self.steps.append(build_pack_sync)
         else:
