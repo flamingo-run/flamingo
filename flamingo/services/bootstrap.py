@@ -74,15 +74,14 @@ class AppBootstrap:
             "cloudtasks.admin",
             "cloudscheduler.admin",
             "pubsub.admin",
-            "pubsub.admin",
             "iam.serviceAccountUser",
+            "iam.serviceAccountTokenCreator",
+            "logging.logWriter",
+            "errorreporting.writer",
+
+            "storage.objectAdmin",
+            "cloudsql.client"
         ]
-
-        if self.app.bucket:
-            all_roles.append("storage.objectAdmin")
-
-        if self.app.database:
-            all_roles.append("cloudsql.client")
 
         if self.app.build.build_pack.target == Target.CLOUD_RUN.value:
             all_roles.append("run.invoker")
