@@ -23,7 +23,7 @@ class AppDetailView(DetailView):
 
 
 class AppBoostrapView(NestedListView):
-    model = App
+    nest_model = App
 
     async def perform_get(self, request: Request, obj: App) -> ResponseType:
         bootstrap = AppBootstrap(app=obj)
@@ -40,7 +40,7 @@ class AppBoostrapView(NestedListView):
 
 
 class AppInitializeView(NestedListView):
-    model = App
+    nest_model = App
 
     async def perform_get(self, request: Request, obj: App) -> ResponseType:
         foundation = AppFoundation(app=obj)
@@ -57,7 +57,7 @@ class AppInitializeView(NestedListView):
 
 
 class AppEnvVarsView(NestedListView):
-    model = App
+    nest_model = App
 
     async def _serialize_env_vars(self, app: App) -> List[Dict[str, str]]:
         env_vars = app.get_all_env_vars()
@@ -66,27 +66,27 @@ class AppEnvVarsView(NestedListView):
             for env in env_vars
         ]
 
-    async def perform_get(self, request: Request, obj: App) -> ResponseType:
+    async def perform_get(self, request: Request, nest_obj: App) -> ResponseType:
         payload = {
-            'results': await self._serialize_env_vars(app=obj)
+            'results': await self._serialize_env_vars(app=nest_obj)
         }
         return payload, 200
 
-    async def perform_post(self, request: Request, obj: App) -> ResponseType:
+    async def perform_post(self, request: Request, nest_obj: App) -> ResponseType:
         for key, value in request.json.items():
             env_var = EnvVar(key=key, value=value)
-            obj.set_env_var(var=env_var)
-        new_obj = obj.save()
+            nest_obj.set_env_var(var=env_var)
+        new_obj = nest_obj.save()
 
         payload = {
             'results': await self._serialize_env_vars(app=new_obj)
         }
         return payload, 201
 
-    async def perform_delete(self, request: Request, obj: App) -> ResponseType:
+    async def perform_delete(self, request: Request, nest_obj: App) -> ResponseType:
         for key in request.json:
-            obj.unset_env_var(key=key)
-        new_obj = obj.save()
+            nest_obj.unset_env_var(key=key)
+        new_obj = nest_obj.save()
 
         payload = {
             'results': await self._serialize_env_vars(app=new_obj)
@@ -95,41 +95,41 @@ class AppEnvVarsView(NestedListView):
 
 
 class AppDatabaseView(NestedListView):
-    model = App
+    nest_model = App
 
-    async def perform_get(self, request: Request, obj: App) -> ResponseType:
-        payload = obj.database.serialize()
+    async def perform_get(self, request: Request, nest_obj: App) -> ResponseType:
+        payload = nest_obj.database.serialize()
         return payload, 200
 
-    async def perform_post(self, request: Request, obj: App) -> ResponseType:
+    async def perform_post(self, request: Request, nest_obj: App) -> ResponseType:
         data = request.json
-        obj.database = Database(**data)
-        new_obj = obj.save()
+        nest_obj.database = Database(**data)
+        new_obj = nest_obj.save()
 
         payload = new_obj.database.serialize()
         return payload, 201
 
-    async def perform_delete(self, request: Request, obj: App) -> ResponseType:
-        obj.database = None
-        obj.save()
+    async def perform_delete(self, request: Request, nest_obj: App) -> ResponseType:
+        nest_obj.database = None
+        nest_obj.save()
 
         payload = {}
         return payload, 204
 
 
 class AppApplyView(NestedListView):
-    model = App
+    nest_model = App
 
-    async def perform_get(self, request: Request, obj: App) -> ResponseType:
+    async def perform_get(self, request: Request, nest_obj: App) -> ResponseType:
         try:
-            obj.check_env_vars()
+            nest_obj.check_env_vars()
         except Exception as e:
             raise exceptions.ValidationError(message=str(e))
 
         return {'status': "Good to go"}, 200
 
-    async def perform_post(self, request: Request, obj: App) -> ResponseType:
-        trigger_id = await obj.apply()
+    async def perform_post(self, request: Request, nest_obj: App) -> ResponseType:
+        trigger_id = await nest_obj.apply()
         # TODO Add support to re-deploy
         return {'trigger_id': trigger_id}, 201
 
@@ -139,8 +139,8 @@ class AppApplyView(NestedListView):
 
 apps.add_route(AppListView.as_view(), '/')
 apps.add_route(AppDetailView.as_view(), '/<pk>')
-apps.add_route(AppEnvVarsView.as_view(), '/<pk>/vars')
-apps.add_route(AppDatabaseView.as_view(), '/<pk>/database')
-apps.add_route(AppBoostrapView.as_view(), '/<pk>/bootstrap')
-apps.add_route(AppInitializeView.as_view(), '/<pk>/init')
-apps.add_route(AppApplyView.as_view(), '/<pk>/apply')
+apps.add_route(AppEnvVarsView.as_view(), '/<nest_pk>/vars')
+apps.add_route(AppDatabaseView.as_view(), '/<nest_pk>/database')
+apps.add_route(AppBoostrapView.as_view(), '/<nest_pk>/bootstrap')
+apps.add_route(AppInitializeView.as_view(), '/<nest_pk>/init')
+apps.add_route(AppApplyView.as_view(), '/<nest_pk>/apply')

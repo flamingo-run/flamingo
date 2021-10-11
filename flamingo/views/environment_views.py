@@ -18,15 +18,15 @@ class EnvironmentDetailView(DetailView):
 
 
 class EnvironmentInitializeView(NestedListView):
-    model = Environment
+    nest_model = Environment
 
-    async def perform_get(self, request: Request, obj: Environment) -> ResponseType:
-        foundation = EnvironmentFoundation(environment=obj)
+    async def perform_get(self, request: Request, nest_obj: Environment) -> ResponseType:
+        foundation = EnvironmentFoundation(environment=nest_obj)
         jobs = foundation.get_jobs()
         return {'jobs': list(jobs.keys())}, 200
 
-    async def perform_post(self, request: Request, obj: Environment) -> ResponseType:
-        foundation = EnvironmentFoundation(environment=obj)
+    async def perform_post(self, request: Request, nest_obj: Environment) -> ResponseType:
+        foundation = EnvironmentFoundation(environment=nest_obj)
         jobs = foundation.build()
         return {'jobs': jobs}, 202
 
