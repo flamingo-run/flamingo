@@ -1,7 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import List, ClassVar, Tuple, Union
+from typing import List, ClassVar, Optional, Tuple, Union
 
 from gcp_pilot.build import CloudBuild, Substitutions
 from gcp_pilot.exceptions import NotFound
@@ -108,6 +108,9 @@ class BuildTriggerFactory(ABC):
             _event_str = f'tagged {self._build.deploy_tag}'
         return f'🦩 Deploy to {self._build.build_pack.target} when {_event_str}'
 
+    def _get_options(self) -> Optional[dict]:
+        return {'machine_type': self._build.build_machine_type} if self._build.build_machine_type else None
+
     def _add_scheduled_invocation_step(self, scheduled_invocation: ScheduledInvocation, wait_for: str):
         schedule_name = f"{self.app.identifier}--{scheduled_invocation.name}"
 
@@ -151,6 +154,7 @@ class BuildTriggerFactory(ABC):
             tag_name=self._build.deploy_tag,
         )
         description = self._get_description()
+        options = self._get_options()
 
         response = await self._service.create_or_update_trigger(
             name=self.app.name,
@@ -162,6 +166,7 @@ class BuildTriggerFactory(ABC):
             tags=self._build.get_tags(app=self.app),
             substitutions=self._substitution,
             timeout=self._build.build_timeout,
+            options=options,
         )
 
         return response.id
