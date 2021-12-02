@@ -1,10 +1,10 @@
 from sanic import Blueprint
 from sanic.request import Request
 from sanic_rest import exceptions
+from sanic_rest.views import DetailView, ListView, NestedListView, ResponseType
 
 from models.environment import Environment
 from services.foundations import EnvironmentFoundation
-from sanic_rest.views import DetailView, ListView, NestedListView, ResponseType
 
 environments = Blueprint('environments', url_prefix='/environments')
 
@@ -30,7 +30,10 @@ class EnvironmentInitializeView(NestedListView):
         jobs = foundation.build()
         return {'jobs': jobs}, 202
 
-    async def perform_delete(self, request: Request, obj: Environment) -> ResponseType:
+    async def perform_put(self, request: Request, nest_obj: Environment) -> ResponseType:
+        raise exceptions.NotAllowedError()
+
+    async def perform_delete(self, request: Request, nest_obj: Environment) -> ResponseType:
         raise exceptions.NotAllowedError()
 
 
