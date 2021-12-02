@@ -18,6 +18,7 @@ class Build(EmbeddedDocument):
     deploy_tag: str = None
     post_build_commands: List[str] = field(default_factory=list)
     build_args: KeyValue = field(default_factory=dict)
+    build_machine_type: str = None
     os_dependencies: List[str] = field(default_factory=list)
     labels: List[Label] = field(default_factory=list)
     project: Project = None
