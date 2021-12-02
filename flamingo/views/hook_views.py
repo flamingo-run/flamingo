@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime, timezone
-from typing import Dict
+from typing import Dict, Optional
 
 from gcp_pilot.datastore import DoesNotExist, MultipleObjectsFound
 from gcp_pilot.pubsub import Message
@@ -59,7 +59,7 @@ class CloudBuildHookView(HTTPMethodView):
             return json({'error': f"Failed handling build hook: {e}", 'payload': payload}, 400)
         return json({'status': 'done'}, 202)
 
-    def _get_timestamp(self, payload: Dict) -> datetime:
+    def _get_timestamp(self, payload: Dict) -> Optional[datetime]:
         time_fields = ['finishTime', 'startTime', 'createTime']
         for time_field in time_fields:
             try:
@@ -67,6 +67,7 @@ class CloudBuildHookView(HTTPMethodView):
                 return datetime.strptime(date_str.split('.')[0], '%Y-%m-%dT%H:%M:%S').astimezone(tz=timezone.utc)
             except KeyError:
                 continue
+        return None
 
     def _get_app(self, trigger_id: str) -> App:
         return App.documents.get(build__trigger_id=trigger_id)

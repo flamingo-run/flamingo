@@ -85,14 +85,14 @@ class BuildTriggerFactory(ABC):
 
     def _get_env_var_as_param(self, command: str = '--set-env-var') -> List[str]:
         params = []
-        for key, value in self._env_vars.items():
+        for key, _ in self._env_vars.items():
             sub_variable = getattr(self._substitution, f'{self.ENV_PREFIX_KEY}{key}')
             params.extend([command, sub_variable.as_env_var(key=key)])
         return params
 
     def _get_build_args_as_param(self, command: str = '--build-arg') -> List[str]:
         build_params = []
-        for key, value in self._build_args.items():
+        for key, _ in self._build_args.items():
             sub_variable = getattr(self._substitution, key)
             build_params.extend([command, sub_variable.as_env_var()])
         return build_params
@@ -414,14 +414,14 @@ class CloudRunFactory(BuildTriggerFactory):
 class CloudFunctionsFactory(BuildTriggerFactory):
     # TODO: setup this <https://cloud.google.com/functions/docs/reference/iam/roles#additional-configuration>
     def _get_setup_params(self) -> KeyValue:
-        from gcp_pilot.functions import CloudFunctions
+        from gcp_pilot.functions import CloudFunctions  # pylint: disable=import-outside-toplevel
 
         if self._build.deploy_tag:
             kwargs = dict(tag=self._build.deploy_tag)
         elif self._build.deploy_branch:
             kwargs = dict(branch=self._build.deploy_branch)
         else:
-            kwargs = dict()
+            kwargs = {}
 
         directory = self._build.directory
         repo_url = CloudFunctions.build_repo_source(

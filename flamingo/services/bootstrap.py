@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-import settings
 from models.app import App
 from models.base import random_password
 from models.bucket import Bucket

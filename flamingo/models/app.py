@@ -48,7 +48,7 @@ class App(Document):
     _environment: Environment = None
 
     def __post_init__(self):
-        environment = self.environment  # check if environment name actually exists, and caches it
+        _ = self.environment  # check if environment name actually exists, and caches it
 
         self.name = slugify(self.name)
 
@@ -117,7 +117,12 @@ class App(Document):
 
         if self.gateway:
             all_vars.extend([
-                EnvVar(key='GCP_GATEWAY_ENDPOINT', value=self.gateway.gateway_endpoint, is_secret=False, source=by_flamingo),
+                EnvVar(
+                    key='GCP_GATEWAY_ENDPOINT',
+                    value=self.gateway.gateway_endpoint,
+                    is_secret=False,
+                    source=by_flamingo,
+                ),
             ])
 
         for integrated_app in self.integrated_apps:

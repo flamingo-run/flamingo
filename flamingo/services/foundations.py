@@ -63,7 +63,6 @@ class EnvironmentFoundation(BaseFoundation):
         }
 
     async def setup_iam(self):
-        iam = IdentityAccessManager()
         grm = ResourceManager()
 
         roles = [
@@ -158,7 +157,7 @@ class AppFoundation(BaseFoundation):
                 )
 
             try:
-                gateway_config = gateway.create_config(
+                gateway.create_config(
                     config_name=f"{self.app.name}-placeholder",
                     api_name=self.app.gateway.api_name,
                     service_account=self.app.service_account.email,
@@ -167,7 +166,7 @@ class AppFoundation(BaseFoundation):
                     project_id=self.app.project.id,
                 )
             except AlreadyExists:
-                gateway_config = gateway.get_config(
+                gateway.get_config(
                     config_name=f"{self.app.name}-placeholder",
                     api_name=self.app.gateway.api_name,
                     project_id=self.app.project.id,

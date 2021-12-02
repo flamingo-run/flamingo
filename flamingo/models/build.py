@@ -38,8 +38,7 @@ class Build(EmbeddedDocument):
     def __post_init__(self):
         if not self.deploy_tag and not self.deploy_branch:
             raise exceptions.ValidationError(message="Either deploy_tag or deploy_branch must be provided")
-        if self.max_instances < 1:
-            self.max_instances = 1
+        self.max_instances = max(self.max_instances, 1)
 
     def serialize(self) -> dict:
         data = super().serialize()

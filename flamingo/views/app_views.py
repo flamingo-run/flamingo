@@ -3,13 +3,13 @@ from typing import List, Dict
 from sanic import Blueprint
 from sanic.request import Request
 from sanic_rest import exceptions
+from sanic_rest.views import NestedListView, DetailView, ListView, ResponseType
 
 from models.app import App
 from models.database import Database
 from models.env_var import EnvVar
 from services.bootstrap import AppBootstrap
 from services.foundations import AppFoundation
-from sanic_rest.views import NestedListView, DetailView, ListView, ResponseType
 
 apps = Blueprint('apps', url_prefix='/apps')
 
@@ -25,34 +25,40 @@ class AppDetailView(DetailView):
 class AppBoostrapView(NestedListView):
     nest_model = App
 
-    async def perform_get(self, request: Request, obj: App) -> ResponseType:
-        bootstrap = AppBootstrap(app=obj)
+    async def perform_get(self, request: Request, nest_obj: App) -> ResponseType:
+        bootstrap = AppBootstrap(app=nest_obj)
         changes = bootstrap.check()
         return changes, 200
 
-    async def perform_post(self, request: Request, obj: App) -> ResponseType:
-        bootstrap = AppBootstrap(app=obj)
+    async def perform_post(self, request: Request, nest_obj: App) -> ResponseType:
+        bootstrap = AppBootstrap(app=nest_obj)
         new_obj = bootstrap.apply()
         return new_obj.serialize(), 200
 
-    async def perform_delete(self, request: Request, obj: App) -> ResponseType:
+    async def perform_put(self, request: Request, nest_obj: App) -> ResponseType:
+        raise exceptions.NotAllowedError()
+
+    async def perform_delete(self, request: Request, nest_obj: App) -> ResponseType:
         raise exceptions.NotAllowedError()
 
 
 class AppInitializeView(NestedListView):
     nest_model = App
 
-    async def perform_get(self, request: Request, obj: App) -> ResponseType:
-        foundation = AppFoundation(app=obj)
+    async def perform_get(self, request: Request, nest_obj: App) -> ResponseType:
+        foundation = AppFoundation(app=nest_obj)
         jobs = foundation.get_jobs()
         return {'jobs': list(jobs.keys())}, 200
 
-    async def perform_post(self, request: Request, obj: App) -> ResponseType:
-        foundation = AppFoundation(app=obj)
+    async def perform_post(self, request: Request, nest_obj: App) -> ResponseType:
+        foundation = AppFoundation(app=nest_obj)
         jobs = foundation.build()
         return {'jobs': jobs}, 202
 
-    async def perform_delete(self, request: Request, obj: App) -> ResponseType:
+    async def perform_put(self, request: Request, nest_obj: App) -> ResponseType:
+        raise exceptions.NotAllowedError()
+
+    async def perform_delete(self, request: Request, nest_obj: App) -> ResponseType:
         raise exceptions.NotAllowedError()
 
 
@@ -83,6 +89,9 @@ class AppEnvVarsView(NestedListView):
         }
         return payload, 201
 
+    async def perform_put(self, request: Request, nest_obj: App) -> ResponseType:
+        raise exceptions.NotAllowedError()
+
     async def perform_delete(self, request: Request, nest_obj: App) -> ResponseType:
         for key in request.json:
             nest_obj.unset_env_var(key=key)
@@ -109,6 +118,9 @@ class AppDatabaseView(NestedListView):
         payload = new_obj.database.serialize()
         return payload, 201
 
+    async def perform_put(self, request: Request, nest_obj: App) -> ResponseType:
+        raise exceptions.NotAllowedError()
+
     async def perform_delete(self, request: Request, nest_obj: App) -> ResponseType:
         nest_obj.database = None
         nest_obj.save()
@@ -133,7 +145,10 @@ class AppApplyView(NestedListView):
         # TODO Add support to re-deploy
         return {'trigger_id': trigger_id}, 201
 
-    async def perform_delete(self, request: Request, obj: App) -> ResponseType:
+    async def perform_put(self, request: Request, nest_obj: App) -> ResponseType:
+        raise exceptions.NotAllowedError()
+
+    async def perform_delete(self, request: Request, nest_obj: App) -> ResponseType:
         raise exceptions.NotAllowedError()
 
 

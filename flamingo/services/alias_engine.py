@@ -33,7 +33,7 @@ class ReplacementEngine:
         for alias_to in aliases_to:
             try:
                 replace_with = self.replacements[alias_to]
-                new_value = new_value.replace("${%s}" % alias_to, replace_with)
+                new_value = new_value.replace(f"${{{alias_to}}}", replace_with)
             except KeyError as e:
                 raise ValidationError(f"Could not find the referenced value for {alias_to}") from e
 
@@ -43,8 +43,8 @@ class ReplacementEngine:
 class AliasEngine:
     def __init__(self, items: KeyValue, replacements: ReplacementEngine = None):
         super().__init__()
-        self._concrete: KeyValue = dict()
-        self._virtual: KeyValue = dict()
+        self._concrete: KeyValue = {}
+        self._virtual: KeyValue = {}
 
         if not replacements:
             replacements = ReplacementEngine()
