@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -13,6 +14,7 @@ from models.base import KeyValue
 from models.buildpack import Target
 from models.schedule import ScheduledInvocation
 from services.alias_engine import AliasEngine, ReplacementEngine
+from services.foundations import AppFoundation
 
 logger = logging.getLogger()
 
@@ -406,7 +408,10 @@ class CloudRunFactory(BuildTriggerFactory):
             url = service['status']['url']
         except NotFound as e:
             logger.warning(str(e))
-            url = self._create_run_placeholder()
+            co = AppFoundation(app=self.app).setup_placeholder()
+            loop = asyncio.get_running_loop()
+            app = loop.run_until_complete(co)
+            url = app.url
         return url
 
 
