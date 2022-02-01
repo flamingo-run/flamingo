@@ -323,7 +323,7 @@ class CloudRunFactory(BuildTriggerFactory):
                 '--project', f"{self._substitution.PROJECT_ID}",
                 '--memory', f"{self._substitution.RAM}Mi",
                 '--cpu', f"{self._substitution.CPU}",
-                # '--min-instances', f"{substitution.MIN_INSTANCES}",  # TODO: gcloud beta, not supported yet
+                '--min-instances', f"{self._substitution.MIN_INSTANCES}",
                 '--max-instances', f"{self._substitution.MAX_INSTANCES}",
                 '--timeout', f"{self._substitution.TIMEOUT}",
                 '--concurrency', f"{self._substitution.CONCURRENCY}",
