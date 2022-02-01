@@ -32,6 +32,7 @@ class Build(EmbeddedDocument):
     entrypoint: str = None
     directory: str = None
     build_timeout: int = 60 * 30  # <https://cloud.google.com/cloud-build/docs/build-config#timeout_2>
+    machine_type: str = None
 
     _build_pack: BuildPack = None
 
