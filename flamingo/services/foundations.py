@@ -141,7 +141,7 @@ class AppFoundation(BaseFoundation):
 
         extra_update = {}
         if self.app.gateway:
-            labels = {label.key: label.value for label in self.app.get_all_labels()}
+            labels = {label.key: label.value for label in self.app.get_all_labels() if not label.value.startswith("$")}
             gateway = APIGateway()
 
             try:
@@ -195,7 +195,7 @@ class AppFoundation(BaseFoundation):
 
             ServiceUsage().enable_service(service_name=gateway_info.gateway_service, project_id=self.app.project.id)
 
-        App.documents.update(pk=self.app.pk, endpoint=url, **extra_update)
+        return App.documents.update(pk=self.app.pk, endpoint=url, **extra_update)
 
     async def setup_bucket(self):
         bucket = self.app.bucket
