@@ -168,7 +168,7 @@ class BuildTriggerFactory(ABC):
             tags=self._build.get_tags(app=self.app),
             substitutions=self._substitution,
             timeout=self._build.build_timeout,
-            options=options,
+            machine_type=self.app.build.machine_type,
         )
 
         return response.id
