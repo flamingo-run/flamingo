@@ -33,9 +33,29 @@ class BuildPack(Document):
     post_build_commands: List[str] = field(default_factory=list)
     env_vars: List[EnvVar] = field(default_factory=list)
     dockerfile_url: str = None
+    dockerfile_stages: List[str] = field(default_factory=list)
 
     def __post_init__(self):
         self.name = slugify(self.name)
+        self._extract_dockerfile_stages()
+
+    def _extract_dockerfile_stages(self):
+        if not self.dockerfile_url:
+            return
+
+        storage = CloudStorage()
+        blob = storage.get_file(uri=self.dockerfile_url)
+        content = blob.download_as_text()
+
+        image_names = []
+        for row in content.splitlines():
+            if not row.startswith('FROM') or " as " not in row.lower():
+                continue
+            _, image_name = row.replace(" AS ", " as ").split(" as ")
+            image_names.append(image_name.strip())
+
+        image_names.append("")  # the whole dockerfile image
+        self.dockerfile_stages = image_names
 
     @property
     def tags(self):

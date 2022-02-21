@@ -41,6 +41,11 @@ class BuildTriggerFactory(ABC):
         self._build = self.app.build
         self._build_pack = self.app.build.build_pack
 
+        self._build_stages = [
+            (stage, self._build.get_image_name(app=self.app, stage=stage))
+            for stage in self.app.build.build_pack.dockerfile_stages
+        ]
+
     def init(self):
         # key-value pairs
         self._setup_params = self._get_setup_params()
@@ -161,7 +166,7 @@ class BuildTriggerFactory(ABC):
             event=event,
             project_id=self.app.build.project.id,
             steps=self.steps,
-            images=[self._build.get_image_name(app=self.app)],
+            images=[stage[1] for stage in self._build_stages],
             tags=self._build.get_tags(app=self.app),
             substitutions=self._substitution,
             timeout=self._build.build_timeout,
@@ -194,7 +199,7 @@ class CloudRunFactory(BuildTriggerFactory):
 
     def _get_setup_params(self) -> KeyValue:
         params = dict(
-            IMAGE_NAME=self._build.get_image_name(app=self.app),
+            IMAGE_NAME=self._build_stages[-1][1],
             REGION=self.app.region,
             CPU=self._build.cpu,
             RAM=self._build.memory,
@@ -218,12 +223,8 @@ class CloudRunFactory(BuildTriggerFactory):
         return params
 
     def _add_cache_step(self):
-        cache_loader = self._service.make_build_step(
-            name='gcr.io/cloud-builders/docker',
-            identifier="Image Cache",
-            entrypoint='bash',
-            args=["-c", f"docker pull {self._substitution.IMAGE_NAME} || exit 0"],
-        )
+        commands = [f"docker pull {stage_image} || true" for _, stage_image in self._build_stages]
+        cache_loader = self._make_bash_multi_command(identifier="Image Cache", commands=commands)
         self.steps.append(cache_loader)
 
     def _add_dockerfile_step(self):
@@ -242,51 +243,72 @@ class CloudRunFactory(BuildTriggerFactory):
     def _add_build_step(self):
         build_args = self._get_build_args_as_param()
 
-        image_builder = self._service.make_build_step(
+        for idx, (stage_name, stage_image) in enumerate(self._build_stages):
+            dependencies = [stage[1] for stage in self._build_stages[:idx+1]]
+
+            cache_from = []
+            for dependency_image in dependencies:
+                cache_from.append("--cache-from")
+                cache_from.append(dependency_image)
+
+            image_builder = self._service.make_build_step(
+                name='gcr.io/cloud-builders/docker',
+                identifier=f"Image Build | {stage_name}",
+                args=[
+                    "build",
+                    "-t", f"{stage_image}",
+                    "--target", f"{stage_name}",
+                    *cache_from,
+                    *build_args,
+                    "."
+                ],
+            )
+            self.steps.append(image_builder)
+
+    def _make_bash_multi_command(self, identifier: str, commands: List[str]):
+        first = commands[0]
+        additional = [f"&& {command}" for command in commands[1:]]
+
+        command = " ".join([first] + additional)
+
+        return self._service.make_build_step(
             name='gcr.io/cloud-builders/docker',
-            identifier="Image Build",
-            args=[
-                "build",
-                "-t",
-                f"{self._substitution.IMAGE_NAME}",
-                *build_args,
-                "--cache-from", f"{self._substitution.IMAGE_NAME}",
-                "."
-            ],
+            identifier=identifier,
+            entrypoint='bash',
+            args=["-c", command],
         )
-        self.steps.append(image_builder)
 
     def _add_push_step(self):
-        # TODO: replace with image attribute?
-        image_pusher = self._service.make_build_step(
-            name="gcr.io/cloud-builders/docker",
-            identifier="Image Upload",
-            args=["push", f"{self._substitution.IMAGE_NAME}"],
-        )
+        # https://cloud.google.com/build/docs/building/build-containers#store-images
+        # The images= argument will push images automatically IN THE END
+        # But since we have steps in the middle that need the image (ie. migration, deployment)
+        commands = [f"docker push {stage_image}" for _, stage_image in self._build_stages]
+
+        image_pusher = self._make_bash_multi_command(identifier="Image Upload", commands=commands)
         self.steps.append(image_pusher)
 
-    def _add_custom_command_steps(self):
+    def _make_command_step(self, title: str, command: str):
         db_params = self._get_db_as_param('-s')
         env_params = self._get_env_var_as_param('-e')
 
-        def _make_command_step(title: str, command: str):
-            # More info: https://github.com/GoogleCloudPlatform/ruby-docker/tree/master/app-engine-exec-wrapper
-            # Caveats: default ComputeEngine service account here, not app's service account as it should be
-            # so it's the app's responsibility to impersonate
-            return self._service.make_build_step(
-                identifier=title,
-                name="gcr.io/google-appengine/exec-wrapper",
-                args=[
-                    "-i", f"{self._substitution.IMAGE_NAME}",
-                    *db_params,
-                    *env_params,
-                    "--",
-                    *command.split(),  # TODO Handle quoted command
-                ],
-            )
+        # More info: https://github.com/GoogleCloudPlatform/ruby-docker/tree/master/app-engine-exec-wrapper
+        # Caveats: default ComputeEngine service account here, not app's service account as it should be
+        # so it's the app's responsibility to impersonate
+        return self._service.make_build_step(
+            identifier=title,
+            name="gcr.io/google-appengine/exec-wrapper",
+            args=[
+                "-i", f"{self._substitution.IMAGE_NAME}",
+                *db_params,
+                *env_params,
+                "--",
+                *command.split(),  # TODO Handle quoted command
+            ],
+        )
 
+    def _add_custom_command_steps(self):
         custom = [
-            _make_command_step(title=f"Custom {idx + 1} | {command}", command=command)
+            self._make_command_step(title=f"Custom {idx + 1} | {command}", command=command)
             for idx, command in enumerate(self._build_pack.get_extra_build_steps(app=self.app))
         ]
         self.steps.extend(custom)

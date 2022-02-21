@@ -26,8 +26,9 @@ from models.environment import Environment
 class BaseFoundation(abc.ABC):
     def build(self):
         jobs = self.get_jobs()
+        loop = asyncio.get_event_loop()
         for job in jobs.values():
-            asyncio.create_task(job())
+            loop.run_until_complete(job())
         return list(jobs)
 
     @abstractmethod

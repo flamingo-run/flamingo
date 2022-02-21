@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Optional
 
 from gcp_pilot.datastore import EmbeddedDocument
 from sanic_rest import exceptions
@@ -56,8 +56,11 @@ class Build(EmbeddedDocument):
             self._build_pack = BuildPack.documents.get(name=self.build_pack_name)
         return self._build_pack
 
-    def get_image_name(self, app: 'App') -> str:
-        return f"gcr.io/{app.build.project.id}/{app.name}:latest"
+    def get_image_name(self, app: 'App', stage: Optional[str] = None) -> str:
+        name = app.name
+        if stage:
+            name = f"{name}--{stage}"
+        return f"gcr.io/{app.build.project.id}/{name}:latest"
 
     def get_labels(self) -> List[Label]:
         all_labels = self.labels.copy()
