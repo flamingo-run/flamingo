@@ -41,9 +41,10 @@ class BuildTriggerFactory(ABC):
         self._build = self.app.build
         self._build_pack = self.app.build.build_pack
 
+        stages = self.app.build.build_pack.dockerfile_stages or [""]
         self._build_stages = [
             (stage, self._build.get_image_name(app=self.app, stage=stage))
-            for stage in self.app.build.build_pack.dockerfile_stages
+            for stage in stages
         ]
 
     def init(self):
@@ -251,13 +252,14 @@ class CloudRunFactory(BuildTriggerFactory):
                 cache_from.append("--cache-from")
                 cache_from.append(dependency_image)
 
+            targeting = ["--target", f"{stage_name}"] if stage_name else []
             image_builder = self._service.make_build_step(
                 name='gcr.io/cloud-builders/docker',
-                identifier=f"Image Build | {stage_name}",
+                identifier=f"Image Build | {stage_name or 'final'}",
                 args=[
                     "build",
                     "-t", f"{stage_image}",
-                    "--target", f"{stage_name}",
+                    *targeting,
                     *cache_from,
                     *build_args,
                     "."

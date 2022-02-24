@@ -49,12 +49,15 @@ class BuildPack(Document):
 
         image_names = []
         for row in content.splitlines():
-            if not row.startswith('FROM') or " as " not in row.lower():
+            if not row.startswith('FROM'):
                 continue
-            _, image_name = row.replace(" AS ", " as ").split(" as ")
-            image_names.append(image_name.strip())
 
-        image_names.append("")  # the whole dockerfile image
+            if " as " not in row.lower():
+                image_names.append("")  # the whole dockerfile image
+            else:
+                _, image_name = row.replace(" AS ", " as ").split(" as ")
+                image_names.append(image_name.strip())
+
         self.dockerfile_stages = image_names
 
     @property
