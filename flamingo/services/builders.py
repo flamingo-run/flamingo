@@ -376,18 +376,34 @@ class CloudRunFactory(BuildTriggerFactory):
         unique_identifier = "${COMMIT_SHA}"
         config_name = f"{self._substitution.SERVICE_NAME}-{unique_identifier}"
 
+        spec_path = self.app.gateway.spec_path
+        spec_output_path = "openapi.yaml"
+
+        if not self.app.gateway.gateway_service:
+            raise ValueError("Missing gateway-service")
+
         # We use the default volume to share date between steps
         # https://cloud.google.com/build/docs/build-config#volumes
-        spec_path = self.app.gateway.spec_path
-        custom_yaml = f"x-google-backend:\\n  address: {self.app.endpoint}\\n"
-        custom_yaml += f'host:  \\"{self.app.gateway.gateway_service}\\"\\n'
-        custom_yaml += f'x-google-endpoints:\\n- name: \\"{self.app.gateway.gateway_service}\\"\\n  allowCors: true'
-        config = self._service.make_build_step(
+        params = [
+            f"backend={self.app.endpoint}",
+            f"host={self.app.gateway.gateway_service}",
+            f"cors_enabled={'1' if self.app.gateway.cors_enabled else '0'}"
+        ]
+        personalizer = self._service.make_build_step(
+            name='gcr.io/cloud-builders/docker',
             identifier="Personalize API Gateway Specification",
-            name="bash",
-            args=['-c', f'echo -e "{custom_yaml}" >> {spec_path}'],
+            entrypoint='docker',
+            args=[
+                "run",
+                "-i",
+                "-v", "/workspace:/data",
+                "-e", f"INPUT_FILE={spec_path}",
+                "-e", f"OUTPUT_FILE={spec_output_path}",
+                "joaodaher/jinjer",
+                *params,
+            ],
         )
-        self.steps.append(config)
+        self.steps.append(personalizer)
 
         config = self._service.make_build_step(
             identifier="Create API Gateway Specification",
@@ -396,7 +412,7 @@ class CloudRunFactory(BuildTriggerFactory):
             args=[
                 "api-gateway", "api-configs", "create", f"{config_name}",
                 f'--api={self._substitution.SERVICE_NAME}',
-                f'--openapi-spec={spec_path}',
+                f'--openapi-spec={spec_output_path}',
                 f'--backend-auth-service-account={self._substitution.SERVICE_ACCOUNT}',
                 f'--project={self._substitution.PROJECT_ID}',
                 f'--labels={labels_str}',
