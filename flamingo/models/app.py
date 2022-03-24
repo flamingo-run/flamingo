@@ -66,7 +66,8 @@ class App(Document):
         data["environment"] = self.environment.serialize()
         if self.service_account:
             data["service_account"].pop("key")
-            data["service_account"]["key_encoded"] = settings.Security.encrypt(self.service_account.json_key)
+            if self.service_account.json_key:
+                data["service_account"]["key_encoded"] = settings.Security.encrypt(self.service_account.json_key)
         return data
 
     def __str__(self):

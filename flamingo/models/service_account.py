@@ -37,4 +37,4 @@ class ServiceAccount(EmbeddedDocument):
 
     @property
     def json_key(self) -> str:
-        return base64.b64decode(self.key).decode()
+        return base64.b64decode(self.key).decode() if self.key else None
