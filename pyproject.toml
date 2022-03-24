@@ -13,6 +13,7 @@ sanic-rest = "*"
 gcp-pilot = { version = "*", extras = ['datastore', 'build', 'storage', 'pubsub', 'dns']}
 python-slugify = "*"
 PyGithub = "*"
+cryptography = "*"
 pylint = { version = "*", optional = true}
 coverage = { version = "*", optional = true}
 

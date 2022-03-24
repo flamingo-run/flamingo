@@ -8,6 +8,7 @@ from google.api_core.exceptions import FailedPrecondition
 from sanic_rest import exceptions
 from slugify import slugify
 
+import settings
 from models.base import random_password, KeyValue
 from models.bucket import Bucket
 from models.build import Build
@@ -64,7 +65,8 @@ class App(Document):
         data.pop('environment_name')
         data["environment"] = self.environment.serialize()
         if self.service_account:
-            data["service_account"]["key"] = self.service_account.json_key
+            data["service_account"].pop("key")
+            data["service_account"]["key_encoded"] = settings.Security.encrypt(self.service_account.json_key)
         return data
 
     def __str__(self):
