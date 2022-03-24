@@ -62,8 +62,9 @@ class App(Document):
         data = super().serialize()
 
         data.pop('environment_name')
-        data['environment'] = self.environment.serialize()
-
+        data["environment"] = self.environment.serialize()
+        if self.service_account:
+            data["service_account"]["key"] = self.service_account.json_key
         return data
 
     def __str__(self):
