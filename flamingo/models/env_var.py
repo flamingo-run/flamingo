@@ -20,8 +20,8 @@ class EnvVar(KeyValueEmbeddedDocument):
 
     def serialize(self) -> Dict:
         data = super().serialize()
-        if self.is_secret:
-            data['value'] = REDACTED
+        # if self.is_secret:
+        #     data['value'] = REDACTED
         return data
 
     @property
