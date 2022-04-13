@@ -31,7 +31,7 @@ class ServiceAccount(EmbeddedDocument):
         iam = IdentityAccessManager(project_id=self.project.id)
         for key_data in iam.list_keys(service_account_name=self.name):
             if key_data["keyType"] == "USER_MANAGED":
-                iam.delete_key(id=key_data["id"], service_account_name=self.name)
+                iam.delete_key(key_id=key_data["id"], service_account_name=self.name)
         key_data = iam.create_key(service_account_name=self.name)
         self.key = key_data["privateKeyData"]
 
