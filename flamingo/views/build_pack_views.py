@@ -1,3 +1,5 @@
+from typing import Dict
+
 from sanic import Blueprint
 from sanic.request import File
 from sanic_rest.views import DetailView, ListView, PayloadType
@@ -10,8 +12,8 @@ build_packs = Blueprint('build-packs', url_prefix='/build-packs')
 class BuildPackListView(ListView):
     model = BuildPack
 
-    async def perform_create(self, data: PayloadType) -> BuildPack:
-        obj = await super().perform_create(data=data)
+    async def perform_create(self, data: PayloadType, files: Dict[str, File]) -> BuildPack:
+        obj = await super().perform_create(data=data, files=files)
         return obj
 
 
