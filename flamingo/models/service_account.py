@@ -1,7 +1,6 @@
 import base64
-import json
 from dataclasses import dataclass, field
-from typing import List, Dict, ClassVar
+from typing import List, ClassVar, Optional
 
 from gcp_pilot.datastore import EmbeddedDocument
 from gcp_pilot.iam import IdentityAccessManager
@@ -16,7 +15,7 @@ class ServiceAccount(EmbeddedDocument):
     display_name: str = ""
     roles: List[str] = field(default_factory=list)
     project: Project = field(default_factory=Project.default)
-    key: str = None
+    key: Optional[str] = None
 
     _exclude_from_indexes: ClassVar = ("key",)
 
@@ -36,5 +35,5 @@ class ServiceAccount(EmbeddedDocument):
         self.key = key_data["privateKeyData"]
 
     @property
-    def json_key(self) -> str:
+    def json_key(self) -> Optional[str]:
         return base64.b64decode(self.key).decode() if self.key else None
