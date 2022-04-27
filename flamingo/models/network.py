@@ -14,7 +14,7 @@ class Network(EmbeddedDocument):
 
     def __post_init__(self):
         if not self.zone_name:
-            self.zone_name = self.zone.strip('.').replace('.', '-')
+            self.zone_name = self.zone.strip(".").replace(".", "-")
 
     def get_record_name(self, domain):
-        return f'{domain}.{self.zone}'
+        return f"{domain}.{self.zone}"

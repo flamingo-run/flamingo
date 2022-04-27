@@ -9,7 +9,6 @@ from models.base import KeyValue
 
 logger = logging.getLogger()
 
-
 ALIAS_REGEX = r"\${(?P<alias_to>\w+)}"
 
 

@@ -5,14 +5,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Callable
 
+from gcp_pilot.api_gateway import APIGateway
 from gcp_pilot.build import CloudBuild
 from gcp_pilot.dns import CloudDNS, RecordType
 from gcp_pilot.exceptions import NotFound, AlreadyExists
 from gcp_pilot.iam import IdentityAccessManager
 from gcp_pilot.resource import ResourceManager
-from gcp_pilot.api_gateway import APIGateway
-from gcp_pilot.service_usage import ServiceUsage
 from gcp_pilot.run import CloudRun
+from gcp_pilot.service_usage import ServiceUsage
 from gcp_pilot.sql import CloudSQL
 from gcp_pilot.storage import CloudStorage
 from google.api_core.exceptions import Conflict
@@ -40,7 +40,7 @@ class BaseFoundation(abc.ABC):
 class FlamingoFoundation(BaseFoundation):
     def get_jobs(self) -> Dict[str, Callable]:
         return {
-            'bucket': self.setup_bucket,
+            "bucket": self.setup_bucket,
         }
 
     async def setup_bucket(self):
@@ -59,8 +59,8 @@ class EnvironmentFoundation(BaseFoundation):
     def get_jobs(self) -> Dict[str, Callable]:
         # TODO Check flamingo permissions on project
         return {
-            'notification': self.setup_build_notifications,
-            'iam': self.setup_iam,
+            "notification": self.setup_build_notifications,
+            "iam": self.setup_iam,
         }
 
     async def setup_iam(self):
@@ -91,14 +91,14 @@ class EnvironmentFoundation(BaseFoundation):
         grm = ResourceManager()
         await grm.add_member(
             email=self.environment.project.pubsub_account,
-            role='iam.serviceAccountTokenCreator',
+            role="iam.serviceAccountTokenCreator",
             project_id=settings.FLAMINGO_PROJECT,
         )
 
         build = CloudBuild()
-        url = f'{settings.FLAMINGO_URL}/hooks/build'
+        url = f"{settings.FLAMINGO_URL}/hooks/build"
         await build.subscribe(
-            subscription_id='flamingo',
+            subscription_id="flamingo",
             project_id=self.environment.project.id,
             push_to_url=url,
             use_oidc_auth=True,
@@ -112,11 +112,11 @@ class AppFoundation(BaseFoundation):
 
     def get_jobs(self) -> Dict[str, Callable]:
         return {
-            'iam': self.setup_iam,
-            'bucket': self.setup_bucket,
-            'placeholder': self.setup_placeholder,
-            'database': self.setup_database,
-            'custom_domains': self.setup_custom_domains,
+            "iam": self.setup_iam,
+            "bucket": self.setup_bucket,
+            "placeholder": self.setup_placeholder,
+            "database": self.setup_database,
+            "custom_domains": self.setup_custom_domains,
         }
 
     async def setup_placeholder(self):
@@ -138,7 +138,7 @@ class AppFoundation(BaseFoundation):
         url = None
         while not url:
             service = run.get_service(**service_params)
-            url = service['status'].get('url')
+            url = service["status"].get("url")
 
         extra_update = {}
         if self.app.gateway:
@@ -278,25 +278,25 @@ class AppFoundation(BaseFoundation):
         await iam.bind_member(
             target_email=self.app.project.compute_account,
             member_email=cloud_build_account,
-            role='iam.serviceAccountUser',
+            role="iam.serviceAccountUser",
             project_id=project_id,
         )
         # ..and to impersonate the app's account (very common during custom steps)
         await grm.add_member(
             email=cloud_build_account,
-            role='iam.serviceAccountTokenCreator',
+            role="iam.serviceAccountTokenCreator",
             project_id=project_id,
         )
         # ...and get buildpack's Dockerfile from Flamingo's project
         await grm.add_member(
             email=cloud_build_account,
-            role='storage.objectViewer',
+            role="storage.objectViewer",
             project_id=settings.FLAMINGO_PROJECT,
         )
         # ...and store app's Dockerfile in build's project
         await grm.add_member(
             email=cloud_build_account,
-            role='storage.admin',
+            role="storage.admin",
             project_id=project_id,
         )
 
@@ -307,13 +307,13 @@ class AppFoundation(BaseFoundation):
         # ...pull container images from build's project
         await grm.add_member(
             email=cloud_run_account,
-            role='containerregistry.ServiceAgent',
+            role="containerregistry.ServiceAgent",
             project_id=self.app.build.project.id,
         )
         # ... deploy as the app's service account
         await grm.add_member(
             email=self.app.project.cloud_run_account,
-            role='iam.serviceAccountTokenCreator',
+            role="iam.serviceAccountTokenCreator",
             project_id=self.app.project.id,
         )
 
@@ -326,7 +326,7 @@ class AppFoundation(BaseFoundation):
         for service in related_services:
             await grm.add_member(
                 email=service,
-                role='iam.serviceAccountTokenCreator',
+                role="iam.serviceAccountTokenCreator",
                 project_id=self.app.project.id,
             )
 
@@ -334,15 +334,15 @@ class AppFoundation(BaseFoundation):
         run = CloudRun()
 
         def _is_ready(domain_mapping):
-            conditions = domain_mapping['status'].get('conditions', [])
+            conditions = domain_mapping["status"].get("conditions", [])
             for condition in conditions:
-                if condition['type'] != 'Ready':
+                if condition["type"] != "Ready":
                     continue
-                status = condition['status']
-                if status == 'True':
-                    return bool(mapped_domain['status'].get('resourceRecords', []))
-                elif 'does not exist' in condition.get('message', ''):
-                    raise NotFound(condition['message'])
+                status = condition["status"]
+                if status == "True":
+                    return bool(mapped_domain["status"].get("resourceRecords", []))
+                elif "does not exist" in condition.get("message", ""):
+                    raise NotFound(condition["message"])
                 return True
             return False
 
@@ -364,14 +364,14 @@ class AppFoundation(BaseFoundation):
             network = self.app.environment.network
             dns = CloudDNS(project_id=network.project.id)
 
-            for record in mapped_domain['status']['resourceRecords']:
+            for record in mapped_domain["status"]["resourceRecords"]:
                 try:
                     dns.add_record(
                         zone_name=network.zone_name,
                         zone_dns=network.zone,
-                        name=network.get_record_name(domain=record['name']),
-                        record_type=RecordType.CNAME if record['type'] == 'CNAME' else RecordType.A,
-                        record_data=[record['rrdata']],
+                        name=network.get_record_name(domain=record["name"]),
+                        record_type=RecordType.CNAME if record["type"] == "CNAME" else RecordType.A,
+                        record_data=[record["rrdata"]],
                     )
                 except Conflict:
                     continue

@@ -4,13 +4,13 @@ from typing import Dict
 
 from models.base import KeyValueEmbeddedDocument
 
-REDACTED = '**********'
+REDACTED = "**********"
 
 
 class EnvVarSource(Enum):
-    USER = 'user'
-    SHARED = 'shared'
-    FLAMINGO = 'flamingo'
+    USER = "user"
+    SHARED = "shared"
+    FLAMINGO = "flamingo"
 
 
 @dataclass

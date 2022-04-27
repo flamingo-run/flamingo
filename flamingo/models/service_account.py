@@ -21,10 +21,10 @@ class ServiceAccount(EmbeddedDocument):
 
     @property
     def email(self) -> str:
-        return f'{self.name}@{self.project.id}.iam.gserviceaccount.com'
+        return f"{self.name}@{self.project.id}.iam.gserviceaccount.com"
 
     def get_all_roles(self):
-        return self.roles + ['run.admin']
+        return self.roles + ["run.admin"]
 
     def rotate_key(self):
         iam = IdentityAccessManager(project_id=self.project.id)

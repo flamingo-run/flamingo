@@ -43,9 +43,9 @@ class Build(EmbeddedDocument):
 
     def serialize(self) -> dict:
         data = super().serialize()
-        data.pop('app_id')
+        data.pop("app_id")
 
-        data.pop('build_pack_name')
+        data.pop("build_pack_name")
         data['build_pack'] = self.build_pack.serialize()
 
         return data
@@ -56,7 +56,7 @@ class Build(EmbeddedDocument):
             self._build_pack = BuildPack.documents.get(name=self.build_pack_name)
         return self._build_pack
 
-    def get_image_name(self, app: 'App', stage: Optional[str] = None) -> str:
+    def get_image_name(self, app: "App", stage: Optional[str] = None) -> str:
         name = app.name
         if stage:
             name = f"{name}--{stage}"
@@ -68,23 +68,27 @@ class Build(EmbeddedDocument):
         # https://cloud.google.com/run/docs/continuous-deployment-with-cloud-build#attach_existing_trigger_to_service
         # Does not seem to work when the trigger and the service deployed are not in the same project
         if self.trigger_id:
-            all_labels.extend([
-                Label(key='gcb-trigger-id', value=self.trigger_id),
-                Label(key='commit-sha', value='$COMMIT_SHA'),
-                Label(key='gcb-build-id', value='$BUILD_ID'),
-                Label(key='managed-by', value='gcp-cloud-build-deploy-cloud-run'),
-            ])
+            all_labels.extend(
+                [
+                    Label(key="gcb-trigger-id", value=self.trigger_id),
+                    Label(key="commit-sha", value="$COMMIT_SHA"),
+                    Label(key="gcb-build-id", value="$BUILD_ID"),
+                    Label(key="managed-by", value="gcp-cloud-build-deploy-cloud-run"),
+                ]
+            )
         return all_labels
 
-    def get_tags(self, app: 'App') -> List[str]:
+    def get_tags(self, app: "App") -> List[str]:
         return self.build_pack.tags + [
-            f'{app.name}',
+            f"{app.name}",
         ]
 
     def get_build_args(self) -> KeyValue:
         all_build_args = self.build_pack.get_build_args()
-        all_build_args.update({
-            'OS_DEPENDENCIES': ','.join(self.os_dependencies),
-        })
+        all_build_args.update(
+            {
+                "OS_DEPENDENCIES": ",".join(self.os_dependencies),
+            }
+        )
         all_build_args.update(**self.build_args)
         return all_build_args

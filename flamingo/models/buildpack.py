@@ -18,8 +18,8 @@ if TYPE_CHECKING:
 
 
 class Target(Enum):
-    CLOUD_RUN = 'cloud-run'
-    CLOUD_FUNCTIONS = 'cloud-functions'
+    CLOUD_RUN = "cloud-run"
+    CLOUD_FUNCTIONS = "cloud-functions"
 
 
 @dataclass
@@ -49,7 +49,7 @@ class BuildPack(Document):
 
         image_names = []
         for row in content.splitlines():
-            if not row.startswith('FROM'):
+            if not row.startswith("FROM"):
                 continue
 
             if " as " not in row.lower():
@@ -64,17 +64,17 @@ class BuildPack(Document):
     def tags(self):
         if self.target == Target.CLOUD_RUN.value:
             return [
-                'gcp-cloud-build-deploy-cloud-run',
-                'gcp-cloud-build-deploy-cloud-run-managed',
+                "gcp-cloud-build-deploy-cloud-run",
+                "gcp-cloud-build-deploy-cloud-run-managed",
             ]
         return []
 
     @property
     def local_dockerfile(self) -> Path:
-        return settings.PROJECT_DIR / 'engine' / self.name / 'Dockerfile'
+        return settings.PROJECT_DIR / "engine" / self.name / "Dockerfile"
 
     async def upload_dockerfile(self):
-        target_file_name = f'buildpack/{self.name}/Dockerfile'
+        target_file_name = f"buildpack/{self.name}/Dockerfile"
 
         gcs = CloudStorage()
 
@@ -101,12 +101,12 @@ class BuildPack(Document):
 
     def get_build_args(self) -> KeyValue:
         all_build_args = {
-            'RUNTIME': self.runtime,
+            "RUNTIME": self.runtime,
         }
         all_build_args.update(self.build_args)
         return all_build_args
 
-    def get_extra_build_steps(self, app: 'App') -> List[str]:
+    def get_extra_build_steps(self, app: "App") -> List[str]:
         custom_steps = self.post_build_commands.copy()
         custom_steps.extend(app.build.post_build_commands)
         return custom_steps

@@ -7,6 +7,4 @@ from views.hook_views import hooks
 
 api = Blueprint.group(*[apps, build_packs, environments, hooks])
 
-__all__ = (
-    'api',
-)
+__all__ = ("api",)

@@ -18,19 +18,19 @@ securityDefinitions:
     name: x-api-key
     in: header
 security:
-  - Bearer: []
+  - Bearer: [ ]
 paths:
   /healthcheck:
     get:
       operationId: healthcheck_list
       description: ''
-      parameters: []
+      parameters: [ ]
       responses:
         '200':
           description: ''
       tags:
         - healthcheck
-      security: []
-    parameters: []
+      security: [ ]
+    parameters: [ ]
 x-google-backend:
   address: https://sample-api-pawsjwquka-ue.a.run.app

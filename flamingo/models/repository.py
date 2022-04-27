@@ -19,9 +19,9 @@ class Repository(EmbeddedDocument):
     def __post_init__(self):
         if not self.access_token:
             self.access_token = settings.GIT_ACCESS_TOKEN
-        if '/' not in self.name:
+        if "/" not in self.name:
             raise exceptions.ValidationError("Repository name must have the format <user|org>/<repo-name>")
-        self.url = f'https://github.com/{self.name}'
+        self.url = f"https://github.com/{self.name}"
 
     def as_event(self, branch_name: str, tag_name: str) -> AnyEventType:
         build = CloudBuild()

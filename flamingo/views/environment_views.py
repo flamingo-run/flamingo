@@ -6,7 +6,7 @@ from sanic_rest.views import DetailView, ListView, NestedListView, ResponseType
 from models.environment import Environment
 from services.foundations import EnvironmentFoundation
 
-environments = Blueprint('environments', url_prefix='/environments')
+environments = Blueprint("environments", url_prefix="/environments")
 
 
 class EnvironmentListView(ListView):
@@ -23,12 +23,12 @@ class EnvironmentInitializeView(NestedListView):
     async def perform_get(self, request: Request, nest_obj: Environment) -> ResponseType:
         foundation = EnvironmentFoundation(environment=nest_obj)
         jobs = foundation.get_jobs()
-        return {'jobs': list(jobs.keys())}, 200
+        return {"jobs": list(jobs.keys())}, 200
 
     async def perform_post(self, request: Request, nest_obj: Environment) -> ResponseType:
         foundation = EnvironmentFoundation(environment=nest_obj)
         jobs = foundation.build()
-        return {'jobs': jobs}, 202
+        return {"jobs": jobs}, 202
 
     async def perform_put(self, request: Request, nest_obj: Environment) -> ResponseType:
         raise exceptions.NotAllowedError()
@@ -37,6 +37,6 @@ class EnvironmentInitializeView(NestedListView):
         raise exceptions.NotAllowedError()
 
 
-environments.add_route(EnvironmentListView.as_view(), '/')
-environments.add_route(EnvironmentDetailView.as_view(), '/<pk>')
-environments.add_route(EnvironmentInitializeView.as_view(), '/<pk>/init')
+environments.add_route(EnvironmentListView.as_view(), "/")
+environments.add_route(EnvironmentDetailView.as_view(), "/<pk>")
+environments.add_route(EnvironmentInitializeView.as_view(), "/<pk>/init")

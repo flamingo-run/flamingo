@@ -30,7 +30,5 @@ class Environment(Document):
             var.source = EnvVarSource.SHARED.value
             all_vars.append(var)
 
-        all_vars.extend([
-            EnvVar(key='ENV', value=self.name, source=EnvVarSource.FLAMINGO)
-        ])
+        all_vars.extend([EnvVar(key="ENV", value=self.name, source=EnvVarSource.FLAMINGO)])
         return all_vars

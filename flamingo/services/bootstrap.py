@@ -17,22 +17,22 @@ class AppBootstrap:
     def check(self):
         changes = {}
         if not self.app.database:
-            changes['database'] = self.database
+            changes["database"] = self.database
 
         if not self.app.bucket:
-            changes['bucket'] = self.bucket
+            changes["bucket"] = self.bucket
 
         if not self.app.service_account:
-            changes['service_account'] = self.service_account
+            changes["service_account"] = self.service_account
 
         if not self.app.repository:
-            changes['repository'] = self.repository
+            changes["repository"] = self.repository
 
         if not self.app.domains:
-            changes['domains'] = self.domains
+            changes["domains"] = self.domains
 
         if not self.app.gateway:
-            changes['gateway'] = self.gateway
+            changes["gateway"] = self.gateway
 
         return changes
 
@@ -56,7 +56,7 @@ class AppBootstrap:
         return Database(
             instance=self.app.name,
             name=self.app.path,
-            user=f'app.{self.app.path}',
+            user=f"app.{self.app.path}",
             password=random_password(20),
             project=self.app.project,
         )
@@ -77,9 +77,8 @@ class AppBootstrap:
             "iam.serviceAccountTokenCreator",
             "logging.logWriter",
             "errorreporting.writer",
-
             "storage.objectAdmin",
-            "cloudsql.client"
+            "cloudsql.client",
         ]
 
         if self.app.build.build_pack.target == Target.CLOUD_RUN.value:
@@ -99,7 +98,7 @@ class AppBootstrap:
     def domains(self):
         if self.app.environment.network:
             return [
-                f'{self.app.name}.{self.app.environment.network.zone}',
+                f"{self.app.name}.{self.app.environment.network.zone}",
             ]
         return []
 

@@ -2,7 +2,7 @@
 import asyncio
 import logging
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, ClassVar, Tuple, Union
 
 from gcp_pilot.build import CloudBuild, Substitutions
@@ -22,12 +22,12 @@ logger = logging.getLogger()
 
 @dataclass
 class BuildTriggerFactory(ABC):
-    DB_CONN_KEY: ClassVar = 'DATABASE_CONNECTION'
-    DOCKERFILE_CONTEXT: ClassVar = 'DOCKERFILE_CONTEXT'
-    ENV_PREFIX_KEY: ClassVar = 'ENV_'
+    DB_CONN_KEY: ClassVar = "DATABASE_CONNECTION"
+    DOCKERFILE_CONTEXT: ClassVar = "DOCKERFILE_CONTEXT"
+    ENV_PREFIX_KEY: ClassVar = "ENV_"
 
     app: App
-    steps: List[cloudbuild_v1.BuildStep] = field(default_factory=list)
+    steps: List[cloudbuild_v1.BuildStep] = Field(default_factory=list)
 
     _substitution: Substitutions = None
     _setup_params: KeyValue = None
@@ -42,10 +42,7 @@ class BuildTriggerFactory(ABC):
         self._build_pack = self.app.build.build_pack
 
         stages = self.app.build.build_pack.dockerfile_stages or [""]
-        self._build_stages = [
-            (stage, self._build.get_image_name(app=self.app, stage=stage))
-            for stage in stages
-        ]
+        self._build_stages = [(stage, self._build.get_image_name(app=self.app, stage=stage)) for stage in stages]
 
     def init(self):
         # key-value pairs
@@ -58,7 +55,7 @@ class BuildTriggerFactory(ABC):
 
         substitution.add(**self._setup_params)
         substitution.add(**self._build_args)
-        substitution.add(**{f'{self.ENV_PREFIX_KEY}{key}': value for key, value in self._env_vars.items()})
+        substitution.add(**{f"{self.ENV_PREFIX_KEY}{key}": value for key, value in self._env_vars.items()})
 
         return substitution
 
@@ -92,14 +89,14 @@ class BuildTriggerFactory(ABC):
             return [command, str(getattr(self._substitution, self.DB_CONN_KEY))]
         return []
 
-    def _get_env_var_as_param(self, command: str = '--set-env-var') -> List[str]:
+    def _get_env_var_as_param(self, command: str = "--set-env-var") -> List[str]:
         params = []
         for key, _ in self._env_vars.items():
-            sub_variable = getattr(self._substitution, f'{self.ENV_PREFIX_KEY}{key}')
+            sub_variable = getattr(self._substitution, f"{self.ENV_PREFIX_KEY}{key}")
             params.extend([command, sub_variable.as_env_var(key=key)])
         return params
 
-    def _get_build_args_as_param(self, command: str = '--build-arg') -> List[str]:
+    def _get_build_args_as_param(self, command: str = "--build-arg") -> List[str]:
         build_params = []
         for key, _ in self._build_args.items():
             sub_variable = getattr(self._substitution, key)
@@ -112,10 +109,10 @@ class BuildTriggerFactory(ABC):
 
     def _get_description(self) -> str:
         if self._build.deploy_branch:
-            _event_str = f'pushed to {self._build.deploy_branch}'
+            _event_str = f"pushed to {self._build.deploy_branch}"
         else:
-            _event_str = f'tagged {self._build.deploy_tag}'
-        return f'🦩 Deploy to {self._build.build_pack.target} when {_event_str}'
+            _event_str = f"tagged {self._build.deploy_tag}"
+        return f"🦩 Deploy to {self._build.build_pack.target} when {_event_str}"
 
     def _add_scheduled_invocation_step(self, scheduled_invocation: ScheduledInvocation, wait_for: str):
         schedule_name = f"{self.app.identifier}--{scheduled_invocation.name}"
@@ -123,21 +120,34 @@ class BuildTriggerFactory(ABC):
         auth_params = []
         if self._build.is_authenticated:
             auth_params = [
-                '--oidc-token-audience', f"{self.app.endpoint}",
-                '--oidc-service-account-email', f"{self._substitution.SERVICE_ACCOUNT}",
+                "--oidc-token-audience",
+                f"{self.app.endpoint}",
+                "--oidc-service-account-email",
+                f"{self._substitution.SERVICE_ACCOUNT}",
             ]
 
         scheduler = self._service.make_build_step(
             identifier=f"Schedule {scheduled_invocation.name}",
             name="gcr.io/google.com/cloudsdktool/cloud-sdk:slim",
-            entrypoint='gcloud',
+            entrypoint="gcloud",
             args=[
-                "beta", "scheduler", "jobs", "create", "http", "deploy", f"{schedule_name}",
-                '--uri', f"{self.app.endpoint}{scheduled_invocation.path}",
-                '--schedule', f'{scheduled_invocation.cron}',
-                '--http-method', f'{scheduled_invocation.method}',
-                '--headers', f'Content-Type={scheduled_invocation.content_type}',
-                '--region', f"{self._substitution.REGION}",
+                "beta",
+                "scheduler",
+                "jobs",
+                "create",
+                "http",
+                "deploy",
+                f"{schedule_name}",
+                "--uri",
+                f"{self.app.endpoint}{scheduled_invocation.path}",
+                "--schedule",
+                f"{scheduled_invocation.cron}",
+                "--http-method",
+                f"{scheduled_invocation.method}",
+                "--headers",
+                f"Content-Type={scheduled_invocation.content_type}",
+                "--region",
+                f"{self._substitution.REGION}",
                 *auth_params,
             ],
             # wait_for=[wait_for],
@@ -233,9 +243,9 @@ class CloudRunFactory(BuildTriggerFactory):
             sub_variable = getattr(self._substitution, self.DOCKERFILE_CONTEXT)
 
             build_pack_sync = self._service.make_build_step(
-                name='gcr.io/google.com/cloudsdktool/cloud-sdk:slim',
+                name="gcr.io/google.com/cloudsdktool/cloud-sdk:slim",
                 identifier="Build Pack Download",
-                args=['gsutil', '-m', 'cp', f"{sub_variable}", '.'],
+                args=["gsutil", "-m", "cp", f"{sub_variable}", "."],
             )
             self.steps.append(build_pack_sync)
         else:
@@ -245,7 +255,7 @@ class CloudRunFactory(BuildTriggerFactory):
         build_args = self._get_build_args_as_param()
 
         for idx, (stage_name, stage_image) in enumerate(self._build_stages):
-            dependencies = [stage[1] for stage in self._build_stages[:idx+1]]
+            dependencies = [stage[1] for stage in self._build_stages[: idx + 1]]
 
             cache_from = []
             for dependency_image in dependencies:
@@ -254,16 +264,9 @@ class CloudRunFactory(BuildTriggerFactory):
 
             targeting = ["--target", f"{stage_name}"] if stage_name else []
             image_builder = self._service.make_build_step(
-                name='gcr.io/cloud-builders/docker',
+                name="gcr.io/cloud-builders/docker",
                 identifier=f"Image Build | {stage_name or 'final'}",
-                args=[
-                    "build",
-                    "-t", f"{stage_image}",
-                    *targeting,
-                    *cache_from,
-                    *build_args,
-                    "."
-                ],
+                args=["build", "-t", f"{stage_image}", *targeting, *cache_from, *build_args, "."],
             )
             self.steps.append(image_builder)
 
@@ -274,9 +277,9 @@ class CloudRunFactory(BuildTriggerFactory):
         command = " ".join([first] + additional)
 
         return self._service.make_build_step(
-            name='gcr.io/cloud-builders/docker',
+            name="gcr.io/cloud-builders/docker",
             identifier=identifier,
-            entrypoint='bash',
+            entrypoint="bash",
             args=["-c", command],
         )
 
@@ -290,8 +293,8 @@ class CloudRunFactory(BuildTriggerFactory):
         self.steps.append(image_pusher)
 
     def _make_command_step(self, title: str, command: str):
-        db_params = self._get_db_as_param('-s')
-        env_params = self._get_env_var_as_param('-e')
+        db_params = self._get_db_as_param("-s")
+        env_params = self._get_env_var_as_param("-e")
 
         # More info: https://github.com/GoogleCloudPlatform/ruby-docker/tree/master/app-engine-exec-wrapper
         # Caveats: default ComputeEngine service account here, not app's service account as it should be
@@ -300,7 +303,8 @@ class CloudRunFactory(BuildTriggerFactory):
             identifier=title,
             name="gcr.io/google-appengine/exec-wrapper",
             args=[
-                "-i", f"{self._substitution.IMAGE_NAME}",
+                "-i",
+                f"{self._substitution.IMAGE_NAME}",
                 *db_params,
                 *env_params,
                 "--",
@@ -316,41 +320,55 @@ class CloudRunFactory(BuildTriggerFactory):
         self.steps.extend(custom)
 
     def _add_deploy_step(self):
-        db_params = self._get_db_as_param('--add-cloudsql-instances')
-        env_params = self._get_env_var_as_param('--set-env-vars')
+        db_params = self._get_db_as_param("--add-cloudsql-instances")
+        env_params = self._get_env_var_as_param("--set-env-vars")
 
-        label_params = ['--clear-labels']
+        label_params = ["--clear-labels"]
         for label in self.app.get_all_labels():
-            label_params.extend(['--update-labels', label.as_kv])
+            label_params.extend(["--update-labels", label.as_kv])
 
         vpc_connector = self.app.environment.network.vpc_connector
         if vpc_connector:
-            vpc_params = ['--vpc-connector', vpc_connector]
+            vpc_params = ["--vpc-connector", vpc_connector]
         else:
-            vpc_params = ['--clear-vpc-connector']
+            vpc_params = ["--clear-vpc-connector"]
 
         deployer = self._service.make_build_step(
             identifier="Deploy",
             name="gcr.io/google.com/cloudsdktool/cloud-sdk:slim",
-            entrypoint='gcloud',
+            entrypoint="gcloud",
             args=[
-                "run", "services", "update", f"{self._substitution.SERVICE_NAME}",
-                '--platform', 'managed',
-                '--image', f"{self._substitution.IMAGE_NAME}",
-                '--region', f"{self._substitution.REGION}",
+                "run",
+                "services",
+                "update",
+                f"{self._substitution.SERVICE_NAME}",
+                "--platform",
+                "managed",
+                "--image",
+                f"{self._substitution.IMAGE_NAME}",
+                "--region",
+                f"{self._substitution.REGION}",
                 *db_params,
                 *env_params,
-                '--service-account', f"{self._substitution.SERVICE_ACCOUNT}",
-                '--project', f"{self._substitution.PROJECT_ID}",
-                '--memory', f"{self._substitution.RAM}Mi",
-                '--cpu', f"{self._substitution.CPU}",
-                '--min-instances', f"{self._substitution.MIN_INSTANCES}",
-                '--max-instances', f"{self._substitution.MAX_INSTANCES}",
-                '--timeout', f"{self._substitution.TIMEOUT}",
-                '--concurrency', f"{self._substitution.CONCURRENCY}",
+                "--service-account",
+                f"{self._substitution.SERVICE_ACCOUNT}",
+                "--project",
+                f"{self._substitution.PROJECT_ID}",
+                "--memory",
+                f"{self._substitution.RAM}Mi",
+                "--cpu",
+                f"{self._substitution.CPU}",
+                "--min-instances",
+                f"{self._substitution.MIN_INSTANCES}",
+                "--max-instances",
+                f"{self._substitution.MAX_INSTANCES}",
+                "--timeout",
+                f"{self._substitution.TIMEOUT}",
+                "--concurrency",
+                f"{self._substitution.CONCURRENCY}",
                 *vpc_params,
                 *label_params,
-                '--quiet'
+                "--quiet",
             ],
         )
         self.steps.append(deployer)
@@ -360,19 +378,25 @@ class CloudRunFactory(BuildTriggerFactory):
         traffic = self._service.make_build_step(
             identifier="Redirect Traffic",
             name="gcr.io/google.com/cloudsdktool/cloud-sdk:slim",
-            entrypoint='gcloud',
+            entrypoint="gcloud",
             args=[
-                "run", "services", "update-traffic", f"{self._substitution.SERVICE_NAME}",
-                '--platform', 'managed',
-                '--region', f"{self._substitution.REGION}",
-                '--project', f"{self._substitution.PROJECT_ID}",
-                '--to-latest',
+                "run",
+                "services",
+                "update-traffic",
+                f"{self._substitution.SERVICE_NAME}",
+                "--platform",
+                "managed",
+                "--region",
+                f"{self._substitution.REGION}",
+                "--project",
+                f"{self._substitution.PROJECT_ID}",
+                "--to-latest",
             ],
         )
         self.steps.append(traffic)
 
     def _add_api_gateway_steps(self):
-        labels_str = ','.join([label.as_kv for label in self.app.get_all_labels()])
+        labels_str = ",".join([label.as_kv for label in self.app.get_all_labels()])
         unique_identifier = "${COMMIT_SHA}"
         config_name = f"{self._substitution.SERVICE_NAME}-{unique_identifier}"
 
@@ -387,18 +411,21 @@ class CloudRunFactory(BuildTriggerFactory):
         params = [
             f"backend={self.app.endpoint}",
             f"host={self.app.gateway.gateway_service}",
-            f"cors_enabled={'1' if self.app.gateway.cors_enabled else '0'}"
+            f"cors_enabled={'1' if self.app.gateway.cors_enabled else '0'}",
         ]
         personalizer = self._service.make_build_step(
-            name='gcr.io/cloud-builders/docker',
+            name="gcr.io/cloud-builders/docker",
             identifier="Personalize API Gateway Specification",
-            entrypoint='docker',
+            entrypoint="docker",
             args=[
                 "run",
                 "-i",
-                "-v", "/workspace:/data",
-                "-e", f"INPUT_FILE={spec_path}",
-                "-e", f"OUTPUT_FILE={spec_output_path}",
+                "-v",
+                "/workspace:/data",
+                "-e",
+                f"INPUT_FILE={spec_path}",
+                "-e",
+                f"OUTPUT_FILE={spec_output_path}",
                 "joaodaher/jinjer",
                 *params,
             ],
@@ -408,14 +435,17 @@ class CloudRunFactory(BuildTriggerFactory):
         config = self._service.make_build_step(
             identifier="Create API Gateway Specification",
             name="gcr.io/google.com/cloudsdktool/cloud-sdk:slim",
-            entrypoint='gcloud',
+            entrypoint="gcloud",
             args=[
-                "api-gateway", "api-configs", "create", f"{config_name}",
-                f'--api={self._substitution.SERVICE_NAME}',
-                f'--openapi-spec={spec_output_path}',
-                f'--backend-auth-service-account={self._substitution.SERVICE_ACCOUNT}',
-                f'--project={self._substitution.PROJECT_ID}',
-                f'--labels={labels_str}',
+                "api-gateway",
+                "api-configs",
+                "create",
+                f"{config_name}",
+                f"--api={self._substitution.SERVICE_NAME}",
+                f"--openapi-spec={spec_output_path}",
+                f"--backend-auth-service-account={self._substitution.SERVICE_ACCOUNT}",
+                f"--project={self._substitution.PROJECT_ID}",
+                f"--labels={labels_str}",
             ],
         )
         self.steps.append(config)
@@ -423,13 +453,16 @@ class CloudRunFactory(BuildTriggerFactory):
         config = self._service.make_build_step(
             identifier="Update API Gateway",
             name="gcr.io/google.com/cloudsdktool/cloud-sdk:slim",
-            entrypoint='gcloud',
+            entrypoint="gcloud",
             args=[
-                "api-gateway", "gateways", "update", f"{self._substitution.GATEWAY_ID}",
-                f'--api={self._substitution.SERVICE_NAME}',
-                f'--api-config={config_name}',
-                f'--location={self._substitution.REGION}',
-                f'--project={self._substitution.PROJECT_ID}',
+                "api-gateway",
+                "gateways",
+                "update",
+                f"{self._substitution.GATEWAY_ID}",
+                f"--api={self._substitution.SERVICE_NAME}",
+                f"--api-config={config_name}",
+                f"--location={self._substitution.REGION}",
+                f"--project={self._substitution.PROJECT_ID}",
             ],
         )
         self.steps.append(config)
@@ -442,7 +475,7 @@ class CloudRunFactory(BuildTriggerFactory):
                 project_id=self.app.project.id,
                 location=self.app.region,
             )
-            url = service['status']['url']
+            url = service["status"]["url"]
         except NotFound as e:
             logger.warning(str(e))
             co = AppFoundation(app=self.app).setup_placeholder()
@@ -471,7 +504,7 @@ class CloudFunctionsFactory(BuildTriggerFactory):
             directory=directory,
             project_id=self.app.repository.project.id,
             **kwargs,
-        )['url']
+        )["url"]
 
         params = dict(
             REGION=self.app.region,
@@ -490,34 +523,45 @@ class CloudFunctionsFactory(BuildTriggerFactory):
         return params
 
     def _add_deploy_step(self):
-        env_params = self._get_env_var_as_param('--set-env-vars')
+        env_params = self._get_env_var_as_param("--set-env-vars")
 
-        label_params = ['--clear-labels']
+        label_params = ["--clear-labels"]
         for label in self.app.get_all_labels():
-            label_params.extend(['--update-labels', label.as_kv])
+            label_params.extend(["--update-labels", label.as_kv])
 
-        auth_params = ['--allow-unauthenticated'] if self._build.is_authenticated else []
+        auth_params = ["--allow-unauthenticated"] if self._build.is_authenticated else []
 
         deployer = self._service.make_build_step(
             identifier="Deploy",
             name="gcr.io/google.com/cloudsdktool/cloud-sdk:slim",
-            entrypoint='gcloud',
+            entrypoint="gcloud",
             args=[
-                "functions", "deploy", f"{self._substitution.SERVICE_NAME}",
-                '--runtime', f"{self._substitution.RUNTIME_VERSION}",
-                '--source', f"{self._substitution.SOURCE}",
-                '--entry-point', f"{self._substitution.ENTRYPOINT}",
-                '--region', f"{self._substitution.REGION}",
+                "functions",
+                "deploy",
+                f"{self._substitution.SERVICE_NAME}",
+                "--runtime",
+                f"{self._substitution.RUNTIME_VERSION}",
+                "--source",
+                f"{self._substitution.SOURCE}",
+                "--entry-point",
+                f"{self._substitution.ENTRYPOINT}",
+                "--region",
+                f"{self._substitution.REGION}",
                 *env_params,
-                '--service-account', f"{self._substitution.SERVICE_ACCOUNT}",
-                '--project', f"{self._substitution.PROJECT_ID}",
-                '--memory', f"{self._substitution.RAM}MB",
-                '--max-instances', f"{self._substitution.MAX_INSTANCES}",
-                '--timeout', f"{self._substitution.TIMEOUT}",
+                "--service-account",
+                f"{self._substitution.SERVICE_ACCOUNT}",
+                "--project",
+                f"{self._substitution.PROJECT_ID}",
+                "--memory",
+                f"{self._substitution.RAM}MB",
+                "--max-instances",
+                f"{self._substitution.MAX_INSTANCES}",
+                "--timeout",
+                f"{self._substitution.TIMEOUT}",
                 *label_params,
                 *auth_params,
-                '--trigger-http',
-                '--quiet'
+                "--trigger-http",
+                "--quiet",
             ],
         )
         self.steps.append(deployer)
@@ -527,7 +571,7 @@ class CloudFunctionsFactory(BuildTriggerFactory):
 
     def get_url(self):
         # TODO: Create a placeholder
-        return f'https://{self.app.region}-{self.app.project.id}.cloudfunctions.net/{self.app.identifier}'
+        return f"https://{self.app.region}-{self.app.project.id}.cloudfunctions.net/{self.app.identifier}"
 
 
 def get_factory(app: App) -> Union[CloudRunFactory, CloudFunctionsFactory]:
