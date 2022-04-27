@@ -1,4 +1,3 @@
-from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
@@ -7,6 +6,7 @@ from typing import List, TYPE_CHECKING
 from gcp_pilot.datastore import Document
 from gcp_pilot.storage import CloudStorage
 from google.api_core.exceptions import NotFound
+from pydantic import Field
 from slugify import slugify
 
 import settings
@@ -22,20 +22,22 @@ class Target(Enum):
     CLOUD_FUNCTIONS = "cloud-functions"
 
 
-@dataclass
 class BuildPack(Document):
-    __namespace__ = 'v1'
+    class Config(Document.Config):
+        namespace = "v1"
 
     name: str
     runtime: str
     target: str = Target.CLOUD_RUN.value
-    build_args: KeyValue = field(default_factory=dict)
-    post_build_commands: List[str] = field(default_factory=list)
-    env_vars: List[EnvVar] = field(default_factory=list)
+    build_args: KeyValue = Field(default_factory=dict)
+    post_build_commands: List[str] = Field(default_factory=list)
+    env_vars: List[EnvVar] = Field(default_factory=list)
     dockerfile_url: str = None
-    dockerfile_stages: List[str] = field(default_factory=list)
+    dockerfile_stages: List[str] = Field(default_factory=list)
 
-    def __post_init__(self):
+    def __init__(self, **data):
+        super().__init__(**data)
+
         self.name = slugify(self.name)
         self._extract_dockerfile_stages()
 

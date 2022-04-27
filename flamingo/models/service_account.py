@@ -1,23 +1,23 @@
 import base64
-from dataclasses import dataclass, field
-from typing import List, ClassVar, Optional
+from typing import List, Optional
 
 from gcp_pilot.datastore import EmbeddedDocument
 from gcp_pilot.iam import IdentityAccessManager
+from pydantic import Field
 
 from models.project import Project
 
 
-@dataclass
 class ServiceAccount(EmbeddedDocument):
     name: str
     description: str = ""
     display_name: str = ""
-    roles: List[str] = field(default_factory=list)
-    project: Project = field(default_factory=Project.default)
+    roles: List[str] = Field(default_factory=list)
+    project: Project = Field(default_factory=Project.default)
     key: Optional[str] = None
 
-    _exclude_from_indexes: ClassVar = ("key",)
+    class Config(EmbeddedDocument.Config):
+        exclude_from_indexes = ("key",)
 
     @property
     def email(self) -> str:

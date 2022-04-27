@@ -9,7 +9,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.11"
-sanic-rest = "*"
+sanic-rest = ">=1.7.0"
 gcp-pilot = { version = "*", extras = ['datastore', 'build', 'storage', 'pubsub', 'dns']}
 python-slugify = "*"
 PyGithub = "*"

@@ -1,6 +1,6 @@
 import logging
 import re
-from dataclasses import field, dataclass
+from dataclasses import dataclass
 from typing import Generator, Any, Tuple
 
 from sanic_rest.exceptions import ValidationError
@@ -14,7 +14,7 @@ ALIAS_REGEX = r"\${(?P<alias_to>\w+)}"
 
 @dataclass
 class ReplacementEngine:
-    replacements: KeyValue = field(default_factory=dict)
+    replacements: KeyValue = Field(default_factory=dict)
 
     def add(self, items: KeyValue):
         for k, v in items.items():

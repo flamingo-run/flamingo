@@ -1,15 +1,14 @@
-from dataclasses import dataclass, field
 from typing import List
 from urllib.parse import urlparse
 
 from gcp_pilot.datastore import EmbeddedDocument
+from pydantic import Field
 
 import settings
 from models.env_var import EnvVar, EnvVarSource
 from models.project import Project
 
 
-@dataclass
 class Database(EmbeddedDocument):
     instance: str
     name: str
@@ -18,11 +17,13 @@ class Database(EmbeddedDocument):
     version: str = settings.DEFAULT_DB_VERSION
     tier: str = settings.DEFAULT_DB_TIER
     region: str = None
-    project: Project = field(default_factory=Project.default)
+    project: Project = Field(default_factory=Project.default)
     env_var: str = "DATABASE_URL"
     high_availability: bool = False
 
-    def __post_init__(self):
+    def __init__(self, **data):
+        super().__init__(**data)
+
         if not self.user:
             self.user = f"app.{self.name}"
         if not self.region:

@@ -1,7 +1,8 @@
-from dataclasses import dataclass, field
-from typing import List, Optional
+from functools import cached_property
+from typing import List, Optional, Dict
 
 from gcp_pilot.datastore import EmbeddedDocument
+from pydantic import Field
 from sanic_rest import exceptions
 
 from models.base import KeyValue
@@ -10,17 +11,16 @@ from models.label import Label
 from models.project import Project
 
 
-@dataclass
 class Build(EmbeddedDocument):
     build_pack_name: str
     trigger_id: str = None
     deploy_branch: str = None
     deploy_tag: str = None
-    post_build_commands: List[str] = field(default_factory=list)
-    build_args: KeyValue = field(default_factory=dict)
+    post_build_commands: List[str] = Field(default_factory=list)
+    build_args: KeyValue = Field(default_factory=dict)
     build_machine_type: str = None
-    os_dependencies: List[str] = field(default_factory=list)
-    labels: List[Label] = field(default_factory=list)
+    os_dependencies: List[str] = Field(default_factory=list)
+    labels: List[Label] = Field(default_factory=list)
     project: Project = None
     memory: int = 256  # measured in MB
     cpu: int = 1  # number of cores
@@ -34,27 +34,25 @@ class Build(EmbeddedDocument):
     build_timeout: int = 60 * 30  # <https://cloud.google.com/cloud-build/docs/build-config#timeout_2>
     machine_type: str = None
 
-    _build_pack: BuildPack = None
+    def __init__(self, **data):
+        super().__init__(**data)
 
-    def __post_init__(self):
         if not self.deploy_tag and not self.deploy_branch:
             raise exceptions.ValidationError(message="Either deploy_tag or deploy_branch must be provided")
         self.max_instances = max(self.max_instances, 1)
 
-    def serialize(self) -> dict:
-        data = super().serialize()
+    def to_dict(self) -> Dict:
+        data = super().to_dict()
         data.pop("app_id")
 
         data.pop("build_pack_name")
-        data['build_pack'] = self.build_pack.serialize()
+        data["build_pack"] = self.build_pack.to_dict()
 
         return data
 
-    @property
+    @cached_property
     def build_pack(self):
-        if not self._build_pack:
-            self._build_pack = BuildPack.documents.get(name=self.build_pack_name)
-        return self._build_pack
+        return BuildPack.documents.get(name=self.build_pack_name)
 
     def get_image_name(self, app: "App", stage: Optional[str] = None) -> str:
         name = app.name

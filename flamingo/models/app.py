@@ -1,10 +1,11 @@
 # pylint: disable=too-many-lines
 import logging
-from dataclasses import dataclass, field
-from typing import List, Union, TYPE_CHECKING
+from functools import cached_property
+from typing import List, Union, TYPE_CHECKING, Optional
 
 from gcp_pilot.datastore import Document, DoesNotExist
 from google.api_core.exceptions import FailedPrecondition
+from pydantic import Field
 from sanic_rest import exceptions
 from slugify import slugify
 
@@ -27,28 +28,28 @@ if TYPE_CHECKING:
 logger = logging.getLogger()
 
 
-@dataclass
 class App(Document):
-    __namespace__ = 'v1'
+    class Config(Document.Config):
+        namespace = "v1"
 
     name: str
     environment_name: str
     build: Build
-    repository: Repository = None
-    domains: List[str] = field(default_factory=list)
-    vars: List[EnvVar] = field(default_factory=list)
-    scheduled_invocations: List[ScheduledInvocation] = field(default_factory=list)
-    database: Database = None
-    bucket: Bucket = None
-    region: str = None
-    service_account: ServiceAccount = None
-    endpoint: str = None
-    integrated_apps: List[str] = field(default_factory=list)
-    gateway: ApiGateway = None
+    repository: Optional[Repository] = None
+    domains: List[str] = Field(default_factory=list)
+    vars: List[EnvVar] = Field(default_factory=list)
+    scheduled_invocations: List[ScheduledInvocation] = Field(default_factory=list)
+    database: Optional[Database] = None
+    bucket: Optional[Bucket] = None
+    region: Optional[str] = None
+    service_account: Optional[ServiceAccount] = None
+    endpoint: Optional[str] = None
+    integrated_apps: List[str] = Field(default_factory=list)
+    gateway: Optional[ApiGateway] = None
 
-    _environment: Environment = None
+    def __init__(self, **data):
+        super().__init__(**data)
 
-    def __post_init__(self):
         _ = self.environment  # check if environment name actually exists, and caches it
 
         self.name = slugify(self.name)
@@ -59,8 +60,8 @@ class App(Document):
         if not self.build.project:
             self.build.project = self.project
 
-    def serialize(self) -> dict:
-        data = super().serialize()
+    def to_dict(self) -> dict:
+        data = super().to_dict()
 
         data.pop("environment_name")
         data["environment"] = self.environment.to_dict()
@@ -73,11 +74,9 @@ class App(Document):
     def __str__(self):
         return self.identifier
 
-    @property
+    @cached_property
     def environment(self) -> Environment:
-        if not self._environment:
-            self._environment = Environment.documents.get(name=self.environment_name)
-        return self._environment
+        return Environment.documents.get(name=self.environment_name)
 
     @property
     def project(self):

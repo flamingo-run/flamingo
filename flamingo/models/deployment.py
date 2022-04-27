@@ -1,21 +1,18 @@
-from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, TYPE_CHECKING
 
 from gcp_pilot.datastore import Document, EmbeddedDocument
-
+from pydantic import Field
 
 if TYPE_CHECKING:
     from models.app import App  # pylint: disable=ungrouped-imports
 
 
-@dataclass
 class Source(EmbeddedDocument):
     url: str
     revision: str
 
 
-@dataclass
 class Event(EmbeddedDocument):
     status: str
     source: Source
@@ -30,13 +27,13 @@ class Event(EmbeddedDocument):
         return self.status in ["SUCCESS", "FAILURE", "INTERNAL_ERROR", "TIMEOUT", "CANCELLED", "EXPIRED"]
 
 
-@dataclass
 class Deployment(Document):
-    __namespace__ = 'v1'
+    class Config(Document.Config):
+        namespace = "v1"
 
     app_id: str
     build_id: str
-    events: List[Event] = field(default_factory=list)
+    events: List[Event] = Field(default_factory=list)
 
     async def add_event(self, event: Event, notify: bool = True) -> None:
         self.events.append(event)
