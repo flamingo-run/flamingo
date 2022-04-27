@@ -170,7 +170,7 @@ doc = ["sphinx", "sphinx-rtd-theme", "sphinxcontrib-spelling"]
 
 [[package]]
 name = "faker"
-version = "13.4.0"
+version = "13.6.0"
 description = "Faker is a Python package that generates fake data for you."
 category = "main"
 optional = false
@@ -181,7 +181,7 @@ python-dateutil = ">=2.4"
 
 [[package]]
 name = "gcp-pilot"
-version = "0.48.0"
+version = "0.48.1"
 description = "Google Cloud Platform Friendly Pilot"
 category = "main"
 optional = false
@@ -700,7 +700,7 @@ six = ">=1.5"
 
 [[package]]
 name = "python-slugify"
-version = "6.1.1"
+version = "6.1.2"
 description = "A Python slugify application that also handles Unicode"
 category = "main"
 optional = false
@@ -800,7 +800,7 @@ test = ["coverage (==4.5.3)", "pytest (==4.6.2)", "pytest-cov (==2.7.1)", "pytes
 
 [[package]]
 name = "sanic-rest"
-version = "1.7.0"
+version = "1.7.1"
 description = "Sanic Rest Framework with Google Cloud Datastore"
 category = "main"
 optional = false
@@ -1117,12 +1117,12 @@ factory-boy = [
     {file = "factory_boy-3.2.1.tar.gz", hash = "sha256:a98d277b0c047c75eb6e4ab8508a7f81fb03d2cb21986f627913546ef7a2a55e"},
 ]
 faker = [
-    {file = "Faker-13.4.0-py3-none-any.whl", hash = "sha256:2d4139254c1cc69f2b5203f4a9aaab33a9e65f7994059856300ef6e21ac93f39"},
-    {file = "Faker-13.4.0.tar.gz", hash = "sha256:2a9716f2c409224121144f0d2fdc7105e978e2e266deb4d8216061d9668951fc"},
+    {file = "Faker-13.6.0-py3-none-any.whl", hash = "sha256:7ab2f741ef1c006ed7274a6ed75695ca8b610f78861566b599ce83c4953bf687"},
+    {file = "Faker-13.6.0.tar.gz", hash = "sha256:0d5425894e098410b64aaade38a81074fa30163076251118523adf5bb44f8346"},
 ]
 gcp-pilot = [
-    {file = "gcp-pilot-0.48.0.tar.gz", hash = "sha256:2d5734bf4509ab7dffa123195952b0fabe9ea73848912d1809c3d3792f049190"},
-    {file = "gcp_pilot-0.48.0-py3-none-any.whl", hash = "sha256:42642b4ebaacd098e4dc1ec1d44fdbd878c7eae35654be6d21642f7cef007131"},
+    {file = "gcp-pilot-0.48.1.tar.gz", hash = "sha256:c8f22acd2e36b4f34cd3e7e1c84a2133629df133d94561fa4f98b3c177e6a26f"},
+    {file = "gcp_pilot-0.48.1-py3-none-any.whl", hash = "sha256:a2badeaf5e53178fdf207c7d56ef3c4e4757f979592a5039ef7d7192d1ac879d"},
 ]
 google-api-core = [
     {file = "google-api-core-2.7.2.tar.gz", hash = "sha256:65480309a7437f739e4476da037af02a3ec8263f1d1f89f72bbdc8f54fe402d2"},
@@ -1579,8 +1579,8 @@ python-dateutil = [
     {file = "python_dateutil-2.8.2-py2.py3-none-any.whl", hash = "sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9"},
 ]
 python-slugify = [
-    {file = "python-slugify-6.1.1.tar.gz", hash = "sha256:00003397f4e31414e922ce567b3a4da28cf1436a53d332c9aeeb51c7d8c469fd"},
-    {file = "python_slugify-6.1.1-py2.py3-none-any.whl", hash = "sha256:8c0016b2d74503eb64761821612d58fcfc729493634b1eb0575d8f5b4aa1fbcf"},
+    {file = "python-slugify-6.1.2.tar.gz", hash = "sha256:272d106cb31ab99b3496ba085e3fea0e9e76dcde967b5e9992500d1f785ce4e1"},
+    {file = "python_slugify-6.1.2-py2.py3-none-any.whl", hash = "sha256:7b2c274c308b62f4269a9ba701aa69a797e9bca41aeee5b3a9e79e36b6656927"},
 ]
 pytz = [
     {file = "pytz-2022.1-py2.py3-none-any.whl", hash = "sha256:e68985985296d9a66a881eb3193b0906246245294a881e7c8afe623866ac6a5c"},
@@ -1638,8 +1638,8 @@ sanic-openapi = [
     {file = "sanic_openapi-21.12.0-py3-none-any.whl", hash = "sha256:35412cf7c59777c0c6af60967890d30386be40395f69dc50ae88859e9143f484"},
 ]
 sanic-rest = [
-    {file = "sanic-rest-1.7.0.tar.gz", hash = "sha256:75ace6910186e322d9d1eca03e86e87a89d7823a68feebd644063f7121c8dc73"},
-    {file = "sanic_rest-1.7.0-py3-none-any.whl", hash = "sha256:246bff4e7da3a55e2b189ccba14d4016d128683f864cc922c92f46acd9fe0b3e"},
+    {file = "sanic-rest-1.7.1.tar.gz", hash = "sha256:3e69aa89989d6d5f09a571fa66e7747a3804ad81ce2998f4b412a51b3952ef0d"},
+    {file = "sanic_rest-1.7.1-py3-none-any.whl", hash = "sha256:6e5ce4e751bd069c397a2cfa35d949d8354846f004f64af7004773d61cd9a5dd"},
 ]
 sanic-routing = [
     {file = "sanic-routing-22.3.0.tar.gz", hash = "sha256:fde5a7d4079794b585b9a2904accd0de5a70abf27c82d2658b40c551ef44f703"},
