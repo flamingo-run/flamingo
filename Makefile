@@ -18,7 +18,8 @@ check:
 
 lint:
 	@echo "Checking code style ..."
-	@cd flamingo && poetry run pylint --rcfile=../.pylintrc flamingo
+	@poetry run black --check .
+	@cd flamingo && poetry run pylint flamingo
 
 unit:
 	@echo "Running unit tests ..."

@@ -22,6 +22,7 @@ dev-kit = ["pylint", "coverage"]
 
 [tool.poetry.dev-dependencies]
 pylint = "*"
+black = "*"
 coverage = "*"
 
 [tool.black]
