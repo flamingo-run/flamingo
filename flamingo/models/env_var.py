@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from enum import Enum
 from typing import Dict
 
@@ -13,13 +12,12 @@ class EnvVarSource(Enum):
     FLAMINGO = "flamingo"
 
 
-@dataclass
 class EnvVar(KeyValueEmbeddedDocument):
     is_secret: bool = False
     source: EnvVarSource = EnvVarSource.USER
 
-    def serialize(self) -> Dict:
-        data = super().serialize()
+    def to_dict(self) -> Dict:
+        data = super().to_dict()
         # if self.is_secret:
         #     data['value'] = REDACTED
         return data

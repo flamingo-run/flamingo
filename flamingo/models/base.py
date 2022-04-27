@@ -1,6 +1,5 @@
 import random
 import string
-from dataclasses import dataclass
 from typing import Dict, Any
 
 from gcp_pilot.datastore import EmbeddedDocument
@@ -11,7 +10,6 @@ def random_password(length: int) -> str:
     return "".join(random.choice(password_characters) for _ in range(length))
 
 
-@dataclass
 class KeyValueEmbeddedDocument(EmbeddedDocument):
     key: str
     value: str

@@ -1,18 +1,17 @@
-from dataclasses import dataclass
-
 from gcp_pilot.datastore import EmbeddedDocument
 from gcp_pilot.resource import ResourceManager, ServiceAgent
 
 import settings
 
 
-@dataclass
 class Project(EmbeddedDocument):
     id: str
     number: str = None
     region: str = None  # Project's have default region, as defined by AppEngine API
 
-    def __post_init__(self):
+    def __init__(self, **data):
+        super().__init__(**data)
+
         if not self.number or not self.region:
             rm = ResourceManager(project_id=self.id)
             self.number = self.number or rm.get_project(project_id=self.id)["projectNumber"]

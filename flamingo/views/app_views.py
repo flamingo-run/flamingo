@@ -33,7 +33,7 @@ class AppBoostrapView(NestedListView):
     async def perform_post(self, request: Request, nest_obj: App) -> ResponseType:
         bootstrap = AppBootstrap(app=nest_obj)
         new_obj = bootstrap.apply()
-        return new_obj.serialize(), 200
+        return new_obj.to_dict(), 200
 
     async def perform_put(self, request: Request, nest_obj: App) -> ResponseType:
         raise exceptions.NotAllowedError()
@@ -67,10 +67,7 @@ class AppEnvVarsView(NestedListView):
 
     async def _serialize_env_vars(self, app: App) -> List[Dict[str, str]]:
         env_vars = app.get_all_env_vars()
-        return [
-            env.serialize()
-            for env in env_vars
-        ]
+        return [env.to_dict() for env in env_vars]
 
     async def perform_get(self, request: Request, nest_obj: App) -> ResponseType:
         payload = {"results": await self._serialize_env_vars(app=nest_obj)}
@@ -101,7 +98,7 @@ class AppDatabaseView(NestedListView):
     nest_model = App
 
     async def perform_get(self, request: Request, nest_obj: App) -> ResponseType:
-        payload = nest_obj.database.serialize()
+        payload = nest_obj.database.to_dict()
         return payload, 200
 
     async def perform_post(self, request: Request, nest_obj: App) -> ResponseType:
@@ -109,7 +106,7 @@ class AppDatabaseView(NestedListView):
         nest_obj.database = Database(**data)
         new_obj = nest_obj.save()
 
-        payload = new_obj.database.serialize()
+        payload = new_obj.database.to_dict()
         return payload, 201
 
     async def perform_put(self, request: Request, nest_obj: App) -> ResponseType:

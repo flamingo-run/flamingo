@@ -1,22 +1,22 @@
-from dataclasses import field, dataclass
-
 from gcp_pilot.build import AnyEventType, CloudBuild
 from gcp_pilot.datastore import EmbeddedDocument
 from github import Github
+from pydantic import Field
 from sanic_rest import exceptions
 
 import settings
 from models.project import Project
 
 
-@dataclass
 class Repository(EmbeddedDocument):
     name: str
     url: str = None
-    project: Project = field(default_factory=Project.default_for_flamingo)
+    project: Project = Field(default_factory=Project.default_for_flamingo)
     access_token: str = None
 
-    def __post_init__(self):
+    def __init__(self, **data):
+        super().__init__(**data)
+
         if not self.access_token:
             self.access_token = settings.GIT_ACCESS_TOKEN
         if "/" not in self.name:

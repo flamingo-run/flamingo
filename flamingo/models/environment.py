@@ -1,7 +1,7 @@
-from dataclasses import dataclass, field
 from typing import List
 
 from gcp_pilot.datastore import Document
+from pydantic import Field
 from slugify import slugify
 
 from models.env_var import EnvVar, EnvVarSource
@@ -10,17 +10,19 @@ from models.notification_channel import NotificationChannel
 from models.project import Project
 
 
-@dataclass
 class Environment(Document):
-    __namespace__ = 'v1'
+    class Config(Document.Config):
+        namespace = "v1"
 
     name: str
     network: Network = None
-    project: Project = field(default_factory=Project.default)
-    notification_channels: List[NotificationChannel] = field(default_factory=list)
-    vars: List[EnvVar] = field(default_factory=list)
+    project: Project = Field(default_factory=Project.default)
+    notification_channels: List[NotificationChannel] = Field(default_factory=list)
+    vars: List[EnvVar] = Field(default_factory=list)
 
-    def __post_init__(self):
+    def __init__(self, **data):
+        super().__init__(**data)
+
         self.name = slugify(self.name)
 
     def get_all_env_vars(self) -> List[EnvVar]:

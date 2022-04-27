@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, Union, Any
 
@@ -21,12 +20,12 @@ class NotificationEngine(Enum):
         raise NotImplementedError(f"Unsupported notification engine {name}")
 
 
-@dataclass
 class NotificationChannel(EmbeddedDocument):
     engine: str
     config: Dict[str, Any]
 
-    def __post_init__(self):
+    def __init__(self, **data):
+        super().__init__(**data)
         # light validation
         try:
             self.build_engine()
