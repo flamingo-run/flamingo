@@ -15,7 +15,7 @@ class Project(EmbeddedDocument):
     def __post_init__(self):
         if not self.number or not self.region:
             rm = ResourceManager(project_id=self.id)
-            self.number = self.number or rm.get_project(project_id=self.id)['projectNumber']
+            self.number = self.number or rm.get_project(project_id=self.id)["projectNumber"]
             self.region = self.region or rm.location
 
     @property
@@ -43,19 +43,19 @@ class Project(EmbeddedDocument):
         return ServiceAgent.get_email(service_name="Cloud Scheduler", project_id=self.id)
 
     @classmethod
-    def default(cls) -> 'Project':
+    def default(cls) -> "Project":
         return Project(
             id=settings.DEFAULT_PROJECT,
         )
 
     @classmethod
-    def default_for_network(cls) -> 'Project':
+    def default_for_network(cls) -> "Project":
         return Project(
             id=settings.DEFAULT_PROJECT_NETWORK,
         )
 
     @classmethod
-    def default_for_flamingo(cls) -> 'Project':
+    def default_for_flamingo(cls) -> "Project":
         return Project(
             id=settings.FLAMINGO_PROJECT,
         )

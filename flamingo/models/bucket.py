@@ -10,7 +10,7 @@ from models.project import Project
 @dataclass
 class Bucket(EmbeddedDocument):
     name: str
-    env_var: str = 'GCS_BUCKET'
+    env_var: str = "GCS_BUCKET"
     region: str = None
     project: Project = field(default_factory=Project.default)
 
@@ -20,7 +20,7 @@ class Bucket(EmbeddedDocument):
 
     @property
     def url(self):
-        return f'gs://{self.name}'
+        return f"gs://{self.name}"
 
     @property
     def as_env(self) -> List[EnvVar]:

@@ -11,7 +11,7 @@ from models.env_var import EnvVar
 from services.bootstrap import AppBootstrap
 from services.foundations import AppFoundation
 
-apps = Blueprint('apps', url_prefix='/apps')
+apps = Blueprint("apps", url_prefix="/apps")
 
 
 class AppListView(ListView):
@@ -48,12 +48,12 @@ class AppInitializeView(NestedListView):
     async def perform_get(self, request: Request, nest_obj: App) -> ResponseType:
         foundation = AppFoundation(app=nest_obj)
         jobs = foundation.get_jobs()
-        return {'jobs': list(jobs.keys())}, 200
+        return {"jobs": list(jobs.keys())}, 200
 
     async def perform_post(self, request: Request, nest_obj: App) -> ResponseType:
         foundation = AppFoundation(app=nest_obj)
         jobs = foundation.build()
-        return {'jobs': jobs}, 202
+        return {"jobs": jobs}, 202
 
     async def perform_put(self, request: Request, nest_obj: App) -> ResponseType:
         raise exceptions.NotAllowedError()
@@ -73,9 +73,7 @@ class AppEnvVarsView(NestedListView):
         ]
 
     async def perform_get(self, request: Request, nest_obj: App) -> ResponseType:
-        payload = {
-            'results': await self._serialize_env_vars(app=nest_obj)
-        }
+        payload = {"results": await self._serialize_env_vars(app=nest_obj)}
         return payload, 200
 
     async def perform_post(self, request: Request, nest_obj: App) -> ResponseType:
@@ -84,9 +82,7 @@ class AppEnvVarsView(NestedListView):
             nest_obj.set_env_var(var=env_var)
         new_obj = nest_obj.save()
 
-        payload = {
-            'results': await self._serialize_env_vars(app=new_obj)
-        }
+        payload = {"results": await self._serialize_env_vars(app=new_obj)}
         return payload, 201
 
     async def perform_put(self, request: Request, nest_obj: App) -> ResponseType:
@@ -97,9 +93,7 @@ class AppEnvVarsView(NestedListView):
             nest_obj.unset_env_var(key=key)
         new_obj = nest_obj.save()
 
-        payload = {
-            'results': await self._serialize_env_vars(app=new_obj)
-        }
+        payload = {"results": await self._serialize_env_vars(app=new_obj)}
         return payload, 202
 
 
@@ -138,12 +132,12 @@ class AppApplyView(NestedListView):
         except Exception as e:
             raise exceptions.ValidationError(message=str(e))
 
-        return {'status': "Good to go"}, 200
+        return {"status": "Good to go"}, 200
 
     async def perform_post(self, request: Request, nest_obj: App) -> ResponseType:
         trigger_id = await nest_obj.apply()
         # TODO Add support to re-deploy
-        return {'trigger_id': trigger_id}, 201
+        return {"trigger_id": trigger_id}, 201
 
     async def perform_put(self, request: Request, nest_obj: App) -> ResponseType:
         raise exceptions.NotAllowedError()
@@ -152,10 +146,10 @@ class AppApplyView(NestedListView):
         raise exceptions.NotAllowedError()
 
 
-apps.add_route(AppListView.as_view(), '/')
-apps.add_route(AppDetailView.as_view(), '/<pk>')
-apps.add_route(AppEnvVarsView.as_view(), '/<nest_pk>/vars')
-apps.add_route(AppDatabaseView.as_view(), '/<nest_pk>/database')
-apps.add_route(AppBoostrapView.as_view(), '/<nest_pk>/bootstrap')
-apps.add_route(AppInitializeView.as_view(), '/<nest_pk>/init')
-apps.add_route(AppApplyView.as_view(), '/<nest_pk>/apply')
+apps.add_route(AppListView.as_view(), "/")
+apps.add_route(AppDetailView.as_view(), "/<pk>")
+apps.add_route(AppEnvVarsView.as_view(), "/<nest_pk>/vars")
+apps.add_route(AppDatabaseView.as_view(), "/<nest_pk>/database")
+apps.add_route(AppBoostrapView.as_view(), "/<nest_pk>/bootstrap")
+apps.add_route(AppInitializeView.as_view(), "/<nest_pk>/init")
+apps.add_route(AppApplyView.as_view(), "/<nest_pk>/apply")

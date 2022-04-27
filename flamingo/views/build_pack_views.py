@@ -6,7 +6,7 @@ from sanic_rest.views import DetailView, ListView, PayloadType
 
 from models.buildpack import BuildPack
 
-build_packs = Blueprint('build-packs', url_prefix='/build-packs')
+build_packs = Blueprint("build-packs", url_prefix="/build-packs")
 
 
 class BuildPackListView(ListView):
@@ -29,5 +29,5 @@ class BuildPackDetailView(DetailView):
         return gcs_url
 
 
-build_packs.add_route(BuildPackListView.as_view(), '/')
-build_packs.add_route(BuildPackDetailView.as_view(), '/<pk>')
+build_packs.add_route(BuildPackListView.as_view(), "/")
+build_packs.add_route(BuildPackDetailView.as_view(), "/<pk>")

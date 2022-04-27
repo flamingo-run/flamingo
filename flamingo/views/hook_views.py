@@ -14,8 +14,7 @@ from sanic_rest import exceptions
 from models.app import App
 from models.deployment import Deployment, Event, Source
 
-hooks = Blueprint('hooks', url_prefix='/hooks')
-
+hooks = Blueprint("hooks", url_prefix="/hooks")
 
 logger = logging.getLogger()
 
@@ -27,44 +26,44 @@ class CloudBuildHookView(HTTPMethodView):
 
         logger.debug(f"BUILD HOOK PAYLOAD: {payload}")
 
-        trigger_id = payload['buildTriggerId']
+        trigger_id = payload["buildTriggerId"]
 
-        git_source = payload['source'].get('gitSource', None)
+        git_source = payload["source"].get("gitSource", None)
         if not git_source:
             logger.warning(f"Ignoring build event from trigger {trigger_id}")
-            return json({'status': 'done'}, 204)
+            return json({"status": "done"}, 204)
 
         event = Event(
-            status=payload['status'],
+            status=payload["status"],
             created_at=self._get_timestamp(payload=payload),
             source=Source(
-                url=git_source['url'],
-                revision=git_source['revision'],
-            )
+                url=git_source["url"],
+                revision=git_source["revision"],
+            ),
         )
 
         try:
             app = self._get_app(trigger_id=trigger_id)
         except DoesNotExist:
             logger.warning(f"Ignoring build event from trigger {trigger_id}")
-            return json({'status': 'done'}, 204)
+            return json({"status": "done"}, 204)
 
         try:
             await self._register_event(
                 app_id=app.id,
-                build_id=payload['id'],
+                build_id=payload["id"],
                 event=event,
             )
         except HTTPError as e:
-            return json({'error': f"Failed handling build hook: {e}", 'payload': payload}, 400)
-        return json({'status': 'done'}, 202)
+            return json({"error": f"Failed handling build hook: {e}", "payload": payload}, 400)
+        return json({"status": "done"}, 202)
 
     def _get_timestamp(self, payload: Dict) -> Optional[datetime]:
-        time_fields = ['finishTime', 'startTime', 'createTime']
+        time_fields = ["finishTime", "startTime", "createTime"]
         for time_field in time_fields:
             try:
                 date_str = payload[time_field]
-                return datetime.strptime(date_str.split('.')[0], '%Y-%m-%dT%H:%M:%S').astimezone(tz=timezone.utc)
+                return datetime.strptime(date_str.split(".")[0], "%Y-%m-%dT%H:%M:%S").astimezone(tz=timezone.utc)
             except KeyError:
                 continue
         return None
@@ -73,10 +72,7 @@ class CloudBuildHookView(HTTPMethodView):
         return App.documents.get(build__trigger_id=trigger_id)
 
     async def _register_event(self, app_id: str, build_id: str, event: Event):
-        kwargs = dict(
-            build_id=build_id,
-            app_id=app_id
-        )
+        kwargs = dict(build_id=build_id, app_id=app_id)
         try:
             deployment = Deployment.documents.get(**kwargs)
         except DoesNotExist as e:
@@ -91,4 +87,4 @@ class CloudBuildHookView(HTTPMethodView):
         await deployment.add_event(event=event, notify=True)
 
 
-hooks.add_route(CloudBuildHookView.as_view(), '/build')
+hooks.add_route(CloudBuildHookView.as_view(), "/build")

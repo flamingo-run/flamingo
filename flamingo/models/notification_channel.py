@@ -9,8 +9,8 @@ from services.notifiers import ChatNotifier, NewRelicNotifier
 
 
 class NotificationEngine(Enum):
-    GOOGLE_CHAT = 'google-chat'
-    NEW_RELIC = 'new-relic'
+    GOOGLE_CHAT = "google-chat"
+    NEW_RELIC = "new-relic"
 
     @classmethod
     def get_engine_class(cls, name):

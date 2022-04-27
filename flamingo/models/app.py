@@ -62,8 +62,8 @@ class App(Document):
     def serialize(self) -> dict:
         data = super().serialize()
 
-        data.pop('environment_name')
-        data["environment"] = self.environment.serialize()
+        data.pop("environment_name")
+        data["environment"] = self.environment.to_dict()
         if self.service_account:
             data["service_account"].pop("key")
             if self.service_account.json_key:
@@ -88,9 +88,7 @@ class App(Document):
         self.vars.append(var)
 
     def unset_env_var(self, key: str):
-        self.vars = [
-            existing_var for existing_var in self.vars if existing_var.key != key
-        ]
+        self.vars = [existing_var for existing_var in self.vars if existing_var.key != key]
 
     def get_all_env_vars(self) -> List[EnvVar]:
         all_vars = self.vars.copy()
@@ -102,40 +100,52 @@ class App(Document):
             all_vars.extend(self.bucket.as_env)
 
         by_flamingo = EnvVarSource.FLAMINGO.value
-        all_vars.extend([
-            EnvVar(key='APP_NAME', value=self.name, is_secret=False, source=by_flamingo),
-            EnvVar(key='GCP_PROJECT', value=self.project.id, is_secret=False, source=by_flamingo),
-            EnvVar(key='GCP_SERVICE_ACCOUNT', value=self.service_account.email, is_secret=False, source=by_flamingo),
-            EnvVar(key='GCP_LOCATION', value=self.region, is_secret=False, source=by_flamingo),
-        ])
+        all_vars.extend(
+            [
+                EnvVar(key="APP_NAME", value=self.name, is_secret=False, source=by_flamingo),
+                EnvVar(key="GCP_PROJECT", value=self.project.id, is_secret=False, source=by_flamingo),
+                EnvVar(
+                    key="GCP_SERVICE_ACCOUNT", value=self.service_account.email, is_secret=False, source=by_flamingo
+                ),
+                EnvVar(key="GCP_LOCATION", value=self.region, is_secret=False, source=by_flamingo),
+            ]
+        )
 
         if self.domains:
-            all_vars.extend([
-                EnvVar(key='DOMAIN_URL', value=f'https://{self.domains[0]}', is_secret=False, source=by_flamingo),
-            ])
+            all_vars.extend(
+                [
+                    EnvVar(key="DOMAIN_URL", value=f"https://{self.domains[0]}", is_secret=False, source=by_flamingo),
+                ]
+            )
 
         endpoint = self.get_url()
-        all_vars.extend([
-            EnvVar(key='GCP_APP_ENDPOINT', value=endpoint, is_secret=False, source=by_flamingo),
-        ])
+        all_vars.extend(
+            [
+                EnvVar(key="GCP_APP_ENDPOINT", value=endpoint, is_secret=False, source=by_flamingo),
+            ]
+        )
 
         if self.gateway:
-            all_vars.extend([
-                EnvVar(
-                    key='GCP_GATEWAY_ENDPOINT',
-                    value=self.gateway.gateway_endpoint,
-                    is_secret=False,
-                    source=by_flamingo,
-                ),
-            ])
+            all_vars.extend(
+                [
+                    EnvVar(
+                        key="GCP_GATEWAY_ENDPOINT",
+                        value=self.gateway.gateway_endpoint,
+                        is_secret=False,
+                        source=by_flamingo,
+                    ),
+                ]
+            )
 
         for integrated_app in self.integrated_apps:
             try:
                 app = App.documents.get(name=integrated_app, environment_name=self.environment_name)
                 var_name = f"{app.name.replace('-', '_').upper()}_URL"
-                all_vars.extend([
-                    EnvVar(key=var_name, value=app.endpoint, is_secret=False, source=by_flamingo),
-                ])
+                all_vars.extend(
+                    [
+                        EnvVar(key=var_name, value=app.endpoint, is_secret=False, source=by_flamingo),
+                    ]
+                )
             except DoesNotExist:
                 logger.warning(f"Integrated app {integrated_app} not found in {self.environment_name}")
                 continue
@@ -147,16 +157,18 @@ class App(Document):
 
     def get_all_labels(self) -> List[Label]:
         all_labels = self.build.get_labels()
-        all_labels.extend([
-            Label(key='service', value=self.name),
-        ])
+        all_labels.extend(
+            [
+                Label(key="service", value=self.name),
+            ]
+        )
         return all_labels
 
     def get_all_build_args(self) -> KeyValue:
         return {
-            'APP_NAME': self.name,
-            'ENV': self.environment_name,
-            'APP_DIRECTORY': self.path,
+            "APP_NAME": self.name,
+            "ENV": self.environment_name,
+            "APP_DIRECTORY": self.path,
             **self.build.get_build_args(),
         }
 
@@ -168,7 +180,7 @@ class App(Document):
         return self.endpoint
 
     def check_env_vars(self):
-        self.assure_var(env=EnvVar(key='SECRET', value=random_password(20), is_secret=True))
+        self.assure_var(env=EnvVar(key="SECRET", value=random_password(20), is_secret=True))
 
         all_vars = self.get_all_env_vars()
         implicit_vars = {var.key for var in all_vars if var.is_implicit}
@@ -187,7 +199,7 @@ class App(Document):
 
     @property
     def path(self) -> str:
-        return self.name.replace('-', '_')
+        return self.name.replace("-", "_")
 
     def assure_var(self, env: EnvVar, overwrite: bool = False):
         for var in self.vars:
@@ -218,8 +230,9 @@ class App(Document):
         return trigger_id
 
     @property
-    def factory(self) -> Union['CloudRunFactory', 'CloudFunctionsFactory']:
+    def factory(self) -> Union["CloudRunFactory", "CloudFunctionsFactory"]:
         from services.builders import get_factory  # pylint: disable=import-outside-toplevel
+
         return get_factory(app=self)
 
     @property
