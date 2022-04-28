@@ -35,7 +35,7 @@ class Repository(EmbeddedDocument):
         )
 
     def get_commit_diff(self, previous_revision: str, current_revision: str):
-        g = Github(self.access_token)
+        g = Github(self.access_token)  # pylint: disable=invalid-name
         git_repo = g.get_repo(self.name)
         comparison = git_repo.compare(base=previous_revision, head=current_revision)
         return [

@@ -13,7 +13,7 @@ class Project(EmbeddedDocument):
         super().__init__(**data)
 
         if not self.number or not self.region:
-            rm = ResourceManager(project_id=self.id)
+            rm = ResourceManager(project_id=self.id)  # pylint: disable=invalid-name
             self.number = self.number or rm.get_project(project_id=self.id)["projectNumber"]
             self.region = self.region or rm.location
 
