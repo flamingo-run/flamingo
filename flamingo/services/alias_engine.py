@@ -3,6 +3,7 @@ import re
 from dataclasses import dataclass
 from typing import Generator, Any, Tuple
 
+from pydantic import Field
 from sanic_rest.exceptions import ValidationError
 
 from models.base import KeyValue

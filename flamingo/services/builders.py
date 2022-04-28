@@ -9,6 +9,7 @@ from gcp_pilot.build import CloudBuild, Substitutions
 from gcp_pilot.exceptions import NotFound
 from gcp_pilot.run import CloudRun
 from google.cloud.devtools import cloudbuild_v1
+from pydantic import Field
 
 from models.app import App
 from models.base import KeyValue
