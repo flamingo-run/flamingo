@@ -341,7 +341,7 @@ class AppFoundation(BaseFoundation):
                 status = condition["status"]
                 if status == "True":
                     return bool(mapped_domain["status"].get("resourceRecords", []))
-                elif "does not exist" in condition.get("message", ""):
+                if "does not exist" in condition.get("message", ""):
                     raise NotFound(condition["message"])
                 return True
             return False

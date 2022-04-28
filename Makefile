@@ -18,8 +18,8 @@ check:
 
 lint:
 	@echo "Checking code style ..."
-	@poetry run black --check .
-	@cd flamingo && poetry run pylint flamingo
+	@poetry run black --check flamingo
+	@poetry run pylint flamingo
 
 unit:
 	@echo "Running unit tests ..."

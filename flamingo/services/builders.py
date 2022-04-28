@@ -479,7 +479,7 @@ class CloudRunFactory(BuildTriggerFactory):
             url = service["status"]["url"]
         except NotFound as e:
             logger.warning(str(e))
-            co = AppFoundation(app=self.app).setup_placeholder()
+            co = AppFoundation(app=self.app).setup_placeholder()  # pylint: disable=invalid-name
             loop = asyncio.get_running_loop()
             app = loop.run_until_complete(co)
             url = app.url
