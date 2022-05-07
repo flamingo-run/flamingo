@@ -1,9 +1,8 @@
 import logging
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Generator, Any, Tuple
 
-from pydantic import Field
 from sanic_rest.exceptions import ValidationError
 
 from models.base import KeyValue
@@ -15,7 +14,7 @@ ALIAS_REGEX = r"\${(?P<alias_to>\w+)}"
 
 @dataclass
 class ReplacementEngine:
-    replacements: KeyValue = Field(default_factory=dict)
+    replacements: KeyValue = field(default_factory=dict)
 
     def add(self, items: KeyValue):
         for k, v in items.items():

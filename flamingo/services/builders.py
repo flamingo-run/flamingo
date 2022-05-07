@@ -2,14 +2,13 @@
 import asyncio
 import logging
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, ClassVar, Tuple, Union
 
 from gcp_pilot.build import CloudBuild, Substitutions
 from gcp_pilot.exceptions import NotFound
 from gcp_pilot.run import CloudRun
 from google.cloud.devtools import cloudbuild_v1
-from pydantic import Field
 
 from models.app import App
 from models.base import KeyValue
@@ -28,7 +27,7 @@ class BuildTriggerFactory(ABC):
     ENV_PREFIX_KEY: ClassVar = "ENV_"
 
     app: App
-    steps: List[cloudbuild_v1.BuildStep] = Field(default_factory=list)
+    steps: List[cloudbuild_v1.BuildStep] = field(default_factory=list)
 
     _substitution: Substitutions = None
     _setup_params: KeyValue = None

@@ -12,7 +12,7 @@ from models.project import Project
 
 
 class Build(EmbeddedDocument):
-    build_pack_name: str
+    build_pack: BuildPack
     trigger_id: str = None
     deploy_branch: str = None
     deploy_tag: str = None
@@ -50,9 +50,9 @@ class Build(EmbeddedDocument):
 
         return data
 
-    @cached_property
-    def build_pack(self):
-        return BuildPack.documents.get(name=self.build_pack_name)
+    # @cached_property
+    # def build_pack(self):
+    #     return BuildPack.documents.get(name=self.build_pack_name)
 
     def get_image_name(self, app: "App", stage: Optional[str] = None) -> str:
         name = app.name
