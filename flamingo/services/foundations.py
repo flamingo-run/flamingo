@@ -1,5 +1,4 @@
 import abc
-import asyncio
 from abc import abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
@@ -24,11 +23,10 @@ from models.environment import Environment
 
 
 class BaseFoundation(abc.ABC):
-    def build(self):
+    def build(self, request):
         jobs = self.get_jobs()
-        loop = asyncio.get_event_loop()
         for job in jobs.values():
-            loop.run_until_complete(job())
+            request.app.add_task(job())
         return list(jobs)
 
     @abstractmethod

@@ -52,7 +52,7 @@ class AppInitializeView(NestedListView):
 
     async def perform_post(self, request: Request, nest_obj: App) -> ResponseType:
         foundation = AppFoundation(app=nest_obj)
-        jobs = foundation.build()
+        jobs = foundation.build(request)
         return {"jobs": jobs}, 202
 
     async def perform_put(self, request: Request, nest_obj: App) -> ResponseType:
