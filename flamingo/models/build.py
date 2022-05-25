@@ -43,7 +43,7 @@ class Build(EmbeddedDocument):
 
     def to_dict(self) -> Dict:
         data = super().to_dict()
-        data.pop("app_id")
+        data.pop("app_id", None)
 
         data.pop("build_pack_name")
         data["build_pack"] = self.build_pack.to_dict()
