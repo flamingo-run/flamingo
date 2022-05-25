@@ -65,6 +65,8 @@ class App(Document):
 
         data.pop("environment_name")
         data["environment"] = self.environment.to_dict()
+        data["build"] = self.build.to_dict()
+
         if self.service_account:
             data["service_account"].pop("key")
             if self.service_account.json_key:
