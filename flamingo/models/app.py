@@ -221,7 +221,7 @@ class App(Document):
 
         if trigger_id != build.trigger_id:
             build.trigger_id = trigger_id
-            App.documents.update(pk=self.pk, build=build)
+            App.documents.update(pk=self.pk, build=build.dict(exclude={"build_pack"}))
 
             # Since we need the Trigger ID inside the trigger yaml to be used as a CloudRun service label
             # The first time we create the trigger the yaml goes without the label, so we recreate it
