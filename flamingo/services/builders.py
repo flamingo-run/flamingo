@@ -412,6 +412,7 @@ class CloudRunFactory(BuildTriggerFactory):
             f"backend={self.app.endpoint}",
             f"host={self.app.gateway.gateway_service}",
             f"cors_enabled={'1' if self.app.gateway.cors_enabled else '0'}",
+            f"deadline={self.app.gateway.deadline}",
         ]
         personalizer = self._service.make_build_step(
             name="gcr.io/cloud-builders/docker",
