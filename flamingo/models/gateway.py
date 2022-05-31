@@ -8,6 +8,7 @@ class ApiGateway(EmbeddedDocument):
     gateway_endpoint: str = None
     gateway_service: str = None
     cors_enabled: bool = True
+    deadline: float = 15.0
 
     def __init__(self, **data):
         super().__init__(**data)
