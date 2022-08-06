@@ -635,10 +635,10 @@ optional = false
 python-versions = ">=3.6"
 
 [package.extras]
+tests = ["coverage[toml] (==5.0.4)", "pytest (>=6.0.0,<7.0.0)"]
+docs = ["zope.interface", "sphinx-rtd-theme", "sphinx"]
+dev = ["pre-commit", "mypy", "coverage[toml] (==5.0.4)", "pytest (>=6.0.0,<7.0.0)", "cryptography (>=3.3.1)", "zope.interface", "sphinx-rtd-theme", "sphinx"]
 crypto = ["cryptography (>=3.3.1)"]
-dev = ["sphinx", "sphinx-rtd-theme", "zope.interface", "cryptography (>=3.3.1)", "pytest (>=6.0.0,<7.0.0)", "coverage[toml] (==5.0.4)", "mypy", "pre-commit"]
-docs = ["sphinx", "sphinx-rtd-theme", "zope.interface"]
-tests = ["pytest (>=6.0.0,<7.0.0)", "coverage[toml] (==5.0.4)"]
 
 [[package]]
 name = "pylint"
@@ -759,7 +759,7 @@ pyasn1 = ">=0.1.3"
 
 [[package]]
 name = "sanic"
-version = "22.3.2"
+version = "22.6.1"
 description = "A web server and web framework that's written to go fast. Build fast. Run fast."
 category = "main"
 optional = false
@@ -775,10 +775,11 @@ uvloop = {version = ">=0.5.3", markers = "sys_platform != \"win32\" and implemen
 websockets = ">=10.0"
 
 [package.extras]
-all = ["gunicorn (==20.0.4)", "uvicorn (<0.15.0)", "pytest-cov", "cryptography", "mistune (<2.0.0)", "sphinx (>=2.1.2)", "bandit", "towncrier", "mypy (>=0.901,<0.910)", "pytest-sanic", "black", "sanic-testing (>=22.3.0)", "m2r2", "pytest-benchmark", "pytest (==6.2.5)", "slotscheck (>=0.8.0,<1)", "pytest-sugar", "coverage (==5.3)", "flake8", "pygments", "chardet (>=3.0.0,<4.0.0)", "docutils", "beautifulsoup4", "sphinx-rtd-theme (>=0.4.3)", "isort (>=5.0.0)", "tox", "types-ujson"]
+all = ["isort (>=5.0.0)", "pytest-sugar", "pytest-benchmark", "docutils", "towncrier", "cryptography", "mistune (<2.0.0)", "slotscheck (>=0.8.0,<1)", "flake8", "chardet (>=3.0.0,<4.0.0)", "m2r2", "bandit", "beautifulsoup4", "sanic-testing (>=22.3.0)", "mypy (>=0.901,<0.910)", "sphinx (>=2.1.2)", "tox", "uvicorn (<0.15.0)", "pygments", "black", "coverage (==5.3)", "pytest (==6.2.5)", "pytest-sanic", "pytest-cov", "enum-tools", "gunicorn (==20.0.4)", "sphinx-rtd-theme (>=0.4.3)", "types-ujson"]
 dev = ["sanic-testing (>=22.3.0)", "pytest (==6.2.5)", "coverage (==5.3)", "gunicorn (==20.0.4)", "pytest-cov", "beautifulsoup4", "pytest-sanic", "pytest-sugar", "pytest-benchmark", "chardet (>=3.0.0,<4.0.0)", "flake8", "black", "isort (>=5.0.0)", "bandit", "mypy (>=0.901,<0.910)", "docutils", "pygments", "uvicorn (<0.15.0)", "slotscheck (>=0.8.0,<1)", "cryptography", "tox", "towncrier", "types-ujson"]
-docs = ["sphinx (>=2.1.2)", "sphinx-rtd-theme (>=0.4.3)", "docutils", "pygments", "m2r2", "mistune (<2.0.0)"]
+docs = ["sphinx (>=2.1.2)", "sphinx-rtd-theme (>=0.4.3)", "docutils", "pygments", "m2r2", "enum-tools", "mistune (<2.0.0)"]
 ext = ["sanic-ext"]
+http3 = ["aioquic"]
 test = ["sanic-testing (>=22.3.0)", "pytest (==6.2.5)", "coverage (==5.3)", "gunicorn (==20.0.4)", "pytest-cov", "beautifulsoup4", "pytest-sanic", "pytest-sugar", "pytest-benchmark", "chardet (>=3.0.0,<4.0.0)", "flake8", "black", "isort (>=5.0.0)", "bandit", "mypy (>=0.901,<0.910)", "docutils", "pygments", "uvicorn (<0.15.0)", "slotscheck (>=0.8.0,<1)", "types-ujson"]
 
 [[package]]
@@ -1630,8 +1631,8 @@ rsa = [
     {file = "rsa-4.8.tar.gz", hash = "sha256:5c6bd9dc7a543b7fe4304a631f8a8a3b674e2bbfc49c2ae96200cdbe55df6b17"},
 ]
 sanic = [
-    {file = "sanic-22.3.2-py3-none-any.whl", hash = "sha256:5a4752261abfe636acdb5f0a587bceb76a1e0d53f0e077a027edce99eaa56e22"},
-    {file = "sanic-22.3.2.tar.gz", hash = "sha256:39d02762a8abbd7aa24130d1bbd12f6b6b15d398bc439a6f1a0387840b0484b9"},
+    {file = "sanic-22.6.1-py3-none-any.whl", hash = "sha256:a6d684ff572a4a8cdba66a28d128c9693b05dac07954d8dab9e7150eaa6714bc"},
+    {file = "sanic-22.6.1.tar.gz", hash = "sha256:da50afbd0ae307fa371f0a7406070c790ef92547c813d8590ae02f0d2f528815"},
 ]
 sanic-openapi = [
     {file = "sanic-openapi-21.12.0.tar.gz", hash = "sha256:7cda62234d08c965f739eaac6b059e8f244d87061d97335c57287fd6ae16bf52"},
