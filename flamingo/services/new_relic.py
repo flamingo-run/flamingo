@@ -51,14 +51,20 @@ class NewRelicAPI:
 
     def _list(self, resource: str, params: Dict = None) -> Dict:
         response = requests.get(
-            url=f"{NEW_RELIC_API_URL}/{resource}.json", params=params or {}, headers={"X-Api-Key": self.api_key}
+            url=f"{NEW_RELIC_API_URL}/{resource}.json",
+            params=params or {},
+            headers={"X-Api-Key": self.api_key},
+            timeout=30,
         )
         response.raise_for_status()
         return response.json()[resource]
 
     def _post(self, resource: str, payload: Dict = None) -> Dict:
         response = requests.post(
-            url=f"{NEW_RELIC_API_URL}/{resource}.json", json=payload, headers={"X-Api-Key": self.api_key}
+            url=f"{NEW_RELIC_API_URL}/{resource}.json",
+            json=payload,
+            headers={"X-Api-Key": self.api_key},
+            timeout=30,
         )
         response.raise_for_status()
         return response.json()
