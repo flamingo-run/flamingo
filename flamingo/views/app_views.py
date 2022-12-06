@@ -9,6 +9,7 @@ from models.app import App
 from models.database import Database
 from models.env_var import EnvVar
 from services.bootstrap import AppBootstrap
+from services.clone import AppClone
 from services.foundations import AppFoundation
 
 apps = Blueprint("apps", url_prefix="/apps")
@@ -34,6 +35,25 @@ class AppBoostrapView(NestedListView):
         bootstrap = AppBootstrap(app=nest_obj)
         new_obj = bootstrap.apply()
         return new_obj.to_dict(), 200
+
+    async def perform_put(self, request: Request, nest_obj: App) -> ResponseType:
+        raise exceptions.NotAllowedError()
+
+    async def perform_delete(self, request: Request, nest_obj: App) -> ResponseType:
+        raise exceptions.NotAllowedError()
+
+
+class AppCloneView(NestedListView):
+    nest_model = App
+
+    async def perform_get(self, request: Request, nest_obj: App) -> ResponseType:
+        raise exceptions.NotAllowedError()
+
+    async def perform_post(self, request: Request, nest_obj: App) -> ResponseType:
+        data, _ = self._parse_body(request=request)
+        app = AppClone(app=nest_obj).clone(env_id=data.get("environment_id"))
+
+        return app.to_dict(), 201
 
     async def perform_put(self, request: Request, nest_obj: App) -> ResponseType:
         raise exceptions.NotAllowedError()
@@ -148,5 +168,6 @@ apps.add_route(AppDetailView.as_view(), "/<pk>")
 apps.add_route(AppEnvVarsView.as_view(), "/<nest_pk>/vars")
 apps.add_route(AppDatabaseView.as_view(), "/<nest_pk>/database")
 apps.add_route(AppBoostrapView.as_view(), "/<nest_pk>/bootstrap")
+apps.add_route(AppCloneView.as_view(), "/<nest_pk>/clone")
 apps.add_route(AppInitializeView.as_view(), "/<nest_pk>/init")
 apps.add_route(AppApplyView.as_view(), "/<nest_pk>/apply")
