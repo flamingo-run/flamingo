@@ -65,6 +65,7 @@ class AppBootstrap:
     def repository(self) -> Repository:
         return Repository(
             name=self.app.name,
+            project=self.app.project,
         )
 
     @property
