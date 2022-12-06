@@ -25,8 +25,11 @@ unit:
 	@echo "Running unit tests ..."
 	ENV=test poetry run coverage run flamingo/manage.py test flamingo --no-input
 
+shell:
+	@PYTHONPATH=flamingo poetry run python
+
 run-server:
 	@poetry run python flamingo/main.py
 
 
-.PHONY: setup dependencies update test check lint unit static migrate run-server
+.PHONY: setup dependencies update test check lint unit shell static migrate run-server
