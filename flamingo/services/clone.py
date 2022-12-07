@@ -5,6 +5,7 @@ from sanic_rest.exceptions import NotFoundError, ValidationError
 
 from models.app import App
 from models.environment import Environment
+from models.project import Project
 
 
 @dataclass
@@ -39,3 +40,22 @@ class AppClone:
         clone_app.gateway = None
 
         return clone_app.save()
+
+
+@dataclass
+class EnvironmentClone:
+    environment: Environment
+
+    def clone(self, env_name: str, project_id: str) -> Environment:
+        if not env_name:
+            raise ValidationError("environment_name is required")
+        if not project_id:
+            raise ValidationError("project_id is required")
+
+        clone_env = Environment.from_entity(self.environment.to_entity())
+
+        clone_env.id = None
+        clone_env.name = env_name
+        clone_env.project = Project(id=project_id)
+
+        return clone_env.save()
