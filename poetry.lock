@@ -16,7 +16,6 @@ python-versions = ">=3.7.2"
 
 [package.dependencies]
 lazy-object-proxy = ">=1.4.0"
-typing-extensions = {version = ">=3.10", markers = "python_version < \"3.10\""}
 wrapt = {version = ">=1.11,<2", markers = "python_version < \"3.11\""}
 
 [[package]]
@@ -33,7 +32,6 @@ mypy-extensions = ">=0.4.3"
 pathspec = ">=0.9.0"
 platformdirs = ">=2"
 tomli = {version = ">=1.1.0", markers = "python_full_version < \"3.11.0a7\""}
-typing-extensions = {version = ">=3.10.0.0", markers = "python_version < \"3.10\""}
 
 [package.extras]
 colorama = ["colorama (>=0.4.3)"]
@@ -181,11 +179,11 @@ python-dateutil = ">=2.4"
 
 [[package]]
 name = "gcp-pilot"
-version = "0.52.2"
+version = "1.2.0"
 description = "Google Cloud Platform Friendly Pilot"
 category = "main"
 optional = false
-python-versions = ">=3.8,<3.11"
+python-versions = ">=3.10,<3.12"
 
 [package.dependencies]
 factory_boy = "*"
@@ -660,7 +658,6 @@ mccabe = ">=0.6,<0.8"
 platformdirs = ">=2.2.0"
 tomli = {version = ">=1.1.0", markers = "python_version < \"3.11\""}
 tomlkit = ">=0.10.1"
-typing-extensions = {version = ">=3.10.0", markers = "python_version < \"3.10\""}
 
 [package.extras]
 spelling = ["pyenchant (>=3.2,<4.0)"]
@@ -942,8 +939,8 @@ dev-kit = ["pylint", "coverage"]
 
 [metadata]
 lock-version = "1.1"
-python-versions = ">=3.9,<3.11"
-content-hash = "22376091bde1555972c0ba2fe5d9faeae07b87f746d2310f40c32f787fb14b60"
+python-versions = ">=3.10,<3.11"
+content-hash = "1a827512d006169a45dcfb505cb822f59b600d47c970d1a818e91b8a22dbbe5e"
 
 [metadata.files]
 aiofiles = [
@@ -1160,8 +1157,8 @@ faker = [
     {file = "Faker-15.3.4.tar.gz", hash = "sha256:2d5443724f640ce07658ca8ca8bbd40d26b58914e63eec6549727869aa67e2cc"},
 ]
 gcp-pilot = [
-    {file = "gcp-pilot-0.52.2.tar.gz", hash = "sha256:457ce3fd509a30927890996b1fbb22461e3cee899daed86d23d110de7b3d5c98"},
-    {file = "gcp_pilot-0.52.2-py3-none-any.whl", hash = "sha256:f9b9590676aed8ce6190d49dbf69e1226be1015c9c62903da348b99e27dbd5c1"},
+    {file = "gcp_pilot-1.2.0-py3-none-any.whl", hash = "sha256:a682afeeac74504f652ecc228a4a0cb0fd79b7330aac3965a87cc25438ee33bb"},
+    {file = "gcp_pilot-1.2.0.tar.gz", hash = "sha256:918e1a530bd9574e247d146d43a595a3ab6b6e981ad6c05bfeb1c014a95bb86f"},
 ]
 google-api-core = [
     {file = "google-api-core-2.11.0.tar.gz", hash = "sha256:4b9bb5d5a380a0befa0573b302651b8a9a89262c1730e37bf423cec511804c22"},
