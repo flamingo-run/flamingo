@@ -28,7 +28,7 @@ class BaseFoundation(abc.ABC):
         jobs = self.get_jobs()
         loop = asyncio.get_event_loop()
         for job in jobs.values():
-            loop.run_until_complete(job())
+            asyncio.ensure_future(job(), loop=loop)
         return list(jobs)
 
     @abstractmethod
@@ -45,7 +45,7 @@ class FlamingoFoundation(BaseFoundation):
 
     async def setup_bucket(self):
         gcs = CloudStorage()
-        await gcs.create_bucket(
+        gcs.create_bucket(
             name=settings.FLAMINGO_GCS_BUCKET,
             region=settings.FLAMINGO_LOCATION,
             project_id=settings.FLAMINGO_PROJECT,
@@ -80,7 +80,7 @@ class EnvironmentFoundation(BaseFoundation):
         ]
 
         for role in roles:
-            await grm.add_member(
+            grm.add_member(
                 email=settings.FLAMINGO_SERVICE_ACCOUNT,
                 role=role,
                 project_id=self.environment.project.id,
@@ -89,7 +89,7 @@ class EnvironmentFoundation(BaseFoundation):
     async def setup_build_notifications(self):
         # FIXME: does not seem to work on other projects than flamingo
         grm = ResourceManager()
-        await grm.add_member(
+        grm.add_member(
             email=self.environment.project.pubsub_account,
             role="iam.serviceAccountTokenCreator",
             project_id=settings.FLAMINGO_PROJECT,
@@ -97,7 +97,7 @@ class EnvironmentFoundation(BaseFoundation):
 
         build = CloudBuild()
         url = f"{settings.FLAMINGO_URL}/hooks/build"
-        await build.subscribe(
+        build.subscribe(
             subscription_id="flamingo",
             project_id=self.environment.project.id,
             push_to_url=url,
@@ -202,7 +202,7 @@ class AppFoundation(BaseFoundation):
         bucket = self.app.bucket
 
         gcs = CloudStorage()
-        return await gcs.create_bucket(
+        return gcs.create_bucket(
             name=bucket.name,
             project_id=bucket.project.id,
             region=bucket.region,
@@ -212,7 +212,7 @@ class AppFoundation(BaseFoundation):
         sql = CloudSQL()
 
         database = self.app.database
-        await sql.create_instance(
+        sql.create_instance(
             name=database.instance,
             version=database.version,
             tier=database.tier,
@@ -221,12 +221,12 @@ class AppFoundation(BaseFoundation):
             project_id=database.project.id,
             wait_ready=True,
         )
-        await sql.create_database(
+        sql.create_database(
             name=database.name,
             instance=database.instance,
             project_id=database.project.id,
         )
-        await sql.create_user(
+        sql.create_user(
             name=database.user,
             password=database.password,
             instance=database.instance,
@@ -239,13 +239,13 @@ class AppFoundation(BaseFoundation):
 
         service_account = self.app.service_account
 
-        await iam.create_service_account(
+        iam.create_service_account(
             name=service_account.name,
             display_name=service_account.display_name,
             project_id=service_account.project.id,
         )
         for role in service_account.roles:
-            await grm.add_member(
+            grm.add_member(
                 email=service_account.email,
                 role=role,
                 project_id=service_account.project.id,
@@ -264,7 +264,7 @@ class AppFoundation(BaseFoundation):
             desired_roles.append("cloudfunctions.admin")
 
         for role in desired_roles:
-            await grm.add_member(
+            grm.add_member(
                 email=cloud_build_account,
                 role=role,
                 project_id=self.app.project.id,
@@ -275,26 +275,26 @@ class AppFoundation(BaseFoundation):
         project_id = self.app.project.id
 
         # ... act as the app's project's Compute account
-        await iam.bind_member(
+        iam.bind_member(
             target_email=self.app.project.compute_account,
             member_email=cloud_build_account,
             role="iam.serviceAccountUser",
             project_id=project_id,
         )
         # ..and to impersonate the app's account (very common during custom steps)
-        await grm.add_member(
+        grm.add_member(
             email=cloud_build_account,
             role="iam.serviceAccountTokenCreator",
             project_id=project_id,
         )
         # ...and get buildpack's Dockerfile from Flamingo's project
-        await grm.add_member(
+        grm.add_member(
             email=cloud_build_account,
             role="storage.objectViewer",
             project_id=settings.FLAMINGO_PROJECT,
         )
         # ...and store app's Dockerfile in build's project
-        await grm.add_member(
+        grm.add_member(
             email=cloud_build_account,
             role="storage.admin",
             project_id=project_id,
@@ -305,13 +305,13 @@ class AppFoundation(BaseFoundation):
         cloud_run_account = self.app.project.cloud_run_account
 
         # ...pull container images from build's project
-        await grm.add_member(
+        grm.add_member(
             email=cloud_run_account,
             role="containerregistry.ServiceAgent",
             project_id=self.app.build.project.id,
         )
         # ... deploy as the app's service account
-        await grm.add_member(
+        grm.add_member(
             email=self.app.project.cloud_run_account,
             role="iam.serviceAccountTokenCreator",
             project_id=self.app.project.id,
@@ -324,7 +324,7 @@ class AppFoundation(BaseFoundation):
             self.app.project.pubsub_account,
         ]
         for service in related_services:
-            await grm.add_member(
+            grm.add_member(
                 email=service,
                 role="iam.serviceAccountTokenCreator",
                 project_id=self.app.project.id,
