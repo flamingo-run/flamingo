@@ -171,7 +171,7 @@ class BuildTriggerFactory(ABC):
         )
         description = self._get_description()
 
-        response = await self._service.create_or_update_trigger(
+        response = self._service.create_or_update_trigger(
             name=self.app.name,
             description=description,
             event=event,
