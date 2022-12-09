@@ -65,4 +65,4 @@ class EnvironmentInitializeView(NestedListView):
 environments.add_route(EnvironmentListView.as_view(), "/")
 environments.add_route(EnvironmentDetailView.as_view(), "/<pk>")
 environments.add_route(EnvironmentCloneView.as_view(), "/<nest_pk>/clone")
-environments.add_route(EnvironmentInitializeView.as_view(), "/<pk>/init")
+environments.add_route(EnvironmentInitializeView.as_view(), "/<nest_pk>/init")
