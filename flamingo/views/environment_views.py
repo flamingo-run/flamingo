@@ -29,6 +29,8 @@ class EnvironmentCloneView(NestedListView):
         app = EnvironmentClone(environment=nest_obj).clone(
             env_name=data.get("environment_name"),
             project_id=data.get("project_id"),
+            zone=data.get("zone"),
+            vpc_connector=data.get("vpc_connector"),
         )
 
         return app.to_dict(), 201

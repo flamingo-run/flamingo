@@ -1,10 +1,12 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from gcp_pilot.datastore import DoesNotExist
 from sanic_rest.exceptions import NotFoundError, ValidationError
 
 from models.app import App
 from models.environment import Environment
+from models.network import Network
 from models.project import Project
 
 
@@ -46,16 +48,27 @@ class AppClone:
 class EnvironmentClone:
     environment: Environment
 
-    def clone(self, env_name: str, project_id: str) -> Environment:
+    def clone(
+        self,
+        env_name: Optional[str] = None,
+        project_id: Optional[str] = None,
+        zone: Optional[str] = None,
+        vpc_connector: Optional[str] = None,
+    ) -> Environment:
         if not env_name:
             raise ValidationError("environment_name is required")
         if not project_id:
             raise ValidationError("project_id is required")
+        if not zone:
+            raise ValidationError("zone is required")
 
         clone_env = Environment.from_entity(self.environment.to_entity())
 
         clone_env.id = None
         clone_env.name = env_name
-        clone_env.project = Project(id=project_id)
+
+        project = Project(id=project_id)
+        clone_env.network = Network(zone=zone, project=project, vpc_connector=vpc_connector)
+        clone_env.project = project
 
         return clone_env.save()
